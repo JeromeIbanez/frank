@@ -1,69 +1,144 @@
-import Image from "next/image";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  computeExceptions,
+  dashboardStats,
+  getOpenTasks,
+} from "@/lib/queries";
+import { severity } from "@/lib/domain/deadlines";
+import { Money, SeverityDot } from "@/components/format";
+import { aiUsage } from "@/lib/ai/gateway";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const t = await getTranslations("dashboard");
+  const tAll = await getTranslations();
+  const [stats, exceptions, tasks, usage] = await Promise.all([
+    dashboardStats(),
+    computeExceptions(),
+    getOpenTasks(),
+    aiUsage(),
+  ]);
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = tasks.filter((x) => x.dueDate).slice(0, 8);
+
+  const tiles = [
+    { label: t("tiles.dossiers"), value: stats.dossiers },
+    { label: t("tiles.openTasks"), value: stats.openTasks },
+    { label: t("tiles.overdue"), value: stats.overdueTasks, alert: stats.overdueTasks > 0 },
+    { label: t("tiles.newDocuments"), value: stats.newDocuments },
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-sm text-neutral-500 mt-1">{t("subtitle")}</p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {tiles.map((tile) => (
+          <Card key={tile.label} className="py-4">
+            <CardContent className="px-5">
+              <div
+                className={
+                  "text-3xl font-semibold tabular-nums " +
+                  (tile.alert ? "text-red-600" : "")
+                }
+              >
+                {tile.value}
+              </div>
+              <div className="text-sm text-neutral-500 mt-1">{tile.label}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("exceptions.title")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {exceptions.length === 0 && (
+              <p className="text-sm text-neutral-500">{t("exceptions.none")}</p>
+            )}
+            {exceptions.slice(0, 10).map((e, i) => (
+              <Link
+                key={i}
+                href={`/dossiers/${e.dossierId}`}
+                className="flex items-start gap-2.5 rounded-md px-2.5 py-2 hover:bg-neutral-50 text-sm"
+              >
+                <SeverityDot severity={e.kind === "uncategorized" ? "amber" : "red"} />
+                <div className="min-w-0">
+                  <div className="font-medium">{e.dossierName}</div>
+                  <div className="text-neutral-500">
+                    {t(`exceptions.${e.kind}`)}
+                    {e.kind === "missed_income" && (
+                      <>
+                        {" — "}
+                        {String(e.detail.line)} (
+                        <Money cents={Number(e.detail.amountCents)} />)
+                      </>
+                    )}
+                    {e.kind === "balance_floor" && (
+                      <>
+                        {" — "}
+                        <Money cents={Number(e.detail.balanceCents)} />
+                      </>
+                    )}
+                    {e.kind === "uncategorized" && <> — {e.detail.count}×</>}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("deadlines.title")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {upcoming.length === 0 && (
+              <p className="text-sm text-neutral-500">{t("deadlines.none")}</p>
+            )}
+            {upcoming.map((task) => (
+              <Link
+                key={task.id}
+                href={
+                  task.dossier ? `/dossiers/${task.dossier.id}?tab=tasks` : "/my-day"
+                }
+                className="flex items-center gap-2.5 rounded-md px-2.5 py-2 hover:bg-neutral-50 text-sm"
+              >
+                <SeverityDot
+                  severity={severity(task.dueDate!, today, task.deadlineConfirmed)}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">
+                    {task.titleFree ?? tAll(task.titleKey)}
+                  </div>
+                  <div className="text-neutral-500">
+                    {task.dossier
+                      ? `${task.dossier.firstName} ${task.dossier.lastName}`
+                      : t("deadlines.office")}
+                  </div>
+                </div>
+                <div className="text-neutral-500 tabular-nums">{task.dueDate}</div>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <p className="text-xs text-neutral-400">
+        {t("aiUsage", {
+          used: usage.totalTokens.toLocaleString(),
+          cap: usage.cap.toLocaleString(),
+        })}
+      </p>
     </div>
   );
 }

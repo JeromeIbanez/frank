@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic demo fixture for Frank OS (fully fictional data).
+     camt.053.001.02 statement for beheerrekening NL91ABNA0417164300, June 2026.
+     Opening 850.25 + net entries 447.50 = closing 1297.75 (reconciles exactly). -->
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <BkToCstmrStmt>
+    <GrpHdr>
+      <MsgId>CAMT053-DEMO-2026-06</MsgId>
+      <CreDtTm>2026-07-01T06:00:00</CreDtTm>
+    </GrpHdr>
+    <Stmt>
+      <Id>NL91ABNA0417164300-2026-06</Id>
+      <ElctrncSeqNb>6</ElctrncSeqNb>
+      <CreDtTm>2026-07-01T06:00:00</CreDtTm>
+      <Acct>
+        <Id>
+          <IBAN>NL91ABNA0417164300</IBAN>
+        </Id>
+        <Ccy>EUR</Ccy>
+        <Nm>Beheerrekening J. de Vries</Nm>
+      </Acct>
+      <Bal>
+        <Tp>
+          <CdOrPrtry>
+            <Cd>OPBD</Cd>
+          </CdOrPrtry>
+        </Tp>
+        <Amt Ccy="EUR">850.25</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt>
+          <Dt>2026-05-31</Dt>
+        </Dt>
+      </Bal>
+      <Bal>
+        <Tp>
+          <CdOrPrtry>
+            <Cd>CLBD</Cd>
+          </CdOrPrtry>
+        </Tp>
+        <Amt Ccy="EUR">1297.75</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt>
+          <Dt>2026-06-30</Dt>
+        </Dt>
+      </Bal>
+      <Ntry>
+        <Amt Ccy="EUR">1450.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-01</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-01</Dt>
+        </ValDt>
+        <BkTxCd>
+          <Prtry>
+            <Cd>N654</Cd>
+          </Prtry>
+        </BkTxCd>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-001</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Dbtr>
+                <Nm>Gemeente Amsterdam</Nm>
+              </Dbtr>
+              <DbtrAcct>
+                <Id>
+                  <IBAN>NL69INGB0001234567</IBAN>
+                </Id>
+              </DbtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Participatiewet uitkering juni 2026</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">321.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-01</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-01</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-002</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Dbtr>
+                <Nm>Belastingdienst Toeslagen</Nm>
+              </Dbtr>
+              <DbtrAcct>
+                <Id>
+                  <IBAN>NL86INGB0002445588</IBAN>
+                </Id>
+              </DbtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Huurtoeslag juni 2026</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">123.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-01</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-01</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-003</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Dbtr>
+                <Nm>Belastingdienst Toeslagen</Nm>
+              </Dbtr>
+              <DbtrAcct>
+                <Id>
+                  <IBAN>NL86INGB0002445588</IBAN>
+                </Id>
+              </DbtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Zorgtoeslag juni 2026</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">712.50</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-02</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-02</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-004</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Woonstichting De Sleutel</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL44RABO0198765432</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Huur juni 2026 contract 88123</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">145.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-02</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-02</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-005</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Vattenfall Klantenservice N.V.</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL30ABNA0554466778</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Termijnbedrag energie juni 2026</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">158.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-02</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-02</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-006</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Zilveren Kruis Zorgverzekeringen N.V.</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL27INGB0003334455</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Premie zorgverzekering juni 2026 polis 123456</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">75.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-05</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-05</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-007</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>J. de Vries</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL02RABO0123456789</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Leefgeld week 23</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">75.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-12</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-12</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-008</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>J. de Vries</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL02RABO0123456789</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Leefgeld week 24</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">75.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-19</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-19</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-009</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>J. de Vries</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL02RABO0123456789</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Leefgeld week 25</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">75.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-26</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-26</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-010</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>J. de Vries</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL02RABO0123456789</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Leefgeld week 26</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">63.20</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-09</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-09</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-011</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Albert Heijn 1376 AMSTERDAM</Nm>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Betaalautomaat 09-06-2026 14:22 pasnr 001</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">41.85</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-16</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-16</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-012</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Jumbo Amsterdam Oost</Nm>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Betaalautomaat 16-06-2026 11:05 pasnr 001</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">12.50</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-20</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-20</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-013</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>NS Groep N.V.</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL07INGB0001098765</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>OV-chipkaart oplading</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">12.50</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-20</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-20</Dt>
+        </ValDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-2026-06-014</EndToEndId>
+            </Refs>
+            <RltdPties>
+              <Cdtr>
+                <Nm>NS Groep N.V.</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <IBAN>NL07INGB0001098765</IBAN>
+                </Id>
+              </CdtrAcct>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>OV-chipkaart oplading</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+    </Stmt>
+  </BkToCstmrStmt>
+</Document>

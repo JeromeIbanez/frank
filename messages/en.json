@@ -1,0 +1,466 @@
+{
+  "shell": {
+    "demoBanner": "DEMO ENVIRONMENT — synthetic data only. Do not enter real personal data."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "myDay": "My day",
+    "dossiers": "Dossiers",
+    "inbox": "Inbox",
+    "payments": "Payments",
+    "audit": "Audit log",
+    "tagline": "Guardianship operating system"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Office overview: deadlines, exceptions and workload at a glance.",
+    "tiles": {
+      "dossiers": "Active dossiers",
+      "openTasks": "Open tasks",
+      "overdue": "Overdue",
+      "newDocuments": "New documents"
+    },
+    "exceptions": {
+      "title": "Exceptions",
+      "none": "No exceptions — all dossiers within expectations.",
+      "missed_income": "Expected income not received",
+      "balance_floor": "Account balance below floor",
+      "uncategorized": "Transactions to review",
+      "unconfirmed_deadline": "Statutory deadline awaiting confirmation"
+    },
+    "deadlines": {
+      "title": "Upcoming deadlines",
+      "none": "No upcoming deadlines.",
+      "office": "Office-level"
+    },
+    "aiUsage": "AI usage (demo cap): {used} / {cap} tokens. All AI output is a proposal until a human approves it."
+  },
+  "myDay": {
+    "title": "My day",
+    "subtitle": "Every open task across your dossiers, most urgent first."
+  },
+  "tasks": {
+    "boedelbeschrijving": "File asset inventory (boedelbeschrijving)",
+    "plan_van_aanpak": "Draft plan of approach (plan van aanpak)",
+    "rekening_verantwoording": "Annual account to the court (rekening & verantwoording)",
+    "vijfjaarlijkse_evaluatie": "Five-yearly evaluation of the measure",
+    "maandoverzicht_client": "Send monthly account overview to client",
+    "manual": "Task",
+    "fromDocument": "Follow-up from document"
+  },
+  "playbooks": {
+    "open_bankrekeningen": "Open beheer- and leefgeld accounts",
+    "aanschrijven_instanties": "Notify all agencies (aanschrijven instanties)",
+    "budgetplan_opstellen": "Draw up the budget plan",
+    "toeslagen_check": "Check & apply for benefits (toeslagen)",
+    "bijzondere_bijstand": "Apply for bijzondere bijstand (guardianship costs)",
+    "kwijtschelding": "Request waiver of local taxes (kwijtschelding)",
+    "schulden_inventarisatie": "Inventory debts and notify bailiffs",
+    "leefgeld_instellen": "Set up weekly living allowance (leefgeld)",
+    "check": {
+      "beheerrekening": "Management account (beheerrekening) opened",
+      "leefgeldrekening": "Living-allowance account (leefgeldrekening) opened",
+      "oude_passen": "Old debit cards blocked",
+      "huurtoeslag": "Rent benefit (huurtoeslag) checked",
+      "zorgtoeslag": "Health-care benefit (zorgtoeslag) checked",
+      "kindgebonden": "Child budget (kindgebonden budget) checked"
+    }
+  },
+  "tasksUi": {
+    "none": "No open tasks.",
+    "completed": "{count} completed or closed",
+    "due": "due",
+    "basis": "Basis",
+    "confirmDeadline": "Confirm deadline",
+    "deadlineConfirmed": "Deadline confirmed.",
+    "to_prepared": "Prepare",
+    "to_submitted": "Mark submitted",
+    "to_confirmed": "Mark confirmed",
+    "to_done": "Done",
+    "evidenceHint": "Record how this step was performed and the evidence for it. This feeds the dossier's audit trail.",
+    "method": "Method",
+    "method_portal": "Portal (e.g. Mijn CBM, gemeente)",
+    "method_letter": "Letter",
+    "method_phone": "Phone",
+    "method_email": "E-mail",
+    "method_file_export": "File export",
+    "method_internal": "Internal",
+    "evidenceNote": "Evidence / reference",
+    "evidencePlaceholder": "e.g. Mijn CBM reference, confirmation number…",
+    "transitionDone": "Task updated."
+  },
+  "taskStatus": {
+    "open": "Open",
+    "prepared": "Prepared",
+    "submitted": "Submitted",
+    "confirmed": "Confirmed",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "dossiers": {
+    "title": "Dossiers",
+    "count": "{count} dossiers",
+    "new": "New dossier",
+    "cols": {
+      "name": "Name",
+      "regime": "Measure",
+      "status": "Status",
+      "start": "Start",
+      "gemeente": "Municipality",
+      "accounts": "Accounts"
+    },
+    "schulden": "debts",
+    "regime": {
+      "bewind": "Bewind (administration)",
+      "curatele": "Curatele (guardianship)",
+      "mentorschap": "Mentorschap (mentorship)",
+      "bewind_mentorschap": "Bewind + mentorschap"
+    },
+    "status": {
+      "aanmelding": "Registration",
+      "intake": "Intake",
+      "aangevraagd": "Requested at court",
+      "actief": "Active",
+      "uitstroom": "Exiting",
+      "overleden": "Deceased",
+      "afgesloten": "Closed"
+    },
+    "empty": "No dossiers yet. Create the first one."
+  },
+  "newDossier": {
+    "title": "New dossier",
+    "subtitle": "Register a client. The statutory task schedule is generated at activation.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "dateOfBirth": "Date of birth",
+    "gemeente": "Municipality",
+    "addressStreet": "Street + number",
+    "addressPostcode": "Postcode",
+    "addressCity": "City",
+    "regimeLabel": "Measure",
+    "grondslagLabel": "Legal ground",
+    "grondslag": {
+      "geestelijk_lichamelijk": "Mental or physical condition",
+      "schulden": "Problematic debts",
+      "verkwisting": "Prodigality (verkwisting)"
+    },
+    "rechtbank": "Court (rechtbank)",
+    "zaaknummer": "Case number",
+    "beschikkingDate": "Date of court order (beschikking)",
+    "startDate": "Start date of the measure",
+    "syntheticNote": "Demo environment: enter synthetic data only — never real personal data.",
+    "create": "Create dossier"
+  },
+  "dossierDetail": {
+    "tabs": {
+      "overview": "Overview",
+      "tasks": "Tasks",
+      "budget": "Budget plan",
+      "transactions": "Transactions",
+      "documents": "Documents",
+      "letters": "Letters",
+      "filings": "Court filings",
+      "copilot": "Copilot"
+    }
+  },
+  "overview": {
+    "person": "Client",
+    "dateOfBirth": "Date of birth",
+    "address": "Address",
+    "gemeente": "Municipality",
+    "beschikking": "Court order",
+    "start": "Start of measure",
+    "leefgeld": "Living allowance",
+    "freq": { "weekly": "per week", "monthly": "per month" },
+    "needStartDate": "A start date is required before activation.",
+    "activate": "Activate dossier",
+    "activated": "Dossier activated — statutory tasks and start playbook generated.",
+    "rvSchedule": "Court R&V schedule",
+    "rvConfirmed": "Annual account due in month {month}, as instructed by the court.",
+    "rvMissing": "The court's R&V schedule has not been recorded. No R&V deadline is tracked until you set it — this is an explicit dossier fact, never inferred.",
+    "rvSave": "Record schedule",
+    "rvSaved": "R&V schedule recorded; annual account task generated.",
+    "months": {
+      "1": "January", "2": "February", "3": "March", "4": "April",
+      "5": "May", "6": "June", "7": "July", "8": "August",
+      "9": "September", "10": "October", "11": "November", "12": "December"
+    },
+    "accounts": "Accounts",
+    "accountType": {
+      "beheer": "Management account",
+      "leefgeld": "Living-allowance account",
+      "spaar": "Savings account"
+    },
+    "noAccounts": "No accounts yet.",
+    "addAccount": "Add account",
+    "accountAdded": "Account added.",
+    "bankName": "Bank",
+    "openingBalance": "Opening balance (€)",
+    "save": "Save",
+    "cancel": "Cancel",
+    "contacts": "Agencies",
+    "notified": "notified",
+    "debts": "Debts",
+    "debtTotal": "Total debt"
+  },
+  "budget": {
+    "income": "Income",
+    "expenses": "Fixed charges",
+    "reserves": "Reserves",
+    "monthlyIncome": "Income / month",
+    "monthlyExpenses": "Charges / month",
+    "monthlyLeefgeld": "Leefgeld / month",
+    "margin": "Margin",
+    "freq": {
+      "weekly": "weekly",
+      "monthly": "monthly",
+      "quarterly": "quarterly",
+      "yearly": "yearly",
+      "once": "one-off"
+    },
+    "day": "day",
+    "none": "No lines.",
+    "addLine": "Add budget line",
+    "lineName": "Name (e.g. Rent)",
+    "amountPlaceholder": "Amount, e.g. 725,50",
+    "expectedDayPlaceholder": "Expected day (1–28)",
+    "counterpartyName": "Counterparty",
+    "add": "Add",
+    "lineAdded": "Budget line added.",
+    "leefgeldTitle": "Living allowance (leefgeld)",
+    "leefgeldSaved": "Leefgeld updated.",
+    "save": "Save"
+  },
+  "transactions": {
+    "importTitle": "Import bank statement (CAMT.053)",
+    "importHint": "One documented CAMT.053 profile. Re-importing the same file never creates duplicates; the raw file is stored immutably.",
+    "manualTitle": "Manual transaction",
+    "ledger": "Ledger",
+    "uncategorized": "{count} to categorize",
+    "cols": {
+      "date": "Date",
+      "counterparty": "Counterparty",
+      "description": "Description",
+      "category": "Category",
+      "amount": "Amount"
+    },
+    "empty": "No transactions yet. Import a CAMT.053 file or add one manually.",
+    "importResult": "Imported: {imported} new, {duplicates} duplicates skipped.",
+    "importing": "Importing…",
+    "import": "Import",
+    "added": "Transaction added.",
+    "out": "Out",
+    "in": "In",
+    "add": "Add",
+    "aiDone": "AI categorized {count} transactions (marked ✦, review as needed).",
+    "aiUnavailable": "AI unavailable — categorize manually or try again later.",
+    "aiRunning": "Categorizing…",
+    "aiCategorize": "AI categorize"
+  },
+  "documents": {
+    "emptyDossier": "No documents in this dossier.",
+    "status": {
+      "new": "New",
+      "triaged": "Triaged",
+      "linked": "Linked",
+      "archived": "Archived"
+    },
+    "classify": "Classify…",
+    "class": {
+      "factuur": "Invoice",
+      "aanmaning": "Payment reminder",
+      "beschikking_toeslag": "Benefit decision (toeslag)",
+      "beschikking_gemeente": "Municipal decision",
+      "exploot": "Bailiff writ (exploot)",
+      "polis": "Insurance policy",
+      "loonstrook": "Payslip",
+      "bankafschrift": "Bank statement",
+      "brief_rechtbank": "Court letter",
+      "overig": "Other"
+    },
+    "deadline": "Deadline",
+    "aiProposal": "AI proposal",
+    "proposalAccepted": "Accepted — task created.",
+    "accept": "Accept → task",
+    "chooseDossier": "Choose dossier…",
+    "link": "Link",
+    "linked": "Linked to dossier."
+  },
+  "letters": {
+    "packTitle": "Agency notification pack (aanschrijfbrieven)",
+    "packHint": "{count} agencies not yet notified. Generates one Dutch letter per agency from the dossier data.",
+    "generatePack": "Generate pack",
+    "packDone": "{count} letters drafted — review and approve below.",
+    "generateTitle": "Draft a letter",
+    "templates": {
+      "aanschrijfbrief": "Agency notification",
+      "betalingsregeling": "Payment arrangement proposal",
+      "beslagvrije_voet": "Attachment-free threshold recalculation",
+      "kwijtschelding": "Local tax waiver request",
+      "deurwaarder_melding": "Bailiff notification"
+    },
+    "recipient": "Recipient",
+    "kenmerk": "Reference (kenmerk)",
+    "amountTotal": "Total amount (€)",
+    "amountMonthly": "Monthly amount (€)",
+    "contextPlaceholder": "Optional context for AI tailoring (e.g. 'client had an income gap in July; propose starting in October')",
+    "aiNote": "With context, AI tailors the draft. Official letters are always in Dutch; you approve before anything counts as sent.",
+    "generate": "Draft letter",
+    "generating": "Drafting…",
+    "generated": "Draft created — review below.",
+    "listTitle": "Letters",
+    "empty": "No letters yet.",
+    "status": { "draft": "Draft", "approved": "Approved", "sent": "Sent" },
+    "dutchNote": "Official correspondence is always in Dutch, regardless of your UI language.",
+    "approve": "Approve",
+    "approved": "Letter approved.",
+    "markSent": "Mark as sent",
+    "sentDone": "Recorded as sent."
+  },
+  "filings": {
+    "rvTitle": "Annual account {year} (rekening & verantwoording)",
+    "rvExplainer": "The review pack computes every figure from the ledger and checks completeness. It is a working document: the actual filing happens in Mijn CBM, and you remain responsible for its content.",
+    "totalIncome": "Total income",
+    "totalExpenses": "Total expenses",
+    "validation": {
+      "rvScheduleMissing": "Court R&V schedule not recorded (Overview tab).",
+      "uncategorized": "{detail} uncategorized transactions — categorize before filing.",
+      "largeExpenses": "{detail} expense(s) ≥ €2,000 — consent or court authorization evidence required (LOVT B.D3).",
+      "noTransactions": "No transactions in this period."
+    },
+    "validationClean": "All checks pass.",
+    "openPack": "Open review pack",
+    "openPackPrev": "Pack {year}",
+    "notForSubmission": "Working document — not for court submission. File via Mijn CBM.",
+    "boedelTitle": "Asset inventory (boedelbeschrijving)",
+    "boedelExplainer": "Worksheet from the current dossier facts: accounts, debts and income. Due within 4 months of the start of the measure (art. 1:436 BW).",
+    "boedelAccounts": "Accounts registered",
+    "boedelDebts": "Debts registered",
+    "boedelIncome": "Income sources",
+    "boedelLines": "lines",
+    "boedelHint": "Complete the inventory in Mijn CBM; keep the evidence in the Documents tab."
+  },
+  "rvPack": {
+    "back": "Back to dossier",
+    "print": "Print",
+    "watermark": "WERKDOCUMENT — NOT FOR SUBMISSION. File the R&V via Mijn CBM.",
+    "title": "Annual account {year} — review pack",
+    "period": "Period",
+    "balances": "Account balances",
+    "account": "Account",
+    "opening": "Opening",
+    "closing": "Closing",
+    "leefgeldNote": "Leefgeld account: only opening/closing balance required (LOVT B.B11).",
+    "income": "Income",
+    "expenses": "Expenses",
+    "total": "Total",
+    "largeExpenses": "Expenses ≥ €2,000",
+    "largeExpensesHint": "Attach consent of the client or the court authorization for each (LOVT B.D3).",
+    "validations": "Completeness checks",
+    "clean": "All checks pass.",
+    "validation": {
+      "rvScheduleMissing": "Court R&V schedule not recorded.",
+      "uncategorized": "{detail} uncategorized transactions.",
+      "largeExpenses": "{detail} expense(s) ≥ €2,000 need consent evidence.",
+      "noTransactions": "No transactions in this period."
+    },
+    "attachments": "Attachment checklist",
+    "attachment": {
+      "bankStatements": "Bank statements per account (bank export with logo — app screenshots are not accepted)",
+      "leefgeldBalances": "Leefgeld account: opening & closing balance",
+      "consentEvidence": "Consent / machtiging evidence for €2,000+ expenditures",
+      "debtOverview": "Current debt overview"
+    },
+    "mijnCbmNote": "Filing happens in Mijn CBM (Rechtspraak). Mark the R&V task as submitted with the Mijn CBM reference as evidence."
+  },
+  "copilot": {
+    "intro": "Ask anything about this dossier. Answers are grounded in the dossier's own data; the copilot is read-only and cannot change anything.",
+    "suggestion1": "Summarize this dossier",
+    "suggestion2": "Any missed income this month?",
+    "suggestion3": "Does a €2,300 washing machine need court authorization?",
+    "thinking": "Consulting the dossier…",
+    "unavailable": "AI is unavailable right now (demo cap or no model access). The rest of Frank OS keeps working.",
+    "placeholder": "Ask about this dossier…",
+    "readOnlyNote": "Read-only copilot: it can look things up and draft, but every action stays with you. BSN and account numbers are redacted before anything reaches the model."
+  },
+  "inbox": {
+    "title": "Inbox",
+    "subtitle": "Incoming post: upload or paste, AI proposes classification and next action, you decide.",
+    "uploadTitle": "New document",
+    "pasteMode": "Paste text",
+    "fileMode": "Upload file",
+    "pastePlaceholder": "Paste the text of an incoming letter here (demo: text is what the AI triages)…",
+    "processing": "Processing…",
+    "upload": "Add to inbox",
+    "uploaded": "Document added and triaged.",
+    "aiTriageNote": "AI triage proposes; nothing happens without your approval.",
+    "empty": "Inbox empty."
+  },
+  "payments": {
+    "title": "Payments",
+    "subtitle": "Proposals from budget plans and leefgeld schedules. Approve, then export as pain.001 — the OS never moves money itself.",
+    "createProposals": "Generate proposals",
+    "generating": "Generating…",
+    "proposalsCreated": "{count} payment proposals created.",
+    "execution": "Execution",
+    "items": "payments",
+    "flagged": "{count} need legal review",
+    "status": {
+      "draft": "Draft",
+      "approved": "Approved",
+      "exported": "Exported",
+      "cancelled": "Cancelled"
+    },
+    "empty": "No batches yet. Generate proposals from the budget plans.",
+    "approve": "Approve batch",
+    "approved": "Batch approved.",
+    "approveBlocked": "Blocked: resolve validation errors and machtiging reviews first.",
+    "exportPain": "Export pain.001 (demo)",
+    "blockedBanner": "{count} item(s) blocked: validation errors or unresolved machtiging review. Approval is disabled until resolved.",
+    "demoExportNote": "Exported as {filename} — DEMO file, do not deliver to a bank. Real-bank export is disabled outside a configured production environment.",
+    "cols": {
+      "dossier": "Dossier",
+      "creditor": "Creditor",
+      "remittance": "Description",
+      "amount": "Amount",
+      "review": "Review"
+    },
+    "reviewOk": "OK",
+    "machtigingReview": "Legal review required",
+    "machtigingTitle": "Machtiging review",
+    "machtigingDisclaimer": "This flag signals that consent of the client or authorization of the kantonrechter may be required (LOVT April 2025). It is a review flag, not a legal conclusion — you decide and record the basis.",
+    "resolution": {
+      "consent_recorded": "Client consent recorded",
+      "court_authorization": "Court authorization (machtiging) obtained",
+      "not_applicable": "Not applicable (explain)"
+    },
+    "rationalePlaceholder": "Rationale / reference (required)",
+    "machtigingResolved": "Review recorded."
+  },
+  "machtiging": {
+    "reason": {
+      "over2000": "Amount ≥ €2,000 (LOVT B.D2)",
+      "aggregation": "Same-purpose spending this year reaches €2,000 (LOVT B.D3)",
+      "gift": "Gift — always requires review (LOVT B.J1)",
+      "loan": "Loan/credit — art. 1:441 lid 2 BW",
+      "settlement": "Settlement above €700 — art. 1:441 lid 2 BW",
+      "housing": "Housing transaction (LOVT B.D2)"
+    }
+  },
+  "audit": {
+    "title": "Audit log",
+    "subtitle": "Append-only record of every change: who (human or AI agent), what, and on whose approval.",
+    "cols": {
+      "time": "Time",
+      "actor": "Actor",
+      "action": "Action",
+      "entity": "Entity",
+      "detail": "Detail"
+    },
+    "appendOnlyNote": "Audit rows are never updated or deleted by the application. Actor is 'demo-user' until authentication is added."
+  }
+}
