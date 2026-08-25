@@ -1,26 +1,17 @@
-# Frank OS — Build Log / Resume Checkpoint
+# Frank OS — Build Log
 
-Purpose: if this session is interrupted (usage limit, crash), resume from here.
+## MVP shipped — 2026-08-26 (overnight build)
 
-## Mission (from Jerome, 2026-08-25 night)
-Build + deploy the Frank OS MVP overnight. Process: PRD → Temujin plan review (iterate until BOTH approve) → implement (consult Temujin along the way, incl. UX opinions; periodic UX checks on running app) → deploy to Vercel → push branch, open PR on https://github.com/JeromeIbanez/frank → Temujin code review loop. I decide when done. Jerome asleep; wake to working MVP.
+- Research (legal / operations / competitive) → docs/research/
+- PRD v0.2 approved by Claude + Temujin (2 rounds) → docs/PRD.md
+- MVP implemented per PRD §6; Temujin code review round 1 (REVISE, 8 findings + UX) fully addressed; round 2 APPROVE (1 minor + 2 nits, also fixed)
+- PR #1 squash-merged to main: https://github.com/JeromeIbanez/frank/pull/1
+- **Production: https://frank-os-phi.vercel.app** (public, DEMO banner, synthetic data only)
+- Quality: 72/72 domain tests, lint clean, build green; CAMT idempotency and single-open-batch constraint verified against the live DB; pain.001 export XML-validated (35 tx / 7 PmtInf / exact control sum)
 
-How to reach Temujin: `openclaw agent --agent main --session-key agent:main:frank-dev --message "..." --json` (or --message-file). Reply in .result.payloads[].text.
+## Open items (next session candidates)
+- AI Gateway credits: free tier is rate-limited → AI features usually show the graceful fallback. Small top-up + set FRANK_MODEL_STRUCTURED / FRANK_MODEL_DRAFTING to Claude models (README). Topping up is Jerome's call (financial action).
+- P1 (per PRD §7): auth (Clerk) + dedicated DB role (audit REVOKE becomes enforceable), FinGuard, Aansluitpunt certification path, evidence-grade document storage, action-level integration-test harness, batch exception queries at scale, tijdschrijven + office billing.
+- Vercel CLI outdated (58.7.1 → 59.5.0): recommend `npm i -g vercel@latest`.
 
-## Status
-- [x] Research: docs/research/{legal,operations,competitive}-research.md — DONE
-- [x] PRD v0.1: docs/PRD.md — DONE (incl. competitive insights)
-- [x] Next.js scaffold (create-next-app, TS/Tailwind/App Router/src-dir) in repo root
-- [ ] ← NEXT: send PRD + context to Temujin (session frank-dev), iterate to mutual approval
-- [ ] Implement MVP per PRD §6 (10 scope items; bilingual next-intl NL/EN; no auth but auth-ready stub)
-- [ ] DB: try Vercel Marketplace (Neon Postgres) via marketplace skill; fallback: seeded SQLite/local or demo-mode data layer behind a repository interface
-- [ ] UX checks (browser preview) + Temujin UX critique at UI milestones
-- [ ] Deploy to Vercel (vercel:deploy skill)
-- [ ] Commit to feature branch, push, open PR, Temujin code review loop, merge
-- [ ] Morning report to Jerome
-
-## Key decisions so far
-- Stack: Next.js App Router + TS + Tailwind + shadcn/ui, Drizzle, next-intl, AI SDK v6 via AI Gateway.
-- Repo currently has scaffold uncommitted (empty upstream repo, no branches yet). First commit → main (scaffold+docs), then feature branch `feature/frank-os-mvp` for the build → PR.
-- Watchdog: background sleep (task bv70zrhmr, ~3h15m) fires in case of usage-limit pause. If it fires and nothing else is pending, re-read this file and continue the next unchecked item.
-- €2,000 machtiging threshold (LOVT April 2025), NOT €1,500. CAMT.053-native. Mijn CBM-first for court filings.
+Process references: memory files frank-workflow-temujin-review, temujin-contact, frank-product-requirements.
