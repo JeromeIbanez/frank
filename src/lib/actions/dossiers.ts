@@ -210,14 +210,24 @@ export async function setRvSchedule(
   });
   if (!dossier || month < 1 || month > 12) return;
 
-  await db
+  // Race-safe first-confirmation (Temujin round 2 minor): the conditional
+  // update wins at most once; only the winner generates the statutory task.
+  const confirmed = await db
     .update(dossiers)
     .set({ rvScheduleMonth: month, rvScheduleConfirmed: true, updatedAt: new Date() })
-    .where(eq(dossiers.id, dossierId));
+    .where(
+      and(eq(dossiers.id, dossierId), eq(dossiers.rvScheduleConfirmed, false))
+    )
+    .returning({ id: dossiers.id });
+  if (confirmed.length === 0) {
+    // already confirmed: allow updating the month, but never re-generate tasks
+    await db
+      .update(dossiers)
+      .set({ rvScheduleMonth: month, updatedAt: new Date() })
+      .where(eq(dossiers.id, dossierId));
+  }
 
-  // Generate the R&V task now that the schedule is confirmed (only on the
-  // first confirmation — repeats must not duplicate the statutory task)
-  if (!dossier.rvScheduleConfirmed && dossier.startDate && dossier.status === "actief") {
+  if (confirmed.length > 0 && dossier.startDate && dossier.status === "actief") {
     const specs = computeStatutoryTasks({
       startDate: dossier.startDate,
       beschikkingDate: dossier.beschikkingDate,

@@ -67,8 +67,12 @@ export async function createPaymentProposals(): Promise<{
       })
       .returning();
   } catch {
-    // partial unique index one_open_payment_batch lost the race
-    return { items: 0, error: "open_batch_exists" };
+    // partial unique index one_open_payment_batch lost the race — surface
+    // the winning batch so the UI can navigate to it
+    const winner = await db.query.paymentBatches.findFirst({
+      where: inArray(paymentBatches.status, ["draft", "approved"]),
+    });
+    return { batchId: winner?.id, items: 0, error: "open_batch_exists" };
   }
 
   let itemCount = 0;
