@@ -1,0 +1,508 @@
+{
+  "shell": {
+    "demoBanner": "DEMO-OMGEVING — uitsluitend synthetische gegevens. Voer geen echte persoonsgegevens in."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "myDay": "Mijn dag",
+    "dossiers": "Dossiers",
+    "inbox": "Postbus",
+    "payments": "Betalingen",
+    "audit": "Auditlog",
+    "tagline": "Besturingssysteem voor bewindvoering"
+  },
+  "common": {
+    "cancel": "Annuleren",
+    "confirm": "Bevestigen"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Kantooroverzicht: termijnen, signaleringen en werkvoorraad in één oogopslag.",
+    "tiles": {
+      "dossiers": "Actieve dossiers",
+      "openTasks": "Open taken",
+      "overdue": "Verlopen",
+      "newDocuments": "Nieuwe documenten"
+    },
+    "exceptions": {
+      "title": "Signaleringen",
+      "none": "Geen signaleringen — alle dossiers binnen verwachting.",
+      "missed_income": "Verwachte inkomsten niet ontvangen",
+      "balance_floor": "Saldo onder de ondergrens",
+      "uncategorized": "Transacties te beoordelen",
+      "unconfirmed_deadline": "Wettelijke termijn wacht op bevestiging"
+    },
+    "deadlines": {
+      "title": "Komende termijnen",
+      "none": "Geen komende termijnen.",
+      "office": "Kantoorniveau"
+    },
+    "aiUsage": "AI-verbruik (demolimiet): {used} / {cap} tokens. Alle AI-output is een voorstel totdat een mens het goedkeurt."
+  },
+  "myDay": {
+    "title": "Mijn dag",
+    "subtitle": "Alle open taken over uw dossiers, meest urgent eerst."
+  },
+  "tasks": {
+    "boedelbeschrijving": "Boedelbeschrijving indienen",
+    "plan_van_aanpak": "Plan van aanpak opstellen",
+    "rekening_verantwoording": "Rekening en verantwoording aan de kantonrechter",
+    "vijfjaarlijkse_evaluatie": "Vijfjaarlijkse evaluatie van de maatregel",
+    "maandoverzicht_client": "Maandelijks rekeningoverzicht naar cliënt",
+    "manual": "Taak",
+    "fromDocument": "Vervolg uit document"
+  },
+  "playbooks": {
+    "open_bankrekeningen": "Beheer- en leefgeldrekening openen",
+    "aanschrijven_instanties": "Instanties aanschrijven",
+    "budgetplan_opstellen": "Budgetplan opstellen",
+    "toeslagen_check": "Toeslagen controleren en aanvragen",
+    "bijzondere_bijstand": "Bijzondere bijstand aanvragen (bewindskosten)",
+    "kwijtschelding": "Kwijtschelding lokale belastingen aanvragen",
+    "schulden_inventarisatie": "Schulden inventariseren en deurwaarders informeren",
+    "leefgeld_instellen": "Leefgeld instellen",
+    "check": {
+      "beheerrekening": "Beheerrekening geopend",
+      "leefgeldrekening": "Leefgeldrekening geopend",
+      "oude_passen": "Oude passen geblokkeerd",
+      "huurtoeslag": "Huurtoeslag gecontroleerd",
+      "zorgtoeslag": "Zorgtoeslag gecontroleerd",
+      "kindgebonden": "Kindgebonden budget gecontroleerd"
+    }
+  },
+  "tasksUi": {
+    "none": "Geen open taken.",
+    "completed": "{count} afgerond of gesloten",
+    "due": "uiterlijk",
+    "basis": "Grondslag",
+    "confirmDeadline": "Termijn bevestigen",
+    "deadlineConfirmed": "Termijn bevestigd.",
+    "to_prepared": "Voorbereiden",
+    "to_submitted": "Ingediend",
+    "to_confirmed": "Bevestigd",
+    "to_done": "Klaar",
+    "evidenceHint": "Leg vast hoe deze stap is uitgevoerd en met welk bewijs. Dit voedt het auditspoor van het dossier.",
+    "method": "Wijze",
+    "method_portal": "Portaal (bijv. Mijn CBM, gemeente)",
+    "method_letter": "Brief",
+    "method_phone": "Telefoon",
+    "method_email": "E-mail",
+    "method_file_export": "Bestandsexport",
+    "method_internal": "Intern",
+    "evidenceNote": "Bewijs / referentie",
+    "evidencePlaceholder": "bijv. Mijn CBM-kenmerk, bevestigingsnummer…",
+    "transitionDone": "Taak bijgewerkt."
+  },
+  "taskStatus": {
+    "open": "Open",
+    "prepared": "Voorbereid",
+    "submitted": "Ingediend",
+    "confirmed": "Bevestigd",
+    "done": "Klaar",
+    "cancelled": "Vervallen"
+  },
+  "dossiers": {
+    "title": "Dossiers",
+    "count": "{count} dossiers",
+    "new": "Nieuw dossier",
+    "cols": {
+      "name": "Naam",
+      "regime": "Maatregel",
+      "status": "Status",
+      "start": "Start",
+      "gemeente": "Gemeente",
+      "accounts": "Rekeningen"
+    },
+    "schulden": "schulden",
+    "regime": {
+      "bewind": "Bewind",
+      "curatele": "Curatele",
+      "mentorschap": "Mentorschap",
+      "bewind_mentorschap": "Bewind + mentorschap"
+    },
+    "status": {
+      "aanmelding": "Aanmelding",
+      "intake": "Intake",
+      "aangevraagd": "Aangevraagd",
+      "actief": "Actief",
+      "uitstroom": "Uitstroom",
+      "overleden": "Overleden",
+      "afgesloten": "Afgesloten"
+    },
+    "empty": "Nog geen dossiers. Maak het eerste aan."
+  },
+  "newDossier": {
+    "title": "Nieuw dossier",
+    "subtitle": "Registreer een cliënt. Het wettelijke takenschema wordt bij activering gegenereerd.",
+    "firstName": "Voornaam",
+    "lastName": "Achternaam",
+    "dateOfBirth": "Geboortedatum",
+    "gemeente": "Gemeente",
+    "addressStreet": "Straat + huisnummer",
+    "addressPostcode": "Postcode",
+    "addressCity": "Woonplaats",
+    "regimeLabel": "Maatregel",
+    "grondslagLabel": "Grondslag",
+    "grondslag": {
+      "geestelijk_lichamelijk": "Geestelijke of lichamelijke toestand",
+      "schulden": "Problematische schulden",
+      "verkwisting": "Verkwisting"
+    },
+    "rechtbank": "Rechtbank",
+    "zaaknummer": "Zaaknummer",
+    "beschikkingDate": "Datum beschikking",
+    "startDate": "Startdatum maatregel",
+    "syntheticNote": "Demo-omgeving: alleen synthetische gegevens invoeren — nooit echte persoonsgegevens.",
+    "create": "Dossier aanmaken"
+  },
+  "dossierDetail": {
+    "tabs": {
+      "overview": "Overzicht",
+      "tasks": "Taken",
+      "budget": "Budgetplan",
+      "transactions": "Transacties",
+      "documents": "Documenten",
+      "letters": "Brieven",
+      "filings": "Rechtbank",
+      "copilot": "Copilot"
+    },
+    "urgency": {
+      "overdue": "{count} verlopen",
+      "unconfirmed": "{count} onbevestigde wettelijke termijn(en)",
+      "dueSoon": "{count} binnen 14 dagen"
+    }
+  },
+  "overview": {
+    "person": "Cliënt",
+    "dateOfBirth": "Geboortedatum",
+    "address": "Adres",
+    "gemeente": "Gemeente",
+    "beschikking": "Beschikking",
+    "start": "Start maatregel",
+    "leefgeld": "Leefgeld",
+    "freq": {
+      "weekly": "per week",
+      "monthly": "per maand"
+    },
+    "needStartDate": "Een startdatum is vereist voor activering.",
+    "activate": "Dossier activeren",
+    "activated": "Dossier geactiveerd — wettelijke taken en startdraaiboek gegenereerd.",
+    "rvSchedule": "R&V-schema rechtbank",
+    "rvConfirmed": "Rekening en verantwoording jaarlijks in maand {month}, conform instructie rechtbank.",
+    "rvMissing": "Het R&V-schema van de rechtbank is niet vastgelegd. Er loopt géén R&V-termijn totdat u dit invoert — dit is een expliciet dossierfeit, nooit een aanname.",
+    "rvSave": "Schema vastleggen",
+    "rvSaved": "R&V-schema vastgelegd; taak aangemaakt.",
+    "months": {
+      "1": "januari",
+      "2": "februari",
+      "3": "maart",
+      "4": "april",
+      "5": "mei",
+      "6": "juni",
+      "7": "juli",
+      "8": "augustus",
+      "9": "september",
+      "10": "oktober",
+      "11": "november",
+      "12": "december"
+    },
+    "accounts": "Rekeningen",
+    "accountType": {
+      "beheer": "Beheerrekening",
+      "leefgeld": "Leefgeldrekening",
+      "spaar": "Spaarrekening"
+    },
+    "noAccounts": "Nog geen rekeningen.",
+    "addAccount": "Rekening toevoegen",
+    "accountAdded": "Rekening toegevoegd.",
+    "bankName": "Bank",
+    "openingBalance": "Beginsaldo (€)",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "contacts": "Instanties",
+    "notified": "aangeschreven",
+    "debts": "Schulden",
+    "debtTotal": "Totale schuld",
+    "accountError": {
+      "invalid_type": "Ongeldig rekeningtype.",
+      "invalid_iban": "Ongeldige IBAN (controlegetal klopt niet).",
+      "invalid_amount": "Ongeldig bedrag."
+    }
+  },
+  "budget": {
+    "income": "Inkomsten",
+    "expenses": "Vaste lasten",
+    "reserves": "Reserveringen",
+    "monthlyIncome": "Inkomsten / maand",
+    "monthlyExpenses": "Lasten / maand",
+    "monthlyLeefgeld": "Leefgeld / maand",
+    "margin": "Ruimte",
+    "freq": {
+      "weekly": "wekelijks",
+      "monthly": "maandelijks",
+      "quarterly": "per kwartaal",
+      "yearly": "jaarlijks",
+      "once": "eenmalig"
+    },
+    "day": "dag",
+    "none": "Geen posten.",
+    "addLine": "Budgetregel toevoegen",
+    "lineName": "Naam (bijv. Huur)",
+    "amountPlaceholder": "Bedrag, bijv. 725,50",
+    "expectedDayPlaceholder": "Verwachte dag (1–28)",
+    "counterpartyName": "Tegenpartij",
+    "add": "Toevoegen",
+    "lineAdded": "Budgetregel toegevoegd.",
+    "leefgeldTitle": "Leefgeld",
+    "leefgeldSaved": "Leefgeld bijgewerkt.",
+    "save": "Opslaan"
+  },
+  "transactions": {
+    "importTitle": "Bankafschrift importeren (CAMT.053)",
+    "importHint": "Eén gedocumenteerd CAMT.053-profiel. Hetzelfde bestand opnieuw importeren geeft nooit duplicaten; het originele bestand wordt onveranderlijk bewaard.",
+    "manualTitle": "Handmatige transactie",
+    "ledger": "Grootboek",
+    "uncategorized": "{count} te categoriseren",
+    "cols": {
+      "date": "Datum",
+      "counterparty": "Tegenpartij",
+      "description": "Omschrijving",
+      "category": "Categorie",
+      "amount": "Bedrag"
+    },
+    "empty": "Nog geen transacties. Importeer een CAMT.053-bestand of voeg handmatig toe.",
+    "importResult": "Geïmporteerd: {imported} nieuw, {duplicates} duplicaten overgeslagen.",
+    "importing": "Importeren…",
+    "import": "Importeren",
+    "added": "Transactie toegevoegd.",
+    "out": "Af",
+    "in": "Bij",
+    "add": "Toevoegen",
+    "aiDone": "AI heeft {count} transacties gecategoriseerd (gemarkeerd ✦, beoordeel waar nodig).",
+    "aiUnavailable": "AI niet beschikbaar — categoriseer handmatig of probeer later opnieuw.",
+    "aiRunning": "Categoriseren…",
+    "aiCategorize": "AI-categoriseren"
+  },
+  "documents": {
+    "emptyDossier": "Geen documenten in dit dossier.",
+    "status": {
+      "new": "Nieuw",
+      "triaged": "Getriageerd",
+      "linked": "Gekoppeld",
+      "archived": "Gearchiveerd"
+    },
+    "classify": "Classificeren…",
+    "class": {
+      "factuur": "Factuur",
+      "aanmaning": "Aanmaning",
+      "beschikking_toeslag": "Toeslagbeschikking",
+      "beschikking_gemeente": "Gemeentelijke beschikking",
+      "exploot": "Exploot deurwaarder",
+      "polis": "Verzekeringspolis",
+      "loonstrook": "Loonstrook",
+      "bankafschrift": "Bankafschrift",
+      "brief_rechtbank": "Brief rechtbank",
+      "overig": "Overig"
+    },
+    "deadline": "Termijn",
+    "aiProposal": "AI-voorstel",
+    "proposalAccepted": "Geaccepteerd — taak aangemaakt.",
+    "accept": "Accepteren → taak",
+    "chooseDossier": "Kies dossier…",
+    "link": "Koppelen",
+    "linked": "Gekoppeld aan dossier."
+  },
+  "letters": {
+    "packTitle": "Aanschrijfbrieven instanties",
+    "packHint": "{count} instanties nog niet aangeschreven. Genereert per instantie één Nederlandse brief op basis van het dossier.",
+    "generatePack": "Pakket genereren",
+    "packDone": "{count} brieven opgesteld — beoordeel en keur hieronder goed.",
+    "generateTitle": "Brief opstellen",
+    "templates": {
+      "aanschrijfbrief": "Aanschrijfbrief instantie",
+      "betalingsregeling": "Voorstel betalingsregeling",
+      "beslagvrije_voet": "Herberekening beslagvrije voet",
+      "kwijtschelding": "Verzoek kwijtschelding",
+      "deurwaarder_melding": "Melding aan deurwaarder"
+    },
+    "recipient": "Geadresseerde",
+    "kenmerk": "Kenmerk",
+    "amountTotal": "Totaalbedrag (€)",
+    "amountMonthly": "Maandbedrag (€)",
+    "contextPlaceholder": "Optionele context voor AI (bijv. 'cliënt had in juli een inkomensgat; stel start per oktober voor')",
+    "aiNote": "Met context stemt AI het concept af. Officiële brieven zijn altijd Nederlands; u keurt goed voordat iets als verzonden geldt.",
+    "generate": "Concept opstellen",
+    "generating": "Opstellen…",
+    "generated": "Concept aangemaakt — beoordeel hieronder.",
+    "listTitle": "Brieven",
+    "empty": "Nog geen brieven.",
+    "status": {
+      "draft": "Concept",
+      "approved": "Goedgekeurd",
+      "sent": "Verzonden"
+    },
+    "dutchNote": "Officiële correspondentie is altijd in het Nederlands, ongeacht uw taalinstelling.",
+    "approve": "Goedkeuren",
+    "approved": "Brief goedgekeurd.",
+    "markSent": "Markeren als verzonden",
+    "sentDone": "Geregistreerd als verzonden.",
+    "officialOutput": "Officiële output: Nederlands — alle brieven worden in het Nederlands gegenereerd, ongeacht de taalinstelling."
+  },
+  "filings": {
+    "rvTitle": "Rekening en verantwoording {year}",
+    "rvExplainer": "Het controlepakket berekent elk cijfer uit het grootboek en toetst de volledigheid. Het is een werkdocument: de indiening zelf gebeurt in Mijn CBM en u blijft verantwoordelijk voor de inhoud.",
+    "totalIncome": "Totaal inkomsten",
+    "totalExpenses": "Totaal uitgaven",
+    "validation": {
+      "rvScheduleMissing": "R&V-schema rechtbank niet vastgelegd (tabblad Overzicht).",
+      "uncategorized": "{detail} ongecategoriseerde transacties — categoriseer vóór indiening.",
+      "largeExpenses": "{detail} uitgave(n) ≥ € 2.000 — bewijs van toestemming of machtiging vereist (LOVT B.D3).",
+      "noTransactions": "Geen transacties in deze periode.",
+      "reconciliation": "Cijfers sluiten niet aan: € {detail} onverklaard verschil tussen saldoverloop en categorietotalen."
+    },
+    "validationClean": "Alle controles slagen.",
+    "openPack": "Controlepakket openen",
+    "openPackPrev": "Pakket {year}",
+    "notForSubmission": "Werkdocument — niet voor indiening. Indienen via Mijn CBM.",
+    "boedelTitle": "Boedelbeschrijving",
+    "boedelExplainer": "Werkblad op basis van de actuele dossierfeiten: rekeningen, schulden en inkomsten. Binnen 4 maanden na aanvang indienen (art. 1:436 BW).",
+    "boedelAccounts": "Geregistreerde rekeningen",
+    "boedelDebts": "Geregistreerde schulden",
+    "boedelIncome": "Inkomstenbronnen",
+    "boedelLines": "regels",
+    "boedelHint": "Vul de boedelbeschrijving aan in Mijn CBM; bewaar het bewijs in het tabblad Documenten.",
+    "officialOutput": "Officiële output: Nederlands — rechtbankstukken worden in het Nederlands voorbereid, ongeacht de taalinstelling."
+  },
+  "rvPack": {
+    "back": "Terug naar dossier",
+    "print": "Afdrukken",
+    "watermark": "WERKDOCUMENT — NIET VOOR INDIENING. Dien de R&V in via Mijn CBM.",
+    "title": "Rekening en verantwoording {year} — controlepakket",
+    "period": "Periode",
+    "balances": "Rekeningsaldi",
+    "account": "Rekening",
+    "opening": "Begin",
+    "closing": "Eind",
+    "leefgeldNote": "Leefgeldrekening: alleen begin- en eindsaldo vereist (LOVT B.B11).",
+    "income": "Inkomsten",
+    "expenses": "Uitgaven",
+    "total": "Totaal",
+    "largeExpenses": "Uitgaven ≥ € 2.000",
+    "largeExpensesHint": "Voeg per uitgave de toestemming van cliënt of de machtiging van de kantonrechter toe (LOVT B.D3).",
+    "validations": "Volledigheidscontroles",
+    "clean": "Alle controles slagen.",
+    "validation": {
+      "rvScheduleMissing": "R&V-schema rechtbank niet vastgelegd.",
+      "uncategorized": "{detail} ongecategoriseerde transacties.",
+      "largeExpenses": "{detail} uitgave(n) ≥ € 2.000 zonder vastgelegd bewijs.",
+      "noTransactions": "Geen transacties in deze periode.",
+      "reconciliation": "Saldoverloop en categorietotalen verschillen € {detail} — controleer categorisering/imports vóór indiening."
+    },
+    "attachments": "Bijlagenchecklist",
+    "attachment": {
+      "bankStatements": "Bankafschriften per rekening (bankexport met logo — schermafbeeldingen van een app worden niet geaccepteerd)",
+      "leefgeldBalances": "Leefgeldrekening: begin- en eindsaldo",
+      "consentEvidence": "Toestemming/machtiging bij uitgaven ≥ € 2.000",
+      "debtOverview": "Actueel schuldenoverzicht"
+    },
+    "mijnCbmNote": "Indienen gebeurt in Mijn CBM (Rechtspraak). Markeer de R&V-taak als ingediend met het Mijn CBM-kenmerk als bewijs."
+  },
+  "copilot": {
+    "intro": "Vraag alles over dit dossier. Antwoorden zijn gebaseerd op de eigen dossiergegevens; de copilot is alleen-lezen en kan niets wijzigen.",
+    "suggestion1": "Vat dit dossier samen",
+    "suggestion2": "Zijn er gemiste inkomsten deze maand?",
+    "suggestion3": "Is voor een wasmachine van € 2.300 een machtiging nodig?",
+    "thinking": "Dossier raadplegen…",
+    "unavailable": "AI is momenteel niet beschikbaar (demolimiet of geen modeltoegang). De rest van Frank OS blijft werken.",
+    "placeholder": "Vraag iets over dit dossier…",
+    "readOnlyNote": "Alleen-lezen copilot: hij zoekt op en stelt concepten op, maar elke actie blijft bij u. BSN en rekeningnummers worden geredigeerd voordat iets het model bereikt."
+  },
+  "inbox": {
+    "title": "Postbus",
+    "subtitle": "Inkomende post: uploaden of plakken, AI stelt classificatie en vervolgactie voor, u beslist.",
+    "uploadTitle": "Nieuw document",
+    "pasteMode": "Tekst plakken",
+    "fileMode": "Bestand uploaden",
+    "pastePlaceholder": "Plak hier de tekst van een inkomende brief (demo: de tekst is wat de AI triageert)…",
+    "processing": "Verwerken…",
+    "upload": "Toevoegen aan postbus",
+    "uploaded": "Document toegevoegd en getriageerd.",
+    "aiTriageNote": "AI-triage stelt voor; zonder uw goedkeuring gebeurt er niets.",
+    "empty": "Postbus leeg."
+  },
+  "payments": {
+    "title": "Betalingen",
+    "subtitle": "Voorstellen uit budgetplannen en leefgeldschema's. Goedkeuren, dan exporteren als pain.001 — het systeem maakt zelf nooit geld over.",
+    "createProposals": "Voorstellen genereren",
+    "generating": "Genereren…",
+    "proposalsCreated": "{count} betaalvoorstellen aangemaakt.",
+    "execution": "Uitvoering",
+    "items": "betalingen",
+    "flagged": "{count} vragen juridische beoordeling",
+    "status": {
+      "draft": "Concept",
+      "approved": "Goedgekeurd",
+      "exported": "Geëxporteerd",
+      "cancelled": "Vervallen"
+    },
+    "empty": "Nog geen batches. Genereer voorstellen uit de budgetplannen.",
+    "approve": "Batch goedkeuren",
+    "approved": "Batch goedgekeurd.",
+    "approveBlocked": "Geblokkeerd: los eerst validatiefouten en machtigingsbeoordelingen op.",
+    "exportPain": "Exporteer pain.001 (demo)",
+    "blockedBanner": "{count} regel(s) geblokkeerd: validatiefouten of openstaande machtigingsbeoordeling. Goedkeuren kan pas daarna.",
+    "demoExportNote": "Geëxporteerd als {filename} — DEMO-bestand, niet bij een bank aanleveren. Echte bankexport is uitgeschakeld buiten een geconfigureerde productieomgeving.",
+    "cols": {
+      "dossier": "Dossier",
+      "creditor": "Begunstigde",
+      "remittance": "Omschrijving",
+      "amount": "Bedrag",
+      "review": "Beoordeling"
+    },
+    "reviewOk": "OK",
+    "machtigingReview": "Juridische beoordeling vereist",
+    "machtigingTitle": "Machtigingsbeoordeling",
+    "machtigingDisclaimer": "Deze vlag signaleert dat toestemming van de cliënt of een machtiging van de kantonrechter vereist kan zijn (LOVT april 2025). Het is een beoordelingsvlag, geen juridische conclusie — u beslist en legt de grondslag vast.",
+    "resolution": {
+      "consent_recorded": "Toestemming cliënt vastgelegd",
+      "court_authorization": "Machtiging kantonrechter verkregen",
+      "not_applicable": "Niet van toepassing (toelichten)"
+    },
+    "rationalePlaceholder": "Toelichting / kenmerk (verplicht)",
+    "machtigingResolved": "Beoordeling vastgelegd.",
+    "openBatchExists": "Er bestaat al een openstaande betaalbatch — rond deze eerst af of annuleer hem.",
+    "approveSummaryTitle": "Betaalbatch goedkeuren?",
+    "approveConfirm": "Batch goedkeuren",
+    "approveSummary": {
+      "total": "Totaalbedrag",
+      "items": "Betalingen",
+      "dossiers": "Dossiers",
+      "accounts": "rekeningen",
+      "execution": "Uitvoeringsdatum",
+      "unresolved": "Openstaande beoordelingen",
+      "demoWarning": "DEMO-batch: de export is gemarkeerd 'niet bij een bank aanleveren' en er wordt nooit geld vanuit dit systeem overgemaakt."
+    }
+  },
+  "machtiging": {
+    "reason": {
+      "over2000": "Bedrag ≥ € 2.000 (LOVT B.D2)",
+      "aggregation": "Zelfde bestedingsdoel bereikt dit jaar € 2.000 (LOVT B.D3)",
+      "gift": "Schenking — altijd beoordelen (LOVT B.J1)",
+      "loan": "Lening/krediet — art. 1:441 lid 2 BW",
+      "settlement": "Vaststellingsovereenkomst boven € 700 — art. 1:441 lid 2 BW",
+      "housing": "Woontransactie (LOVT B.D2)"
+    }
+  },
+  "audit": {
+    "title": "Auditlog",
+    "subtitle": "Onveranderlijk logboek van elke wijziging: wie (mens of AI-agent), wat, en met wiens goedkeuring.",
+    "cols": {
+      "time": "Tijd",
+      "actor": "Actor",
+      "action": "Actie",
+      "entity": "Entiteit",
+      "detail": "Detail"
+    },
+    "appendOnlyNote": "Auditregels worden door de applicatie nooit gewijzigd of verwijderd. Actor is 'demo-user' totdat authenticatie is toegevoegd."
+  }
+}
