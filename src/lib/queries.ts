@@ -4,13 +4,10 @@ import {
   accounts,
   auditEvents,
   budgetLines,
-  contacts,
-  debts,
   documents,
   dossiers,
   letters,
   paymentBatches,
-  paymentItems,
   tasks,
   transactions,
 } from "@/lib/db/schema";
@@ -250,6 +247,31 @@ export async function computeExceptions(): Promise<ExceptionItem[]> {
   }
 
   return out;
+}
+
+export async function dossierUrgency(dossierId: string): Promise<{
+  overdue: number;
+  unconfirmed: number;
+  dueSoon: number;
+}> {
+  const db = getDb();
+  const isoToday = new Date().toISOString().slice(0, 10);
+  const soon = new Date(Date.now() + 14 * 86400_000).toISOString().slice(0, 10);
+  const open = await db.query.tasks.findMany({
+    where: and(
+      eq(tasks.dossierId, dossierId),
+      inArray(tasks.status, ["open", "prepared", "submitted"])
+    ),
+    columns: { dueDate: true, deadlineConfirmed: true, kind: true },
+  });
+  return {
+    overdue: open.filter((t) => t.dueDate && t.dueDate < isoToday).length,
+    unconfirmed: open.filter((t) => t.kind === "statutory" && !t.deadlineConfirmed)
+      .length,
+    dueSoon: open.filter(
+      (t) => t.dueDate && t.dueDate >= isoToday && t.dueDate <= soon
+    ).length,
+  };
 }
 
 export async function accountBalance(accountId: string): Promise<number> {

@@ -30,7 +30,11 @@ export function CreateProposalsButton() {
       onClick={() =>
         startTransition(async () => {
           const res = await createPaymentProposals();
-          toast.success(t("proposalsCreated", { count: res.items }));
+          if (res.error === "open_batch_exists") {
+            toast.warning(t("openBatchExists"));
+          } else {
+            toast.success(t("proposalsCreated", { count: res.items }));
+          }
           if (res.batchId) router.push(`/payments/${res.batchId}`);
         })
       }
@@ -43,28 +47,91 @@ export function CreateProposalsButton() {
 export function ApproveBatchButton({
   batchId,
   blocked,
+  summary,
 }: {
   batchId: string;
   blocked: boolean;
+  summary: {
+    totalCents: number;
+    itemCount: number;
+    dossierCount: number;
+    accountCount: number;
+    executionDate: string;
+    unresolvedCount: number;
+  };
 }) {
   const t = useTranslations("payments");
+  const tm = useTranslations();
+  const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   return (
-    <Button
-      disabled={blocked || isPending}
-      title={blocked ? t("approveBlocked") : undefined}
-      onClick={() =>
-        startTransition(async () => {
-          const res = await approveBatch(batchId);
-          if (res.ok) toast.success(t("approved"));
-          else toast.error(t("approveBlocked"));
-        })
-      }
-    >
-      {t("approve")}
-    </Button>
+    <>
+      <Button
+        disabled={blocked || isPending}
+        title={blocked ? t("approveBlocked") : undefined}
+        onClick={() => setOpen(true)}
+      >
+        {t("approve")}
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("approveSummaryTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <dt className="text-neutral-500">{t("approveSummary.total")}</dt>
+              <dd className="font-medium tabular-nums">
+                {(summary.totalCents / 100).toLocaleString("nl-NL", {
+                  style: "currency",
+                  currency: "EUR",
+                })}
+              </dd>
+              <dt className="text-neutral-500">{t("approveSummary.items")}</dt>
+              <dd>{summary.itemCount}</dd>
+              <dt className="text-neutral-500">{t("approveSummary.dossiers")}</dt>
+              <dd>
+                {summary.dossierCount} / {summary.accountCount}{" "}
+                {t("approveSummary.accounts")}
+              </dd>
+              <dt className="text-neutral-500">{t("approveSummary.execution")}</dt>
+              <dd className="tabular-nums">{summary.executionDate}</dd>
+              <dt className="text-neutral-500">
+                {t("approveSummary.unresolved")}
+              </dt>
+              <dd className={summary.unresolvedCount > 0 ? "text-red-600" : ""}>
+                {summary.unresolvedCount}
+              </dd>
+            </dl>
+            <p className="text-xs rounded-md bg-amber-50 text-amber-800 px-3 py-2">
+              {t("approveSummary.demoWarning")}
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                {tm("common.cancel")}
+              </Button>
+              <Button
+                disabled={isPending || summary.unresolvedCount > 0}
+                onClick={() =>
+                  startTransition(async () => {
+                    const res = await approveBatch(batchId);
+                    if (res.ok) {
+                      toast.success(t("approved"));
+                      setOpen(false);
+                    } else toast.error(t("approveBlocked"));
+                  })
+                }
+              >
+                {t("approveConfirm")}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
+
 
 export function ExportBatchButton({ batchId }: { batchId: string }) {
   const t = useTranslations("payments");

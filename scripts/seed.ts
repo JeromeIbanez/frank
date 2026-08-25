@@ -151,6 +151,17 @@ const INCOME_PARTY: Record<string, { name: string; iban: string }> = {
 };
 
 async function main() {
+  // Guard (Temujin code review finding 4): this script WIPES every table,
+  // including the audit log. It must never run against anything but an
+  // explicitly-marked demo database.
+  if (process.env.FRANK_PRODUCTION_OFFICE === "true") {
+    throw new Error("Refusing to seed: FRANK_PRODUCTION_OFFICE is set.");
+  }
+  if (process.env.FRANK_DEMO_SEED !== "true") {
+    throw new Error(
+      "Refusing to seed: set FRANK_DEMO_SEED=true to confirm this DATABASE_URL is a demo database that may be wiped."
+    );
+  }
   console.log("Clearing existing data…");
   await db.delete(taskEvents);
   await db.delete(tasks);

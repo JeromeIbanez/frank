@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import {
   accountBalance,
+  dossierUrgency,
   getDossier,
   getDossierDocuments,
   getDossierLetters,
@@ -49,6 +50,7 @@ export default async function DossierPage({
   const td = await getTranslations("dossiers");
   const dossier = await getDossier(id);
   if (!dossier) notFound();
+  const urgency = await dossierUrgency(id);
 
   const balances = new Map<string, number>();
   for (const acc of dossier.accounts) {
@@ -84,6 +86,38 @@ export default async function DossierPage({
           </p>
         </div>
       </div>
+
+      {(urgency.overdue > 0 || urgency.unconfirmed > 0 || urgency.dueSoon > 0) && (
+        <div className="flex flex-wrap gap-2">
+          {urgency.overdue > 0 && (
+            <Link
+              href={`/dossiers/${id}?tab=tasks`}
+              className="inline-flex items-center gap-1.5 rounded-full bg-red-50 text-red-700 text-xs px-3 py-1 hover:bg-red-100"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+              {t("urgency.overdue", { count: urgency.overdue })}
+            </Link>
+          )}
+          {urgency.unconfirmed > 0 && (
+            <Link
+              href={`/dossiers/${id}?tab=tasks`}
+              className="inline-flex items-center gap-1.5 rounded-full bg-red-50 text-red-700 text-xs px-3 py-1 hover:bg-red-100"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+              {t("urgency.unconfirmed", { count: urgency.unconfirmed })}
+            </Link>
+          )}
+          {urgency.dueSoon > 0 && (
+            <Link
+              href={`/dossiers/${id}?tab=tasks`}
+              className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 text-amber-700 text-xs px-3 py-1 hover:bg-amber-100"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              {t("urgency.dueSoon", { count: urgency.dueSoon })}
+            </Link>
+          )}
+        </div>
+      )}
 
       <nav className="flex gap-1 border-b border-neutral-200 overflow-x-auto">
         {TABS.map((tabKey) => (

@@ -22,6 +22,9 @@ export async function LettersTab({
 
   return (
     <div className="space-y-6">
+      <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 text-neutral-600 text-xs px-3 py-1">
+        {t("officialOutput")}
+      </div>
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>

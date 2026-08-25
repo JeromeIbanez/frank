@@ -134,18 +134,16 @@ function TaskRow({
                 {t("tasksUi.due")} {task.dueDate}
               </span>
             )}
-            {task.legalSource && (
-              <span
-                className="text-neutral-400"
-                title={`${t("tasksUi.basis")}: ${task.basisDate} · ${task.calculationVersion}`}
-              >
-                {task.legalSource}
-              </span>
-            )}
             <span className="uppercase text-[10px] tracking-wide text-neutral-400">
               {task.tier}
             </span>
           </div>
+          {task.legalSource && (
+            <div className="text-[11px] text-neutral-400 mt-0.5">
+              {task.legalSource} · {t("tasksUi.basis")} {task.basisDate} ·{" "}
+              {task.calculationVersion}
+            </div>
+          )}
         </div>
         {!task.deadlineConfirmed && task.kind === "statutory" && (
           <Button

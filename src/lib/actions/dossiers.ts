@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { accounts, contacts, dossiers, tasks } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
 import { computeStatutoryTasks, CALC_VERSION } from "@/lib/domain/deadlines";
+import { isValidIban } from "@/lib/domain/pain001";
 import { NIEUW_DOSSIER_PLAYBOOK, DEFAULT_INSTANTIES } from "@/lib/playbooks";
 
 function isoToday(): string {
@@ -69,23 +70,32 @@ export async function createDossier(formData: FormData): Promise<void> {
   redirect(`/dossiers/${row.id}`);
 }
 
-export async function addAccount(dossierId: string, formData: FormData) {
+export async function addAccount(
+  dossierId: string,
+  formData: FormData
+): Promise<{ ok: boolean; error?: string }> {
   const actor = await currentActor();
   const db = getDb();
+  // Validate at the boundary (Temujin code review finding 8): invalid data
+  // must not enter the ledger model.
+  const type = String(formData.get("type") || "");
+  const iban = String(formData.get("iban") || "").trim().toUpperCase();
+  const balance = Number(
+    String(formData.get("openingBalance") || "0").replace(",", ".")
+  );
+  if (!["beheer", "leefgeld", "spaar"].includes(type)) {
+    return { ok: false, error: "invalid_type" };
+  }
+  if (!isValidIban(iban)) return { ok: false, error: "invalid_iban" };
+  if (!Number.isFinite(balance)) return { ok: false, error: "invalid_amount" };
   const [row] = await db
     .insert(accounts)
     .values({
       dossierId,
-      type: String(formData.get("type") || "beheer") as
-        | "beheer"
-        | "leefgeld"
-        | "spaar",
-      iban: String(formData.get("iban") || "").trim().toUpperCase(),
+      type: type as "beheer" | "leefgeld" | "spaar",
+      iban,
       bankName: String(formData.get("bankName") || "") || null,
-      openingBalanceCents: Math.round(
-        Number(String(formData.get("openingBalance") || "0").replace(",", ".")) *
-          100
-      ),
+      openingBalanceCents: Math.round(balance * 100),
       openingBalanceDate: isoToday(),
     })
     .returning();
@@ -98,6 +108,7 @@ export async function addAccount(dossierId: string, formData: FormData) {
     versionAfter: { iban: row.iban, type: row.type },
   });
   revalidatePath(`/dossiers/${dossierId}`);
+  return { ok: true };
 }
 
 /**
@@ -116,10 +127,15 @@ export async function activateDossier(dossierId: string): Promise<void> {
   }
 
   const before = { status: dossier.status };
-  await db
+  // Idempotent, race-safe transition (Temujin code review finding 3): the
+  // conditional update succeeds at most once; retries/concurrent calls see
+  // zero updated rows and never duplicate statutory obligations.
+  const updated = await db
     .update(dossiers)
     .set({ status: "actief", updatedAt: new Date() })
-    .where(eq(dossiers.id, dossierId));
+    .where(and(eq(dossiers.id, dossierId), ne(dossiers.status, "actief")))
+    .returning({ id: dossiers.id });
+  if (updated.length === 0) return;
 
   // Statutory tasks with provenance (Temujin #4). If the R&V schedule is not
   // confirmed, no R&V task is generated — the exception feed flags it.
@@ -199,8 +215,9 @@ export async function setRvSchedule(
     .set({ rvScheduleMonth: month, rvScheduleConfirmed: true, updatedAt: new Date() })
     .where(eq(dossiers.id, dossierId));
 
-  // Generate the R&V task now that the schedule is confirmed
-  if (dossier.startDate && dossier.status === "actief") {
+  // Generate the R&V task now that the schedule is confirmed (only on the
+  // first confirmation — repeats must not duplicate the statutory task)
+  if (!dossier.rvScheduleConfirmed && dossier.startDate && dossier.status === "actief") {
     const specs = computeStatutoryTasks({
       startDate: dossier.startDate,
       beschikkingDate: dossier.beschikkingDate,

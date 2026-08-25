@@ -115,7 +115,9 @@ export async function generateLetter(
       : "[maandbedrag]",
   };
 
-  let { subject, body } = renderTemplate(tpl, fields);
+  const rendered = renderTemplate(tpl, fields);
+  const subject = rendered.subject;
+  let body = rendered.body;
 
   // Optional AI tailoring: keeps the legal skeleton, weaves in case context.
   // Always Dutch. Draft-only (Level B) — never auto-sent.

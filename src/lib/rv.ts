@@ -4,6 +4,7 @@ import { transactions } from "@/lib/db/schema";
 import { getDossier } from "@/lib/queries";
 import { CATEGORIES } from "@/lib/domain/categories";
 import { MACHTIGING_THRESHOLD_CENTS } from "@/lib/domain/machtiging";
+import { reconcileRv, type RvReconciliation } from "@/lib/domain/rvmath";
 
 /**
  * R&V review pack (PRD M5): a worksheet computed BY CODE from the ledger —
@@ -27,6 +28,7 @@ export type RvPack = {
   totalIncomeCents: number;
   totalExpenseCents: number;
   validations: { key: string; level: "error" | "warning"; detail?: string }[];
+  reconciliation: RvReconciliation;
   attachments: { key: string; done: boolean }[];
   largeExpenses: {
     date: string;
@@ -99,9 +101,11 @@ export async function buildRvPack(
 
   const catTotals = new Map<string, number>();
   let uncategorized = 0;
+  let uncategorizedNetCents = 0;
   for (const r of relevant) {
     if (!r.categoryKey) {
       uncategorized++;
+      uncategorizedNetCents += r.amountCents;
       continue;
     }
     catTotals.set(r.categoryKey, (catTotals.get(r.categoryKey) ?? 0) + r.amountCents);
@@ -127,7 +131,24 @@ export async function buildRvPack(
       cents: Math.abs(r.amountCents),
     }));
 
+  // Reconciliation over non-leefgeld accounts (Temujin finding 6)
+  const reconciliation = reconcileRv({
+    accountMovements: accounts
+      .filter((a) => !a.leefgeldOnly)
+      .map((a) => ({ openingCents: a.openingCents, closingCents: a.closingCents })),
+    totalIncomeCents,
+    totalExpenseCents,
+    uncategorizedNetCents,
+  });
+
   const validations: RvPack["validations"] = [];
+  if (!reconciliation.reconciles) {
+    validations.push({
+      key: "reconciliation",
+      level: "error",
+      detail: (reconciliation.deltaCents / 100).toFixed(2),
+    });
+  }
   if (!dossier.rvScheduleConfirmed) {
     validations.push({ key: "rvScheduleMissing", level: "error" });
   }
@@ -160,6 +181,7 @@ export async function buildRvPack(
     year,
     periodStart,
     periodEnd,
+    reconciliation,
     accounts,
     incomeByCategory,
     expenseByCategory,

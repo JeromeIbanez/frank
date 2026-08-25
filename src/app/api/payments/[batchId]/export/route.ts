@@ -2,15 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { paymentBatches } from "@/lib/db/schema";
-import { currentActor, isProductionOffice } from "@/lib/identity";
+import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
 import { generatePain001Multi } from "@/lib/domain/pain001";
 
 /**
  * pain.001 export of an APPROVED batch.
- * Demo contract (Temujin round 2): the XML stays valid; demo labeling lives in
- * the filename, audit event, and response headers. Real-bank export is
- * hard-disabled outside an explicitly configured production office.
+ * PERMANENTLY DEMO-ONLY in this MVP (Temujin code review finding 5): the XML
+ * is valid, but every export is demo-labeled in filename, headers, and audit,
+ * regardless of environment. A real production export is a P1 feature that
+ * requires an explicit bank-profile configuration, XSD/profile validation,
+ * an authenticated office, and a bank acceptance test — never a silent
+ * environment-variable flip.
  */
 export async function GET(
   _req: NextRequest,
@@ -86,8 +89,8 @@ export async function GET(
     return NextResponse.json({ error: "validation", details: result.errors }, { status: 409 });
   }
 
-  const demo = !isProductionOffice();
-  const filename = `${demo ? "DEMO-NIET-AANLEVEREN-" : ""}pain001-${batch.executionDate}-${batch.id.slice(0, 8)}.xml`;
+  const demo = true; // MVP invariant — see header comment
+  const filename = `DEMO-NIET-AANLEVEREN-pain001-${batch.executionDate}-${batch.id.slice(0, 8)}.xml`;
 
   await db
     .update(paymentBatches)
@@ -106,9 +109,7 @@ export async function GET(
       controlSumCents: result.controlSumCents,
       count: result.count,
     },
-    reason: demo
-      ? "DEMO pain.001 export — not for bank submission"
-      : "pain.001 export",
+    reason: "DEMO pain.001 export — not for bank submission",
   });
 
   return new NextResponse(result.xml, {

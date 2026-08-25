@@ -1,15 +1,9 @@
-import {
-  convertToModelMessages,
-  stepCountIs,
-  streamText,
-  tool,
-  type UIMessage,
-} from "ai";
+import { tool, type UIMessage } from "ai";
 import { z } from "zod";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { debts, dossiers, tasks, transactions } from "@/lib/db/schema";
-import { MODEL_DRAFTING, redact } from "@/lib/ai/gateway";
+import { callChatStream, redact } from "@/lib/ai/gateway";
 import { writeAudit } from "@/lib/audit";
 import { checkMachtiging, MACHTIGING_THRESHOLD_CENTS } from "@/lib/domain/machtiging";
 import { formatEuro } from "@/lib/domain/money";
@@ -69,7 +63,10 @@ export async function POST(req: Request) {
           leefgeld: d.leefgeldAmountCents
             ? `${formatEuro(d.leefgeldAmountCents)} ${d.leefgeldFrequency}`
             : null,
-          accounts: d.accounts.map((a) => ({ type: a.type, iban: a.iban })),
+          accounts: d.accounts.map((a) => ({
+            type: a.type,
+            iban: `••••${a.iban.slice(-4)}`, // masked (gateway policy)
+          })),
         };
       },
     }),
@@ -200,8 +197,8 @@ export async function POST(req: Request) {
     }),
   };
 
-  const result = streamText({
-    model: MODEL_DRAFTING,
+  const stream = await callChatStream({
+    purpose: "copilot",
     system: `You are the Frank OS copilot for a Dutch bewindvoering office, assisting a professional bewindvoerder on ONE dossier (${redact(
       `${dossier.firstName} ${dossier.lastName}`
     )}).
@@ -210,11 +207,16 @@ Rules:
 - You are read-only: you cannot change data, send letters, or make payments. Point the user to the right screen instead.
 - Legal framing: you may explain rules (e.g. LOVT machtiging thresholds) but ALWAYS note the bewindvoerder decides and is responsible.
 - Drafts of official letters must be in Dutch. Conversation follows the user's language.
-- Never reveal BSN or full account numbers; they are redacted in your inputs.`,
-    messages: await convertToModelMessages(messages),
+- Never reveal BSN or full account numbers; they are redacted or masked in your inputs.`,
+    messages,
     tools,
-    stopWhen: stepCountIs(6),
   });
 
-  return result.toUIMessageStreamResponse();
+  if (!stream.ok) {
+    return new Response(JSON.stringify({ error: stream.reason }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  return stream.result.toUIMessageStreamResponse();
 }

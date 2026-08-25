@@ -1,11 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
-  accounts,
-  budgetLines,
   dossiers,
   paymentBatches,
   paymentItems,
@@ -30,9 +28,21 @@ function isoDate(d: Date): string {
 export async function createPaymentProposals(): Promise<{
   batchId?: string;
   items: number;
+  error?: string;
 }> {
   const actor = await currentActor();
   const db = getDb();
+
+  // Idempotency guard (Temujin code review finding 2): at most ONE open
+  // (draft/approved) batch may exist — a double click, retry, or repeat run
+  // must never create the same payable twice. Backed by a partial unique
+  // index on payment_batches (one_open_payment_batch).
+  const existing = await db.query.paymentBatches.findFirst({
+    where: inArray(paymentBatches.status, ["draft", "approved"]),
+  });
+  if (existing) {
+    return { batchId: existing.id, items: 0, error: "open_batch_exists" };
+  }
 
   const activeDossiers = await db.query.dossiers.findMany({
     where: eq(dossiers.status, "actief"),
@@ -45,15 +55,21 @@ export async function createPaymentProposals(): Promise<{
     "after"
   );
 
-  const [batch] = await db
-    .insert(paymentBatches)
-    .values({
-      name: `Betaalvoorstel ${isoDate(today)}`,
-      executionDate: isoDate(execDate),
-      status: "draft",
-      demoExport: true,
-    })
-    .returning();
+  let batch: typeof paymentBatches.$inferSelect;
+  try {
+    [batch] = await db
+      .insert(paymentBatches)
+      .values({
+        name: `Betaalvoorstel ${isoDate(today)}`,
+        executionDate: isoDate(execDate),
+        status: "draft",
+        demoExport: true,
+      })
+      .returning();
+  } catch {
+    // partial unique index one_open_payment_batch lost the race
+    return { items: 0, error: "open_batch_exists" };
+  }
 
   let itemCount = 0;
   const yearStart = `${today.getUTCFullYear()}-01-01`;

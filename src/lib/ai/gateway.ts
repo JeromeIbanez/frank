@@ -9,7 +9,15 @@
  *  - every call is logged to ai_calls with model + prompt version + data class
  *  - office-wide demo token cap; visible fallback when AI is unavailable
  */
-import { generateObject, generateText } from "ai";
+import {
+  convertToModelMessages,
+  generateObject,
+  generateText,
+  stepCountIs,
+  streamText,
+  type ToolSet,
+  type UIMessage,
+} from "ai";
 import { z } from "zod";
 import { count, sum } from "drizzle-orm";
 import { getDb } from "@/lib/db";
@@ -134,6 +142,69 @@ export async function callStructured<T>(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_STRUCTURED,
+      ok: false,
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return { ok: false, unavailable: true, reason: "model_error" };
+  }
+}
+
+/**
+ * Streaming chat through the gateway (the ONLY way to stream a model in
+ * Frank OS — Temujin code review finding 1). Applies the cap, redacts user
+ * message text before model transit, and logs usage on finish. Tool outputs
+ * must already be redacted by the tools themselves; the copilot tools all
+ * route their text through redact() and mask account numbers.
+ */
+export async function callChatStream(input: {
+  purpose: "copilot";
+  system: string;
+  messages: UIMessage[];
+  tools: ToolSet;
+  maxSteps?: number;
+}): Promise<
+  | { ok: true; result: ReturnType<typeof streamText> }
+  | { ok: false; unavailable: true; reason: string }
+> {
+  if (await capExceeded()) {
+    return { ok: false, unavailable: true, reason: "token_cap" };
+  }
+  const redactedMessages = input.messages.map((m) => ({
+    ...m,
+    parts: m.parts.map((p) =>
+      p.type === "text" ? { ...p, text: redact(p.text) } : p
+    ),
+  }));
+  try {
+    const result = streamText({
+      model: MODEL_DRAFTING,
+      system: input.system,
+      messages: await convertToModelMessages(redactedMessages),
+      tools: input.tools,
+      stopWhen: stepCountIs(input.maxSteps ?? 6),
+      onFinish: async ({ totalUsage }) => {
+        await logCall({
+          purpose: input.purpose,
+          model: MODEL_DRAFTING,
+          inputTokens: totalUsage?.inputTokens,
+          outputTokens: totalUsage?.outputTokens,
+          ok: true,
+        });
+      },
+      onError: async ({ error }) => {
+        await logCall({
+          purpose: input.purpose,
+          model: MODEL_DRAFTING,
+          ok: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      },
+    });
+    return { ok: true, result };
+  } catch (e) {
+    await logCall({
+      purpose: input.purpose,
+      model: MODEL_DRAFTING,
       ok: false,
       error: e instanceof Error ? e.message : String(e),
     });

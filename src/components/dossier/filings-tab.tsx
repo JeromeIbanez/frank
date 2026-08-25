@@ -14,7 +14,11 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
   const pack = await buildRvPack(dossier.id, year);
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
+    <div className="space-y-4">
+      <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 text-neutral-600 text-xs px-3 py-1">
+        {t("officialOutput")}
+      </div>
+      <div className="grid lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
@@ -108,6 +112,7 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
           <p className="text-xs text-neutral-400">{t("boedelHint")}</p>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

@@ -148,6 +148,7 @@ export async function addManualTransaction(
   const amountEuro = Number(
     String(formData.get("amount") || "0").replace(",", ".")
   );
+  if (!Number.isFinite(amountEuro) || amountEuro === 0) return;
   const direction = String(formData.get("direction") || "out");
   const amountCents = Math.round(Math.abs(amountEuro) * 100) * (direction === "out" ? -1 : 1);
   const bookingDate = String(formData.get("bookingDate") || new Date().toISOString().slice(0, 10));

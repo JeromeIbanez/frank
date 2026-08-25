@@ -13,9 +13,11 @@ export async function addBudgetLine(
 ): Promise<void> {
   const actor = await currentActor();
   const db = getDb();
-  const amountCents = Math.round(
-    Number(String(formData.get("amount") || "0").replace(",", ".")) * 100
+  const amountEuro = Number(
+    String(formData.get("amount") || "0").replace(",", ".")
   );
+  if (!Number.isFinite(amountEuro) || amountEuro <= 0) return;
+  const amountCents = Math.round(amountEuro * 100);
   const [row] = await db
     .insert(budgetLines)
     .values({
@@ -85,9 +87,11 @@ export async function setLeefgeld(
     where: eq(dossiers.id, dossierId),
   });
   if (!d) return;
-  const amountCents = Math.round(
-    Number(String(formData.get("amount") || "0").replace(",", ".")) * 100
+  const amountEuro = Number(
+    String(formData.get("amount") || "0").replace(",", ".")
   );
+  if (!Number.isFinite(amountEuro) || amountEuro <= 0) return;
+  const amountCents = Math.round(amountEuro * 100);
   const frequency = String(formData.get("frequency") || "weekly") as
     | "weekly"
     | "monthly";

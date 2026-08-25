@@ -165,6 +165,11 @@
       "letters": "Letters",
       "filings": "Court filings",
       "copilot": "Copilot"
+    },
+    "urgency": {
+      "overdue": "{count} overdue",
+      "unconfirmed": "{count} unconfirmed legal deadline(s)",
+      "dueSoon": "{count} due within 14 days"
     }
   },
   "overview": {
@@ -175,7 +180,10 @@
     "beschikking": "Court order",
     "start": "Start of measure",
     "leefgeld": "Living allowance",
-    "freq": { "weekly": "per week", "monthly": "per month" },
+    "freq": {
+      "weekly": "per week",
+      "monthly": "per month"
+    },
     "needStartDate": "A start date is required before activation.",
     "activate": "Activate dossier",
     "activated": "Dossier activated — statutory tasks and start playbook generated.",
@@ -185,9 +193,18 @@
     "rvSave": "Record schedule",
     "rvSaved": "R&V schedule recorded; annual account task generated.",
     "months": {
-      "1": "January", "2": "February", "3": "March", "4": "April",
-      "5": "May", "6": "June", "7": "July", "8": "August",
-      "9": "September", "10": "October", "11": "November", "12": "December"
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
     },
     "accounts": "Accounts",
     "accountType": {
@@ -205,7 +222,12 @@
     "contacts": "Agencies",
     "notified": "notified",
     "debts": "Debts",
-    "debtTotal": "Total debt"
+    "debtTotal": "Total debt",
+    "accountError": {
+      "invalid_type": "Invalid account type.",
+      "invalid_iban": "Invalid IBAN (checksum failed).",
+      "invalid_amount": "Invalid amount."
+    }
   },
   "budget": {
     "income": "Income",
@@ -314,12 +336,17 @@
     "generated": "Draft created — review below.",
     "listTitle": "Letters",
     "empty": "No letters yet.",
-    "status": { "draft": "Draft", "approved": "Approved", "sent": "Sent" },
+    "status": {
+      "draft": "Draft",
+      "approved": "Approved",
+      "sent": "Sent"
+    },
     "dutchNote": "Official correspondence is always in Dutch, regardless of your UI language.",
     "approve": "Approve",
     "approved": "Letter approved.",
     "markSent": "Mark as sent",
-    "sentDone": "Recorded as sent."
+    "sentDone": "Recorded as sent.",
+    "officialOutput": "Official output: Nederlands — all letters are generated in Dutch regardless of UI language."
   },
   "filings": {
     "rvTitle": "Annual account {year} (rekening & verantwoording)",
@@ -330,7 +357,8 @@
       "rvScheduleMissing": "Court R&V schedule not recorded (Overview tab).",
       "uncategorized": "{detail} uncategorized transactions — categorize before filing.",
       "largeExpenses": "{detail} expense(s) ≥ €2,000 — consent or court authorization evidence required (LOVT B.D3).",
-      "noTransactions": "No transactions in this period."
+      "noTransactions": "No transactions in this period.",
+      "reconciliation": "Figures do not reconcile: € {detail} unexplained difference between balance movement and category totals."
     },
     "validationClean": "All checks pass.",
     "openPack": "Open review pack",
@@ -342,7 +370,8 @@
     "boedelDebts": "Debts registered",
     "boedelIncome": "Income sources",
     "boedelLines": "lines",
-    "boedelHint": "Complete the inventory in Mijn CBM; keep the evidence in the Documents tab."
+    "boedelHint": "Complete the inventory in Mijn CBM; keep the evidence in the Documents tab.",
+    "officialOutput": "Official output: Nederlands — court filings are prepared in Dutch regardless of UI language."
   },
   "rvPack": {
     "back": "Back to dossier",
@@ -366,7 +395,8 @@
       "rvScheduleMissing": "Court R&V schedule not recorded.",
       "uncategorized": "{detail} uncategorized transactions.",
       "largeExpenses": "{detail} expense(s) ≥ €2,000 need consent evidence.",
-      "noTransactions": "No transactions in this period."
+      "noTransactions": "No transactions in this period.",
+      "reconciliation": "Balance movement and category totals differ by € {detail} — investigate categorization/imports before filing."
     },
     "attachments": "Attachment checklist",
     "attachment": {
@@ -439,7 +469,19 @@
       "not_applicable": "Not applicable (explain)"
     },
     "rationalePlaceholder": "Rationale / reference (required)",
-    "machtigingResolved": "Review recorded."
+    "machtigingResolved": "Review recorded.",
+    "openBatchExists": "An open payment batch already exists — finish or cancel it first.",
+    "approveSummaryTitle": "Approve payment batch?",
+    "approveConfirm": "Approve batch",
+    "approveSummary": {
+      "total": "Total amount",
+      "items": "Payments",
+      "dossiers": "Dossiers",
+      "accounts": "accounts",
+      "execution": "Execution date",
+      "unresolved": "Unresolved reviews",
+      "demoWarning": "DEMO batch: the export is labeled 'not for bank submission' and no money ever moves from this system."
+    }
   },
   "machtiging": {
     "reason": {

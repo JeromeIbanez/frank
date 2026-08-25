@@ -58,7 +58,19 @@ export default async function PaymentBatchPage({
         </div>
         <div className="flex gap-2">
           {batch.status === "draft" && (
-            <ApproveBatchButton batchId={batch.id} blocked={blockers > 0} />
+            <ApproveBatchButton
+              batchId={batch.id}
+              blocked={blockers > 0}
+              summary={{
+                totalCents: total,
+                itemCount: batch.items.length,
+                dossierCount: new Set(batch.items.map((i) => i.dossierId)).size,
+                accountCount: new Set(batch.items.map((i) => i.debtorAccountId))
+                  .size,
+                executionDate: batch.executionDate,
+                unresolvedCount: blockers,
+              }}
+            />
           )}
           {(batch.status === "approved" || batch.status === "exported") && (
             <ExportBatchButton batchId={batch.id} />

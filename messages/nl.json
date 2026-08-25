@@ -165,6 +165,11 @@
       "letters": "Brieven",
       "filings": "Rechtbank",
       "copilot": "Copilot"
+    },
+    "urgency": {
+      "overdue": "{count} verlopen",
+      "unconfirmed": "{count} onbevestigde wettelijke termijn(en)",
+      "dueSoon": "{count} binnen 14 dagen"
     }
   },
   "overview": {
@@ -175,7 +180,10 @@
     "beschikking": "Beschikking",
     "start": "Start maatregel",
     "leefgeld": "Leefgeld",
-    "freq": { "weekly": "per week", "monthly": "per maand" },
+    "freq": {
+      "weekly": "per week",
+      "monthly": "per maand"
+    },
     "needStartDate": "Een startdatum is vereist voor activering.",
     "activate": "Dossier activeren",
     "activated": "Dossier geactiveerd — wettelijke taken en startdraaiboek gegenereerd.",
@@ -185,9 +193,18 @@
     "rvSave": "Schema vastleggen",
     "rvSaved": "R&V-schema vastgelegd; taak aangemaakt.",
     "months": {
-      "1": "januari", "2": "februari", "3": "maart", "4": "april",
-      "5": "mei", "6": "juni", "7": "juli", "8": "augustus",
-      "9": "september", "10": "oktober", "11": "november", "12": "december"
+      "1": "januari",
+      "2": "februari",
+      "3": "maart",
+      "4": "april",
+      "5": "mei",
+      "6": "juni",
+      "7": "juli",
+      "8": "augustus",
+      "9": "september",
+      "10": "oktober",
+      "11": "november",
+      "12": "december"
     },
     "accounts": "Rekeningen",
     "accountType": {
@@ -205,7 +222,12 @@
     "contacts": "Instanties",
     "notified": "aangeschreven",
     "debts": "Schulden",
-    "debtTotal": "Totale schuld"
+    "debtTotal": "Totale schuld",
+    "accountError": {
+      "invalid_type": "Ongeldig rekeningtype.",
+      "invalid_iban": "Ongeldige IBAN (controlegetal klopt niet).",
+      "invalid_amount": "Ongeldig bedrag."
+    }
   },
   "budget": {
     "income": "Inkomsten",
@@ -314,12 +336,17 @@
     "generated": "Concept aangemaakt — beoordeel hieronder.",
     "listTitle": "Brieven",
     "empty": "Nog geen brieven.",
-    "status": { "draft": "Concept", "approved": "Goedgekeurd", "sent": "Verzonden" },
+    "status": {
+      "draft": "Concept",
+      "approved": "Goedgekeurd",
+      "sent": "Verzonden"
+    },
     "dutchNote": "Officiële correspondentie is altijd in het Nederlands, ongeacht uw taalinstelling.",
     "approve": "Goedkeuren",
     "approved": "Brief goedgekeurd.",
     "markSent": "Markeren als verzonden",
-    "sentDone": "Geregistreerd als verzonden."
+    "sentDone": "Geregistreerd als verzonden.",
+    "officialOutput": "Officiële output: Nederlands — alle brieven worden in het Nederlands gegenereerd, ongeacht de taalinstelling."
   },
   "filings": {
     "rvTitle": "Rekening en verantwoording {year}",
@@ -330,7 +357,8 @@
       "rvScheduleMissing": "R&V-schema rechtbank niet vastgelegd (tabblad Overzicht).",
       "uncategorized": "{detail} ongecategoriseerde transacties — categoriseer vóór indiening.",
       "largeExpenses": "{detail} uitgave(n) ≥ € 2.000 — bewijs van toestemming of machtiging vereist (LOVT B.D3).",
-      "noTransactions": "Geen transacties in deze periode."
+      "noTransactions": "Geen transacties in deze periode.",
+      "reconciliation": "Cijfers sluiten niet aan: € {detail} onverklaard verschil tussen saldoverloop en categorietotalen."
     },
     "validationClean": "Alle controles slagen.",
     "openPack": "Controlepakket openen",
@@ -342,7 +370,8 @@
     "boedelDebts": "Geregistreerde schulden",
     "boedelIncome": "Inkomstenbronnen",
     "boedelLines": "regels",
-    "boedelHint": "Vul de boedelbeschrijving aan in Mijn CBM; bewaar het bewijs in het tabblad Documenten."
+    "boedelHint": "Vul de boedelbeschrijving aan in Mijn CBM; bewaar het bewijs in het tabblad Documenten.",
+    "officialOutput": "Officiële output: Nederlands — rechtbankstukken worden in het Nederlands voorbereid, ongeacht de taalinstelling."
   },
   "rvPack": {
     "back": "Terug naar dossier",
@@ -366,7 +395,8 @@
       "rvScheduleMissing": "R&V-schema rechtbank niet vastgelegd.",
       "uncategorized": "{detail} ongecategoriseerde transacties.",
       "largeExpenses": "{detail} uitgave(n) ≥ € 2.000 zonder vastgelegd bewijs.",
-      "noTransactions": "Geen transacties in deze periode."
+      "noTransactions": "Geen transacties in deze periode.",
+      "reconciliation": "Saldoverloop en categorietotalen verschillen € {detail} — controleer categorisering/imports vóór indiening."
     },
     "attachments": "Bijlagenchecklist",
     "attachment": {
@@ -439,7 +469,19 @@
       "not_applicable": "Niet van toepassing (toelichten)"
     },
     "rationalePlaceholder": "Toelichting / kenmerk (verplicht)",
-    "machtigingResolved": "Beoordeling vastgelegd."
+    "machtigingResolved": "Beoordeling vastgelegd.",
+    "openBatchExists": "Er bestaat al een openstaande betaalbatch — rond deze eerst af of annuleer hem.",
+    "approveSummaryTitle": "Betaalbatch goedkeuren?",
+    "approveConfirm": "Batch goedkeuren",
+    "approveSummary": {
+      "total": "Totaalbedrag",
+      "items": "Betalingen",
+      "dossiers": "Dossiers",
+      "accounts": "rekeningen",
+      "execution": "Uitvoeringsdatum",
+      "unresolved": "Openstaande beoordelingen",
+      "demoWarning": "DEMO-batch: de export is gemarkeerd 'niet bij een bank aanleveren' en er wordt nooit geld vanuit dit systeem overgemaakt."
+    }
   },
   "machtiging": {
     "reason": {

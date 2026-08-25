@@ -82,7 +82,11 @@ export function AddAccountForm({ dossierId }: { dossierId: string }) {
       className="space-y-2 border-t border-neutral-100 pt-3"
       action={(fd) =>
         startTransition(async () => {
-          await addAccount(dossierId, fd);
+          const res = await addAccount(dossierId, fd);
+          if (!res.ok) {
+            toast.error(t(`accountError.${res.error}`));
+            return;
+          }
           setOpen(false);
           toast.success(t("accountAdded"));
         })
