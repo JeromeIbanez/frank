@@ -18,10 +18,11 @@ import {
 
 const emptySnapshot = (today = "2026-08-26"): Snapshot => ({
   today,
+  nowIso: `${today}T10:00:00Z`,
   dossiers: [],
   accounts: [],
   budgetLines: [],
-  monthCredits: [],
+  recentCredits: [],
   recentLargeDebits: [],
   uncategorizedByDossier: {},
   newDocuments: [],
@@ -61,9 +62,10 @@ describe("income_missed (conservative matching)", () => {
   it("exact IBAN match resolves regardless of amount", () => {
     const s = emptySnapshot("2026-08-26");
     s.budgetLines = [incomeLine()];
-    s.monthCredits = [
+    s.recentCredits = [
       {
         dossierId: "D1",
+        bookingDate: "2026-08-15",
         amountCents: 12_345, // wildly different amount — IBAN wins
         counterpartyIban: "NL01WERK0000000001",
         categoryKey: null,
@@ -75,9 +77,10 @@ describe("income_missed (conservative matching)", () => {
   it("amount within tolerance + same category resolves", () => {
     const s = emptySnapshot("2026-08-26");
     s.budgetLines = [incomeLine()];
-    s.monthCredits = [
+    s.recentCredits = [
       {
         dossierId: "D1",
+        bookingDate: "2026-08-15",
         amountCents: 145_000, // within 10%
         counterpartyIban: "NL99ANDERS0000000001",
         categoryKey: "inkomen_loon",
@@ -89,9 +92,10 @@ describe("income_missed (conservative matching)", () => {
   it("weak match (amount only, wrong category) does NOT resolve", () => {
     const s = emptySnapshot("2026-08-26");
     s.budgetLines = [incomeLine()];
-    s.monthCredits = [
+    s.recentCredits = [
       {
         dossierId: "D1",
+        bookingDate: "2026-08-15",
         amountCents: 150_000,
         counterpartyIban: "NL99ANDERS0000000001",
         categoryKey: "toeslag_zorg",
@@ -103,15 +107,53 @@ describe("income_missed (conservative matching)", () => {
   it("weak match (category only, amount off) does NOT resolve", () => {
     const s = emptySnapshot("2026-08-26");
     s.budgetLines = [incomeLine()];
-    s.monthCredits = [
+    s.recentCredits = [
       {
         dossierId: "D1",
+        bookingDate: "2026-08-15",
         amountCents: 50_000, // way outside tolerance
         counterpartyIban: null,
         categoryKey: "inkomen_loon",
       },
     ];
     expect(detectIncomeMissed(s)).toHaveLength(1);
+  });
+
+  it("clamps day 31 in a 30-day month (due 30-09, fires 03-10 with the SEPTEMBER dedupe month)", () => {
+    const s = emptySnapshot("2026-10-03");
+    s.budgetLines = [incomeLine({ expectedDay: 31 })];
+    const out = detectIncomeMissed(s);
+    expect(out).toHaveLength(1);
+    expect(out[0].dedupeKey).toBe("income_missed:L1:2026-09");
+    expect(out[0].payload.dueDate).toBe("2026-09-30");
+  });
+
+  it("clamps day 31 in February (due 28-02, fires 03-03)", () => {
+    const s = emptySnapshot("2026-03-03");
+    s.budgetLines = [incomeLine({ expectedDay: 31 })];
+    const out = detectIncomeMissed(s);
+    expect(out).toHaveLength(1);
+    expect(out[0].payload.dueDate).toBe("2026-02-28");
+  });
+
+  it("grace spill into the next month still matches the DUE month's credits", () => {
+    const s = emptySnapshot("2026-10-02"); // due 30-09, grace not yet passed (2 < 3)
+    s.budgetLines = [incomeLine({ expectedDay: 30 })];
+    expect(detectIncomeMissed(s)).toHaveLength(0);
+    const s2 = emptySnapshot("2026-10-03"); // grace passed; credit on 30-09 resolves
+    s2.budgetLines = [incomeLine({ expectedDay: 30 })];
+    s2.recentCredits = [
+      { dossierId: "D1", bookingDate: "2026-09-30", amountCents: 150_000, counterpartyIban: "NL01WERK0000000001", categoryKey: null },
+    ];
+    expect(detectIncomeMissed(s2)).toHaveLength(0);
+  });
+
+  it("mid-month check looks at the PREVIOUS month's due date, not a future one", () => {
+    const s = emptySnapshot("2026-08-10"); // day 15 not reached; July due 15-07 unmatched
+    s.budgetLines = [incomeLine()];
+    const out = detectIncomeMissed(s);
+    expect(out).toHaveLength(1);
+    expect(out[0].dedupeKey).toBe("income_missed:L1:2026-07");
   });
 });
 
@@ -185,7 +227,7 @@ describe("unexpected_debit", () => {
     expect(detectUnexpectedDebit(s)).toHaveLength(0);
   });
 
-  it("does not fire when a budget line matches by IBAN or category", () => {
+  it("suppressed on exact counterparty-IBAN match with a budget line", () => {
     const s = emptySnapshot();
     s.budgetLines = [
       incomeLine({
@@ -196,6 +238,36 @@ describe("unexpected_debit", () => {
       }),
     ];
     s.recentLargeDebits = [debit()];
+    expect(detectUnexpectedDebit(s)).toHaveLength(0);
+  });
+
+  it("category match ALONE does NOT suppress (Temujin PR-5 #5)", () => {
+    const s = emptySnapshot();
+    s.budgetLines = [
+      incomeLine({
+        id: "L9",
+        kind: "expense",
+        counterpartyIban: null,
+        categoryKey: "wonen_huur",
+        amountCents: 10_000, // line €100 vs debit €600 — amount way off
+      }),
+    ];
+    s.recentLargeDebits = [debit({ categoryKey: "wonen_huur" })];
+    expect(detectUnexpectedDebit(s)).toHaveLength(1);
+  });
+
+  it("category + amount-within-tolerance suppresses", () => {
+    const s = emptySnapshot();
+    s.budgetLines = [
+      incomeLine({
+        id: "L9",
+        kind: "expense",
+        counterpartyIban: null,
+        categoryKey: "wonen_huur",
+        amountCents: 60_000,
+      }),
+    ];
+    s.recentLargeDebits = [debit({ categoryKey: "wonen_huur", amountCents: -58_000 })];
     expect(detectUnexpectedDebit(s)).toHaveLength(0);
   });
 });
@@ -263,7 +335,7 @@ describe("docs, machtiging, tasks, rv, batch, uncategorized", () => {
     const out = detectRvWindow(s);
     expect(out).toHaveLength(1);
     expect(out[0].dedupeKey).toBe("rv_window:D1:2026");
-    expect(out[0].payload.periodEnd).toBe("2026-09-30");
+    expect(out[0].payload.dueDate).toBe("2026-09-30");
   });
 
   it("batch_waiting: silent under 24h, info after, amber after 72h", () => {
@@ -313,6 +385,16 @@ describe("reconcileSignals lifecycle", () => {
     expect(plan.touchOpen).toEqual(["a:1"]);
     expect(plan.refresh).toHaveLength(0);
     expect(plan.insert).toHaveLength(0);
+  });
+
+  it("present + open + stale detectorVersion → per-row refresh (Temujin PR-5 #6)", () => {
+    const plan = reconcileSignals(
+      [{ dedupeKey: "a:1", status: "open", severity: "amber", payloadJson: "{}", detectorVersion: "signals-v1" }],
+      [cond("a:1")],
+      "signals-v2"
+    );
+    expect(plan.refresh).toHaveLength(1);
+    expect(plan.touchOpen).toHaveLength(0);
   });
 
   it("present + open + severity or payload changed → per-row refresh", () => {

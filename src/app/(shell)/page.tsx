@@ -79,7 +79,7 @@ export default async function TodayPage() {
       case "income_missed":
         return ts("sentence.income_missed", {
           line: String(p.line ?? "?"),
-          day: String(p.expectedDay ?? "?"),
+          due: formatDateNL(String(p.dueDate ?? "")),
           amount: formatEuro(Number(p.amountCents ?? 0)),
         });
       case "leefgeld_low":
@@ -123,7 +123,7 @@ export default async function TodayPage() {
         });
       case "rv_window":
         return ts("sentence.rv_window", {
-          periodEnd: formatDateNL(String(p.periodEnd ?? "")),
+          dueDate: formatDateNL(String(p.dueDate ?? "")),
           days: Number(p.days ?? 0),
         });
       case "batch_waiting":

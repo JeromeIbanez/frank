@@ -25,11 +25,24 @@ import {
  * persists them.
  */
 
+/** Today as a YYYY-MM-DD date in the office timezone (Europe/Amsterdam) —
+ *  detectors must not flip a day early/late on UTC (Temujin PR-5 #1). */
+function todayAmsterdam(now: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Amsterdam",
+  }).format(now);
+}
+
 async function buildSnapshot(): Promise<Snapshot> {
   const db = getDb();
-  const today = new Date().toISOString().slice(0, 10);
-  const monthStart = today.slice(0, 8) + "01";
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000)
+  const now = new Date();
+  const today = todayAmsterdam(now);
+  // Credits window starts at the PREVIOUS month (month-end due days).
+  const y = Number(today.slice(0, 4));
+  const m = Number(today.slice(5, 7));
+  const prevMonthStart =
+    m === 1 ? `${y - 1}-12-01` : `${y}-${String(m - 1).padStart(2, "0")}-01`;
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 86_400_000)
     .toISOString()
     .slice(0, 10);
 
@@ -58,6 +71,7 @@ async function buildSnapshot(): Promise<Snapshot> {
     db
       .select({
         dossierId: transactions.dossierId,
+        bookingDate: transactions.bookingDate,
         amountCents: transactions.amountCents,
         counterpartyIban: transactions.counterpartyIban,
         categoryKey: transactions.categoryKey,
@@ -65,7 +79,7 @@ async function buildSnapshot(): Promise<Snapshot> {
       .from(transactions)
       .where(
         and(
-          gte(transactions.bookingDate, monthStart),
+          gte(transactions.bookingDate, prevMonthStart),
           gte(transactions.amountCents, 1)
         )
       ),
@@ -88,8 +102,9 @@ async function buildSnapshot(): Promise<Snapshot> {
       where: eq(paymentBatches.status, "draft"),
       with: { items: true },
     }),
+    // "submitted" stays visible until confirmation (Temujin PR-5 #3).
     db.query.tasks.findMany({
-      where: inArray(tasks.status, ["open", "prepared"]),
+      where: inArray(tasks.status, ["open", "prepared", "submitted"]),
     }),
   ]);
 
@@ -100,6 +115,7 @@ async function buildSnapshot(): Promise<Snapshot> {
 
   return {
     today,
+    nowIso: now.toISOString(),
     dossiers: dossierRows.map((d) => ({
       id: d.id,
       name: `${d.firstName} ${d.lastName}`,
@@ -130,7 +146,7 @@ async function buildSnapshot(): Promise<Snapshot> {
         counterpartyIban: l.counterpartyIban,
         categoryKey: l.categoryKey,
       })),
-    monthCredits: creditRows.filter((c) => activeDossierIds.has(c.dossierId)),
+    recentCredits: creditRows.filter((c) => activeDossierIds.has(c.dossierId)),
     recentLargeDebits: debitRows
       .filter((t) => activeDossierIds.has(t.dossierId))
       .map((t) => ({
@@ -194,6 +210,7 @@ export async function refreshSignals(): Promise<{
       status: signals.status,
       severity: signals.severity,
       payload: signals.payload,
+      detectorVersion: signals.detectorVersion,
     })
     .from(signals);
   const plan = reconcileSignals(
@@ -202,8 +219,10 @@ export async function refreshSignals(): Promise<{
       status: e.status,
       severity: e.severity,
       payloadJson: JSON.stringify(e.payload ?? {}),
+      detectorVersion: e.detectorVersion,
     })),
-    present
+    present,
+    DETECTOR_VERSION
   );
   const now = new Date();
 

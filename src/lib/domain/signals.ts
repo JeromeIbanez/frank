@@ -13,7 +13,7 @@
  * the transaction's explicit human `reviewed` state.
  */
 
-export const DETECTOR_VERSION = "signals-v1";
+export const DETECTOR_VERSION = "signals-v2";
 
 export type Severity = "red" | "amber" | "info";
 
@@ -28,8 +28,12 @@ export type SignalCondition = {
 };
 
 export type Snapshot = {
-  /** ISO date YYYY-MM-DD (UTC) */
+  /** ISO date YYYY-MM-DD in the office timezone (Europe/Amsterdam) —
+   *  Temujin PR-5 review #1. */
   today: string;
+  /** ISO datetime of the refresh instant; elapsed-time detectors compute
+   *  against THIS, never against an end-of-day approximation. */
+  nowIso: string;
   dossiers: {
     id: string;
     name: string;
@@ -56,9 +60,11 @@ export type Snapshot = {
     counterpartyIban: string | null;
     categoryKey: string;
   }[];
-  /** Credits of the current month (amountCents > 0). */
-  monthCredits: {
+  /** Credits since the start of the PREVIOUS month (amountCents > 0) —
+   *  month-end due days need last month's window (Temujin PR-5 #2). */
+  recentCredits: {
     dossierId: string;
+    bookingDate: string;
     amountCents: number;
     counterpartyIban: string | null;
     categoryKey: string | null;
@@ -114,12 +120,25 @@ function daysBetween(fromIso: string, toIso: string): number {
   return Math.round((Date.parse(toIso) - Date.parse(fromIso)) / 86_400_000);
 }
 
-/** income_missed — active monthly income line whose expected day passed by
- *  the grace period with no conservative match among this month's credits. */
+function daysInMonth(year: number, month1: number): number {
+  return new Date(Date.UTC(year, month1, 0)).getUTCDate();
+}
+
+/** Due date for a scheduled day-of-month in a given month, clamped to the
+ *  month's length (day 31 → 28/29/30 in short months — Temujin PR-5 #2). */
+function clampedDueDate(year: number, month1: number, day: number): string {
+  const d = Math.min(day, daysInMonth(year, month1));
+  return `${year}-${String(month1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+/** income_missed — active monthly income line whose most recent due date
+ *  passed by the grace period with no conservative match among the credits
+ *  of that due date's month. Month-end days are clamped, and a grace
+ *  window that spills into the next month still checks the DUE month. */
 export function detectIncomeMissed(s: Snapshot): SignalCondition[] {
   const out: SignalCondition[] = [];
-  const dayOfMonth = Number(s.today.slice(8, 10));
-  const month = s.today.slice(0, 7);
+  const year = Number(s.today.slice(0, 4));
+  const month1 = Number(s.today.slice(5, 7));
   for (const line of s.budgetLines) {
     if (
       line.kind !== "income" ||
@@ -128,9 +147,26 @@ export function detectIncomeMissed(s: Snapshot): SignalCondition[] {
       !line.expectedDay
     )
       continue;
-    if (dayOfMonth < line.expectedDay + INCOME_GRACE_DAYS) continue;
-    const credits = s.monthCredits.filter(
-      (c) => c.dossierId === line.dossierId && c.amountCents > 0
+    // Most recent due date on or before today (current month, else previous).
+    let dueYear = year;
+    let dueMonth = month1;
+    let due = clampedDueDate(dueYear, dueMonth, line.expectedDay);
+    if (due > s.today) {
+      dueMonth -= 1;
+      if (dueMonth === 0) {
+        dueMonth = 12;
+        dueYear -= 1;
+      }
+      due = clampedDueDate(dueYear, dueMonth, line.expectedDay);
+    }
+    if (daysBetween(due, s.today) < INCOME_GRACE_DAYS) continue;
+    const dueMonthKey = due.slice(0, 7);
+    const monthStart = `${dueMonthKey}-01`;
+    const credits = s.recentCredits.filter(
+      (c) =>
+        c.dossierId === line.dossierId &&
+        c.amountCents > 0 &&
+        c.bookingDate >= monthStart
     );
     const ibanMatch =
       line.counterpartyIban !== null &&
@@ -144,14 +180,14 @@ export function detectIncomeMissed(s: Snapshot): SignalCondition[] {
     if (ibanMatch || amountCategoryMatch) continue;
     out.push({
       detectorKey: "income_missed",
-      dedupeKey: `income_missed:${line.id}:${month}`,
+      dedupeKey: `income_missed:${line.id}:${dueMonthKey}`,
       severity: "amber",
       dossierId: line.dossierId,
       entityType: "budget_line",
       entityId: line.id,
       payload: {
         line: line.name,
-        expectedDay: line.expectedDay,
+        dueDate: due,
         amountCents: line.amountCents,
       },
     });
@@ -221,6 +257,9 @@ export function detectUnexpectedDebit(s: Snapshot): SignalCondition[] {
       ownIbansByDossier.get(tx.dossierId)?.has(tx.counterpartyIban)
     )
       continue; // internal transfer
+    // Suppression must be conservative (Temujin PR-5 #5): exact counter-
+    // party IBAN, or category PLUS amount-within-tolerance of the line.
+    // Category alone never hides a large debit.
     const matchesLine = s.budgetLines.some(
       (l) =>
         l.dossierId === tx.dossierId &&
@@ -228,7 +267,10 @@ export function detectUnexpectedDebit(s: Snapshot): SignalCondition[] {
         l.kind !== "income" &&
         ((l.counterpartyIban !== null &&
           l.counterpartyIban === tx.counterpartyIban) ||
-          (tx.categoryKey !== null && l.categoryKey === tx.categoryKey))
+          (tx.categoryKey !== null &&
+            l.categoryKey === tx.categoryKey &&
+            Math.abs(Math.abs(tx.amountCents) - l.amountCents) <=
+              l.amountCents * INCOME_AMOUNT_TOLERANCE))
     );
     if (matchesLine) continue;
     out.push({
@@ -314,18 +356,21 @@ export function detectDeadlineUnconfirmed(s: Snapshot): SignalCondition[] {
     }));
 }
 
-/** rv_window — confirmed R&V reporting month ends within 60 days. */
+/** rv_window — the confirmed R&V DUE month (per the court instruction —
+ *  rvScheduleMonth is the filing due month, NOT a period end; Temujin PR-5
+ *  #4) ends within 60 days. Signals the filing deadline; the reporting-
+ *  period model itself is W3. */
 export function detectRvWindow(s: Snapshot): SignalCondition[] {
   const out: SignalCondition[] = [];
   const year = Number(s.today.slice(0, 4));
   for (const d of s.dossiers) {
     if (!d.rvScheduleConfirmed || !d.rvScheduleMonth) continue;
-    // Period ends on the last day of the schedule month, this year or next.
     for (const y of [year, year + 1]) {
-      const endIso = new Date(Date.UTC(y, d.rvScheduleMonth, 0))
+      // Filing is due within the schedule month: deadline = its last day.
+      const dueIso = new Date(Date.UTC(y, d.rvScheduleMonth, 0))
         .toISOString()
         .slice(0, 10);
-      const days = daysBetween(s.today, endIso);
+      const days = daysBetween(s.today, dueIso);
       if (days < 0 || days > RV_WINDOW_DAYS) continue;
       out.push({
         detectorKey: "rv_window",
@@ -334,7 +379,7 @@ export function detectRvWindow(s: Snapshot): SignalCondition[] {
         dossierId: d.id,
         entityType: "dossier",
         entityId: d.id,
-        payload: { periodEnd: endIso, days, year: y },
+        payload: { dueDate: dueIso, days, year: y },
       });
       break;
     }
@@ -342,13 +387,12 @@ export function detectRvWindow(s: Snapshot): SignalCondition[] {
   return out;
 }
 
-/** batch_waiting — a draft batch has been waiting for review too long. */
+/** batch_waiting — a draft batch has been waiting for review too long.
+ *  Elapsed time runs from the refresh instant (Temujin PR-5 #1). */
 export function detectBatchWaiting(s: Snapshot): SignalCondition[] {
   if (!s.draftBatch) return [];
   const hours =
-    (Date.parse(`${s.today}T23:59:59Z`) -
-      Date.parse(s.draftBatch.createdAtIso)) /
-    3_600_000;
+    (Date.parse(s.nowIso) - Date.parse(s.draftBatch.createdAtIso)) / 3_600_000;
   if (hours < BATCH_WAITING_HOURS) return [];
   return [
     {
@@ -402,6 +446,7 @@ export type ExistingSignal = {
   severity?: Severity;
   /** JSON-stringified payload for change detection */
   payloadJson?: string;
+  detectorVersion?: string;
 };
 
 export type ReconcilePlan = {
@@ -423,7 +468,8 @@ export type ReconcilePlan = {
 
 export function reconcileSignals(
   existing: ExistingSignal[],
-  present: SignalCondition[]
+  present: SignalCondition[],
+  currentVersion: string = DETECTOR_VERSION
 ): ReconcilePlan {
   const byKey = new Map(existing.map((e) => [e.dedupeKey, e]));
   const presentKeys = new Set(present.map((p) => p.dedupeKey));
@@ -441,7 +487,10 @@ export function reconcileSignals(
     else if (row.status === "open") {
       const changed =
         row.severity !== p.severity ||
-        row.payloadJson !== JSON.stringify(p.payload);
+        row.payloadJson !== JSON.stringify(p.payload) ||
+        // A detector fix must re-stamp rows it produced (Temujin PR-5 #6).
+        (row.detectorVersion !== undefined &&
+          row.detectorVersion !== currentVersion);
       if (changed) plan.refresh.push(p);
       else plan.touchOpen.push(p.dedupeKey);
     } else if (row.status === "dismissed") plan.touchDismissed.push(p.dedupeKey);

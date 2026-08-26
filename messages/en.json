@@ -586,7 +586,7 @@
     "dismissed": "Signal dismissed.",
     "dismissFailed": "Could not dismiss signal.",
     "sentence": {
-      "income_missed": "Expected income “{line}” ({amount}, day {day}) has not arrived this month.",
+      "income_missed": "Expected income “{line}” ({amount}, due {due}) has not arrived.",
       "leefgeld_low": "Leefgeld account holds {balance} — not enough for the next transfer of {needed}.",
       "balance_floor": "Beheer account balance is down to {balance}.",
       "unexpected_debit": "Unexpected debit of {amount} to {counterparty} on {date} — not in the budget plan.",
@@ -595,7 +595,7 @@
       "task_due": "{task} is due in {days} day(s).",
       "task_overdue": "{task} is {days} day(s) overdue.",
       "deadline_unconfirmed": "Deadline for {task} was computed but never confirmed by a human.",
-      "rv_window": "R&V reporting period ends {periodEnd} — {days} days left to prepare.",
+      "rv_window": "R&V filing is due by {dueDate} (court schedule) — {days} days left.",
       "batch_waiting": "A draft payment batch has been waiting for review for {hours} hours.",
       "uncategorized_tx": "{count} transaction(s) still uncategorized."
     }

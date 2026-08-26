@@ -586,7 +586,7 @@
     "dismissed": "Signaal weggezet.",
     "dismissFailed": "Signaal kon niet worden weggezet.",
     "sentence": {
-      "income_missed": "Verwachte inkomsten “{line}” ({amount}, dag {day}) zijn deze maand niet binnengekomen.",
+      "income_missed": "Verwachte inkomsten “{line}” ({amount}, verwacht {due}) zijn niet binnengekomen.",
       "leefgeld_low": "Leefgeldrekening bevat {balance} — onvoldoende voor de volgende overboeking van {needed}.",
       "balance_floor": "Saldo beheerrekening is gedaald tot {balance}.",
       "unexpected_debit": "Onverwachte afschrijving van {amount} aan {counterparty} op {date} — niet in het budgetplan.",
@@ -595,7 +595,7 @@
       "task_due": "{task} vervalt over {days} dag(en).",
       "task_overdue": "{task} is {days} dag(en) over tijd.",
       "deadline_unconfirmed": "Termijn voor {task} is berekend maar nooit door een mens bevestigd.",
-      "rv_window": "R&V-verslagperiode eindigt {periodEnd} — nog {days} dagen om voor te bereiden.",
+      "rv_window": "R&V-indiening moet uiterlijk {dueDate} (rooster rechtbank) — nog {days} dagen.",
       "batch_waiting": "Een conceptbetaalbatch wacht al {hours} uur op beoordeling.",
       "uncategorized_tx": "{count} transactie(s) nog niet gecategoriseerd."
     }
