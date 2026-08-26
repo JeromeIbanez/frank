@@ -37,15 +37,6 @@
       "newDocuments": "Nieuwe documenten",
       "newDocumentsSub": "wachten op triage"
     },
-    "exceptions": {
-      "title": "Signaleringen",
-      "none": "Geen signaleringen — alle dossiers binnen verwachting.",
-      "emptyTitle": "Geen signaleringen",
-      "missed_income": "Verwachte inkomsten niet ontvangen",
-      "balance_floor": "Saldo onder de ondergrens",
-      "uncategorized": "Transacties te beoordelen",
-      "unconfirmed_deadline": "Wettelijke termijn wacht op bevestiging"
-    },
     "deadlines": {
       "title": "Komende termijnen",
       "none": "Geen komende termijnen.",
@@ -578,6 +569,35 @@
       "last_bewindvoerder": "Het kantoor moet minimaal één actieve bewindvoerder houden.",
       "not_found": "Actor niet gevonden.",
       "unknown": "Wijziging geweigerd."
+    }
+  },
+  "signals": {
+    "title": "Vraagt om jou",
+    "office": "Kantoor",
+    "refresh": "Vernieuwen",
+    "refreshed": "Signalen vernieuwd — {open} open.",
+    "computedAt": "berekend {date} {time}",
+    "emptyTitle": "Niets vraagt nu om jou",
+    "emptySentence": "Nieuwe signalen verschijnen hier zodra geld, post of termijnen aandacht vragen.",
+    "dismiss": "Wegzetten",
+    "dismissTitle": "Signaal wegzetten",
+    "dismissHint": "Wegzetten legt jouw oordeel vast dat dit geen actie vraagt. Het komt alleen terug als de situatie eerst verdwijnt en later opnieuw optreedt. De wegzetting wordt vastgelegd in de auditlog.",
+    "dismissReasonPlaceholder": "Reden (verplicht)",
+    "dismissed": "Signaal weggezet.",
+    "dismissFailed": "Signaal kon niet worden weggezet.",
+    "sentence": {
+      "income_missed": "Verwachte inkomsten “{line}” ({amount}, verwacht {due}) zijn niet binnengekomen.",
+      "leefgeld_low": "Leefgeldrekening bevat {balance} — onvoldoende voor de volgende overboeking van {needed}.",
+      "balance_floor": "Saldo beheerrekening is gedaald tot {balance}.",
+      "unexpected_debit": "Onverwachte afschrijving van {amount} aan {counterparty} op {date} — niet in het budgetplan.",
+      "doc_needs_triage": "Nieuw document “{filename}” wacht op triage.",
+      "machtiging_open": "Betaling aan {creditor} vraagt juridische toetsing (machtiging) voordat de batch kan worden goedgekeurd.",
+      "task_due": "{task} vervalt over {days} dag(en).",
+      "task_overdue": "{task} is {days} dag(en) over tijd.",
+      "deadline_unconfirmed": "Termijn voor {task} is berekend maar nooit door een mens bevestigd.",
+      "rv_window": "R&V-indiening moet uiterlijk {dueDate} (rooster rechtbank) — nog {days} dagen.",
+      "batch_waiting": "Een conceptbetaalbatch wacht al {hours} uur op beoordeling.",
+      "uncategorized_tx": "{count} transactie(s) nog niet gecategoriseerd."
     }
   }
 }

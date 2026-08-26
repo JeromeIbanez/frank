@@ -6,6 +6,7 @@ import { getDb } from "@/lib/db";
 import { budgetLines, dossiers } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
+import { refreshSignalsSafe } from "@/lib/signals";
 
 export async function addBudgetLine(
   dossierId: string,
@@ -60,6 +61,7 @@ export async function addBudgetLine(
     },
   });
   revalidatePath(`/dossiers/${dossierId}`);
+  await refreshSignalsSafe();
 }
 
 export async function deactivateBudgetLine(lineId: string): Promise<void> {
@@ -83,6 +85,7 @@ export async function deactivateBudgetLine(lineId: string): Promise<void> {
     versionAfter: { active: false },
   });
   revalidatePath(`/dossiers/${line.dossierId}`);
+  await refreshSignalsSafe();
 }
 
 export async function setLeefgeld(
@@ -125,4 +128,5 @@ export async function setLeefgeld(
     reason: "leefgeld schedule updated",
   });
   revalidatePath(`/dossiers/${dossierId}`);
+  await refreshSignalsSafe();
 }

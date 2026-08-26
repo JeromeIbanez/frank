@@ -10,6 +10,7 @@ import { writeAudit } from "@/lib/audit";
 import { computeStatutoryTasks, CALC_VERSION } from "@/lib/domain/deadlines";
 import { isValidIban } from "@/lib/domain/pain001";
 import { NIEUW_DOSSIER_PLAYBOOK, DEFAULT_INSTANTIES } from "@/lib/playbooks";
+import { refreshSignalsSafe } from "@/lib/signals";
 
 function isoToday(): string {
   return new Date().toISOString().slice(0, 10);
@@ -196,6 +197,7 @@ export async function activateDossier(dossierId: string): Promise<void> {
   });
 
   revalidatePath(`/dossiers/${dossierId}`);
+  await refreshSignalsSafe();
 }
 
 /** Record the court-imposed R&V schedule (explicit dossier fact, never inferred). */
@@ -263,4 +265,5 @@ export async function setRvSchedule(
   });
 
   revalidatePath(`/dossiers/${dossierId}`);
+  await refreshSignalsSafe();
 }

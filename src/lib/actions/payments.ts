@@ -15,6 +15,7 @@ import { writeAudit } from "@/lib/audit";
 import { checkMachtiging } from "@/lib/domain/machtiging";
 import { isValidIban } from "@/lib/domain/pain001";
 import { shiftToBusinessDay } from "@/lib/domain/holidays";
+import { refreshSignalsSafe } from "@/lib/signals";
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -187,6 +188,7 @@ export async function createPaymentProposals(): Promise<{
   });
 
   revalidatePath("/payments");
+  await refreshSignalsSafe();
   return { batchId: batch.id, items: itemCount };
 }
 
@@ -249,6 +251,7 @@ export async function resolveMachtigingFlag(
   });
   if (batch) revalidatePath(`/payments/${batch.id}`);
   revalidatePath("/payments");
+  await refreshSignalsSafe();
   return { ok: true };
 }
 
@@ -320,6 +323,7 @@ export async function approveBatch(
 
   revalidatePath("/payments");
   revalidatePath(`/payments/${batchId}`);
+  await refreshSignalsSafe();
   return { ok: true };
 }
 
@@ -399,5 +403,6 @@ export async function setItemExcluded(
 
   revalidatePath(`/payments/${item.batchId}`);
   revalidatePath("/payments");
+  await refreshSignalsSafe();
   return { ok: true };
 }

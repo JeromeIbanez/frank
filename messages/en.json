@@ -37,15 +37,6 @@
       "newDocuments": "New documents",
       "newDocumentsSub": "awaiting triage"
     },
-    "exceptions": {
-      "title": "Exceptions",
-      "none": "No exceptions — all dossiers within expectations.",
-      "emptyTitle": "No exceptions",
-      "missed_income": "Expected income not received",
-      "balance_floor": "Account balance below floor",
-      "uncategorized": "Transactions to review",
-      "unconfirmed_deadline": "Statutory deadline awaiting confirmation"
-    },
     "deadlines": {
       "title": "Upcoming deadlines",
       "none": "No upcoming deadlines.",
@@ -578,6 +569,35 @@
       "last_bewindvoerder": "The office must keep at least one active bewindvoerder.",
       "not_found": "Actor not found.",
       "unknown": "Change refused."
+    }
+  },
+  "signals": {
+    "title": "Needs you",
+    "office": "Office",
+    "refresh": "Refresh",
+    "refreshed": "Signals refreshed — {open} open.",
+    "computedAt": "computed {date} {time}",
+    "emptyTitle": "Nothing needs you right now",
+    "emptySentence": "New signals appear here when money, post or deadlines need attention.",
+    "dismiss": "Dismiss",
+    "dismissTitle": "Dismiss signal",
+    "dismissHint": "Dismissing records your judgment that this needs no action. It returns only if the situation clears and later recurs. The dismissal is written to the audit log.",
+    "dismissReasonPlaceholder": "Reason (required)",
+    "dismissed": "Signal dismissed.",
+    "dismissFailed": "Could not dismiss signal.",
+    "sentence": {
+      "income_missed": "Expected income “{line}” ({amount}, due {due}) has not arrived.",
+      "leefgeld_low": "Leefgeld account holds {balance} — not enough for the next transfer of {needed}.",
+      "balance_floor": "Beheer account balance is down to {balance}.",
+      "unexpected_debit": "Unexpected debit of {amount} to {counterparty} on {date} — not in the budget plan.",
+      "doc_needs_triage": "New document “{filename}” awaits triage.",
+      "machtiging_open": "Payment to {creditor} needs legal review (machtiging) before the batch can be approved.",
+      "task_due": "{task} is due in {days} day(s).",
+      "task_overdue": "{task} is {days} day(s) overdue.",
+      "deadline_unconfirmed": "Deadline for {task} was computed but never confirmed by a human.",
+      "rv_window": "R&V filing is due by {dueDate} (court schedule) — {days} days left.",
+      "batch_waiting": "A draft payment batch has been waiting for review for {hours} hours.",
+      "uncategorized_tx": "{count} transaction(s) still uncategorized."
     }
   }
 }

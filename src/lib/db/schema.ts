@@ -379,6 +379,49 @@ export const paymentItems = pgTable("payment_items", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ---------- Signals (plan os-v1 W1) ----------
+//
+// Materialized pointers with a lifecycle — NEVER authoritative state.
+// Computed by pure detectors (src/lib/domain/signals.ts) via an
+// event-triggered refresh; never mutated during page render. A dismissed
+// signal reopens only after its condition clears and then recurs.
+
+export const signals = pgTable(
+  "signals",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    detectorKey: text("detector_key").notNull(),
+    detectorVersion: text("detector_version").notNull(),
+    dedupeKey: text("dedupe_key").notNull(),
+    dossierId: text("dossier_id").references(() => dossiers.id),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    severity: text("severity", { enum: ["red", "amber", "info"] }).notNull(),
+    status: text("status", { enum: ["open", "dismissed", "resolved"] })
+      .notNull()
+      .default("open"),
+    payload: jsonb("payload").$type<Record<string, string | number>>(),
+    computedAt: timestamp("computed_at").notNull(),
+    firstSeenAt: timestamp("first_seen_at").notNull(),
+    lastSeenAt: timestamp("last_seen_at").notNull(),
+    resolvedAt: timestamp("resolved_at"),
+    dismissedBy: text("dismissed_by"),
+    dismissedReason: text("dismissed_reason"),
+    dismissedAt: timestamp("dismissed_at"),
+  },
+  (t) => [
+    uniqueIndex("signals_dedupe_unique").on(t.dedupeKey),
+    index("signals_status").on(t.status, t.severity),
+  ]
+);
+
+export const signalsRelations = relations(signals, ({ one }) => ({
+  dossier: one(dossiers, {
+    fields: [signals.dossierId],
+    references: [dossiers.id],
+  }),
+}));
+
 // ---------- Audit (Temujin #7) ----------
 
 export const auditEvents = pgTable(

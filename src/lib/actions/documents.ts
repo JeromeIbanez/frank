@@ -9,6 +9,7 @@ import { documents, tasks } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
 import { callStructured } from "@/lib/ai/gateway";
+import { refreshSignalsSafe } from "@/lib/signals";
 
 const CLASSIFICATIONS = [
   "factuur",
@@ -139,6 +140,7 @@ export async function uploadDocument(formData: FormData): Promise<void> {
   }
 
   revalidatePath("/inbox");
+  await refreshSignalsSafe();
 }
 
 export async function linkDocumentToDossier(
@@ -166,6 +168,7 @@ export async function linkDocumentToDossier(
   });
   revalidatePath("/inbox");
   revalidatePath(`/dossiers/${dossierId}`);
+  await refreshSignalsSafe();
 }
 
 /** Human accepts the AI proposal → becomes a task (Level B gate). */
@@ -215,6 +218,7 @@ export async function acceptProposedAction(
 
   revalidatePath("/inbox");
   revalidatePath(`/dossiers/${dossierId}`);
+  await refreshSignalsSafe();
 }
 
 export async function setDocumentClassification(
