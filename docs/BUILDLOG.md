@@ -1,5 +1,19 @@
 # Frank OS — Build Log
 
+## Claude Design identity implemented — 2026-08-26
+- Full visual identity from Claude Design's handoff (docs/design/): handoff
+  palette/type tokens, "square full stop" logo + favicon, 216px sidebar +
+  54px topbar shell, all screens to spec, EmptyState pattern.
+- Payments "deliberate approve" flow: audited soft-exclude (held for court
+  authorisation), ack-gated approve (server invariant + audit), locked
+  batches immutable (incl. legal resolutions), export skips held items.
+- LOVT B.D3 correction (Temujin): machtiging aggregation strictly per
+  identifiable purpose via budget_lines.purposeTag; the guard is now
+  reachable through the real product flow (was dead code for generated
+  batches). Deferred: check-amount row state, My-day filter pills,
+  Foundations page, responsive.
+- PR #3, three Temujin review rounds → APPROVE; production deployed.
+
 ## MVP shipped — 2026-08-26 (overnight build)
 
 - Research (legal / operations / competitive) → docs/research/
