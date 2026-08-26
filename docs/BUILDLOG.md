@@ -1,5 +1,21 @@
 # Frank OS — Build Log
 
+## OS v1 PR-1: Foundation shipped — 2026-08-26
+- Plan docs/plans/os-v1.md approved by Temujin (round 2); four-PR cycle.
+- Auth foundation (PR #4, three review rounds → APPROVE): identity
+  chokepoint with clerk/dev modes (single fail-fast config predicate in
+  src/lib/auth-config.ts), JIT provisioning from the verified-email
+  allowlist FRANK_BEWINDVOERDER_EMAILS (required in clerk mode), pure
+  authz domain module (role gates, vier-ogen batch approval, team
+  guardrails), audited Team page, (shell) route group + /sign-in.
+- DB-enforced append-only audit: app runs as restricted frank_app role
+  (DATABASE_URL_APP, fail-closed on Vercel); UPDATE/DELETE on audit_events
+  refused by Postgres. Role setup via FRANK_APP_DB_PASSWORD + db-extras.
+- Clerk mode implemented but awaits Jerome's Clerk keys (account creation
+  is his action); until then deployments run labeled dev-identity mode on
+  synthetic data. Owed: one clerk-mode smoke test when keys land.
+- 94/94 tests; deployed to production.
+
 ## Claude Design identity implemented — 2026-08-26
 - Full visual identity from Claude Design's handoff (docs/design/): handoff
   palette/type tokens, "square full stop" logo + favicon, 216px sidebar +
