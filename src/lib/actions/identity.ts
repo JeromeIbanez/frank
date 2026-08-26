@@ -7,6 +7,7 @@ import { getDb } from "@/lib/db";
 import { actors } from "@/lib/db/schema";
 import {
   DEV_ACTOR_COOKIE,
+  DEV_ACTOR_IDS,
   authMode,
   countActiveBewindvoerders,
   currentActor,
@@ -14,9 +15,12 @@ import {
 import { canChangeActor } from "@/lib/domain/authz";
 import { writeAudit } from "@/lib/audit";
 
-/** Dev-mode only: pick one of the seeded demo identities. */
+/** Dev-mode only: pick one of the seeded demo identities. Pinned to the
+ *  fixed DEV_ACTORS ids — other actor rows can never be impersonated
+ *  (Temujin PR-4 review P2-4). */
 export async function switchDevActor(actorId: string): Promise<void> {
   if (authMode() !== "dev") return;
+  if (!DEV_ACTOR_IDS.includes(actorId)) return;
   const db = getDb();
   const row = await db.query.actors.findFirst({
     where: and(eq(actors.id, actorId), eq(actors.active, true)),

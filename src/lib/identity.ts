@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
-import { asc, count, eq, and } from "drizzle-orm";
+import { asc, count, eq, and, inArray } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { actors } from "@/lib/db/schema";
 
@@ -61,46 +61,54 @@ export const DEV_ACTORS: ReadonlyArray<{
   },
 ];
 
+/** Ids the dev mode may ever impersonate (Temujin PR-4 review P2-4): the
+ *  cookie, the switcher, and the fallback are all pinned to this set, so a
+ *  database that also holds non-demo actors can never be impersonated. */
+export const DEV_ACTOR_IDS = DEV_ACTORS.map((a) => a.id);
+
 async function ensureDevActors(): Promise<void> {
-  const db = getDb();
-  const [{ n }] = await db.select({ n: count() }).from(actors);
-  if (n > 0) return;
-  await db
+  // Idempotent per actor — not gated on the table being empty.
+  await getDb()
     .insert(actors)
     .values(DEV_ACTORS.map((a) => ({ ...a, active: true })))
-    .onConflictDoNothing();
+    .onConflictDoNothing({ target: actors.id });
 }
 
 async function currentDevActor(): Promise<Actor> {
   await ensureDevActors();
   const db = getDb();
   const wanted = (await cookies()).get(DEV_ACTOR_COOKIE)?.value;
-  if (wanted) {
+  if (wanted && DEV_ACTOR_IDS.includes(wanted)) {
     const row = await db.query.actors.findFirst({
       where: and(eq(actors.id, wanted), eq(actors.active, true)),
     });
     if (row) return row;
   }
   const fallback = await db.query.actors.findFirst({
-    where: and(eq(actors.role, "bewindvoerder"), eq(actors.active, true)),
+    where: and(
+      inArray(actors.id, DEV_ACTOR_IDS),
+      eq(actors.role, "bewindvoerder"),
+      eq(actors.active, true)
+    ),
     orderBy: asc(actors.createdAt),
   });
-  if (!fallback) throw new Error("no active bewindvoerder actor seeded");
+  if (!fallback) throw new Error("no active dev bewindvoerder actor seeded");
   return fallback;
 }
 
 /**
- * Bootstrap rule for clerk mode: the very first actor ever created becomes
- * bewindvoerder (someone must be able to run the office); afterwards, new
- * sign-ins start as assistent unless allow-listed via
- * FRANK_BEWINDVOERDER_EMAILS (comma-separated). Promotion afterwards is a
- * managed, audited action on the Team page.
+ * Bootstrap rule for clerk mode (Temujin PR-4 review P1-2): the role is a
+ * pure function of the VERIFIED primary email against the
+ * FRANK_BEWINDVOERDER_EMAILS allowlist — never of arrival order, so
+ * concurrent first sign-ins cannot race into privilege. With an empty
+ * allowlist every sign-in starts as assistent (fail closed) until roles
+ * are granted on the audited Team page.
  */
 function bootstrapRole(
   email: string,
-  isFirstActor: boolean
+  emailVerified: boolean
 ): "bewindvoerder" | "assistent" {
-  if (isFirstActor) return "bewindvoerder";
+  if (!emailVerified) return "assistent";
   const allow = (process.env.FRANK_BEWINDVOERDER_EMAILS ?? "")
     .split(",")
     .map((s) => s.trim().toLowerCase())
@@ -119,26 +127,29 @@ async function currentClerkActor(): Promise<Actor> {
   if (existing) return existing;
 
   const user = await currentUser();
+  const primary = user?.primaryEmailAddress;
   const email =
-    user?.primaryEmailAddress?.emailAddress ??
+    primary?.emailAddress ??
     user?.emailAddresses[0]?.emailAddress ??
     `${userId}@unknown.invalid`;
   const name =
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") || email;
-  const [{ n }] = await db.select({ n: count() }).from(actors);
   const [row] = await db
     .insert(actors)
     .values({
       clerkUserId: userId,
       email,
       name,
-      role: bootstrapRole(email, n === 0),
+      role: bootstrapRole(
+        email,
+        primary?.verification?.status === "verified"
+      ),
       active: true,
     })
     .onConflictDoNothing({ target: actors.clerkUserId })
     .returning();
   if (row) return row;
-  // Concurrent first request created it; read it back.
+  // A concurrent request for the SAME user created it; read it back.
   const raced = await db.query.actors.findFirst({
     where: eq(actors.clerkUserId, userId),
   });

@@ -22,8 +22,10 @@ describe("canPerform", () => {
     for (const action of [
       "batch_approve",
       "batch_item_exclude",
+      "batch_export",
       "machtiging_resolve",
       "letter_approve",
+      "letter_mark_sent",
       "actor_manage",
     ] as const) {
       expect(canPerform(bw("a"), action)).toEqual({ allowed: true });

@@ -186,6 +186,8 @@ export async function approveLetter(letterId: string): Promise<void> {
 /** Mark as sent (demo: records the fact + flips contact to notified). */
 export async function markLetterSent(letterId: string): Promise<void> {
   const actor = await currentActor();
+  // Changes correspondence + contact-notification state (Temujin PR-4 P1-3).
+  if (!canPerform(actor, "letter_mark_sent").allowed) return;
   const db = getDb();
   const letter = await db.query.letters.findFirst({
     where: eq(letters.id, letterId),

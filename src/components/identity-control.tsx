@@ -1,8 +1,8 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, and, eq, inArray } from "drizzle-orm";
 import { UserButton } from "@clerk/nextjs";
 import { getDb } from "@/lib/db";
 import { actors } from "@/lib/db/schema";
-import { authMode, currentActor } from "@/lib/identity";
+import { DEV_ACTOR_IDS, authMode, currentActor } from "@/lib/identity";
 import { DevActorSwitcher } from "./dev-actor-switcher";
 
 /**
@@ -18,7 +18,8 @@ export async function IdentityControl() {
   const db = getDb();
   const [rows, actor] = await Promise.all([
     db.query.actors.findMany({
-      where: eq(actors.active, true),
+      // Only the fixed demo identities are switchable (P2-4).
+      where: and(eq(actors.active, true), inArray(actors.id, DEV_ACTOR_IDS)),
       orderBy: asc(actors.createdAt),
     }),
     currentActor(),
