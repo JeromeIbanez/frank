@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
-import { AppSidebar } from "@/components/app-sidebar";
-import { Topbar } from "@/components/topbar";
 import { Toaster } from "@/components/ui/sonner";
+import { authMode } from "@/lib/identity";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,24 +30,18 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
 
-  return (
+  const page = (
     <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextIntlClientProvider>
-          <div className="flex min-h-screen min-w-[1280px]">
-            <AppSidebar />
-            <div className="flex-1 flex flex-col min-w-0">
-              <Topbar />
-              <main className="flex-1 px-8 py-6 max-w-[1180px] w-full mx-auto">
-                {children}
-              </main>
-            </div>
-          </div>
+          {children}
           <Toaster />
         </NextIntlClientProvider>
       </body>
     </html>
   );
+
+  return authMode() === "clerk" ? <ClerkProvider>{page}</ClerkProvider> : page;
 }

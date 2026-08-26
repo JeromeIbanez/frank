@@ -15,6 +15,7 @@ export async function AppSidebar() {
     { href: "/inbox", key: "inbox", label: t("inbox"), count: counts.inboxNew },
     { href: "/payments", key: "payments", label: t("payments") },
     { href: "/audit", key: "audit", label: t("audit") },
+    { href: "/team", key: "team", label: t("team") },
   ];
 
   const initials = actor.name
@@ -40,7 +41,7 @@ export async function AppSidebar() {
               {actor.name}
             </span>
             <span className="block text-[11px] text-ink-400 truncate">
-              {t("role")}
+              {t(`role.${actor.role}`)}
             </span>
           </span>
         </div>

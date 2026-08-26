@@ -93,6 +93,7 @@ export function GenerateLetterForm({ dossierId }: { dossierId: string }) {
 
 export function LetterCard({
   letter,
+  mayHandle,
 }: {
   letter: {
     id: string;
@@ -103,6 +104,9 @@ export function LetterCard({
     templateKey: string;
     createdAt: string;
   };
+  /** Server-computed verdict: approving/marking sent is a bewindvoerder
+   *  act. The buttons mirror it; the server re-checks regardless. */
+  mayHandle: boolean;
 }) {
   const t = useTranslations("letters");
   const [expanded, setExpanded] = useState(false);
@@ -132,7 +136,8 @@ export function LetterCard({
             {letter.status === "draft" && (
               <Button
                 size="sm"
-                disabled={isPending}
+                disabled={isPending || !mayHandle}
+                title={!mayHandle ? t("roleRequired") : undefined}
                 onClick={() =>
                   startTransition(async () => {
                     await approveLetter(letter.id);
@@ -146,7 +151,8 @@ export function LetterCard({
             {letter.status === "approved" && (
               <Button
                 size="sm"
-                disabled={isPending}
+                disabled={isPending || !mayHandle}
+                title={!mayHandle ? t("roleRequired") : undefined}
                 onClick={() =>
                   startTransition(async () => {
                     await markLetterSent(letter.id);
@@ -157,6 +163,12 @@ export function LetterCard({
                 {t("markSent")}
               </Button>
             )}
+            {!mayHandle &&
+              (letter.status === "draft" || letter.status === "approved") && (
+                <span className="self-center text-[11.5px] text-ink-400">
+                  {t("roleRequired")}
+                </span>
+              )}
           </div>
         </div>
       )}

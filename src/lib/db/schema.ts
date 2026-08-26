@@ -12,6 +12,32 @@ import {
 import { relations } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 
+// ---------- Actors (auth foundation, plan os-v1 W0) ----------
+//
+// One row per human who can act in Frank. In clerk mode rows are linked to
+// Clerk users (clerkUserId); in dev mode they are seeded demo identities.
+// Role/vier-ogen invariants are enforced against THIS table server-side,
+// identically in both modes.
+
+export const actors = pgTable(
+  "actors",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    clerkUserId: text("clerk_user_id"), // null in dev mode
+    email: text("email").notNull(),
+    name: text("name").notNull(),
+    role: text("role", { enum: ["bewindvoerder", "assistent"] })
+      .notNull()
+      .default("assistent"),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("actors_clerk_unique").on(t.clerkUserId),
+    uniqueIndex("actors_email_unique").on(t.email),
+  ]
+);
+
 // ---------- Dossiers ----------
 
 export const dossiers = pgTable("dossiers", {
@@ -310,6 +336,9 @@ export const paymentBatches = pgTable("payment_batches", {
   })
     .notNull()
     .default("draft"),
+  // Vier-ogen (plan os-v1 W0): with >1 active bewindvoerder, the approver
+  // must differ from the creator — enforced server-side against these ids.
+  createdBy: text("created_by"),
   approvedBy: text("approved_by"),
   approvedAt: timestamp("approved_at"),
   exportedAt: timestamp("exported_at"),

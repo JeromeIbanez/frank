@@ -46,6 +46,17 @@ Model routing is env-configurable (`src/lib/ai/gateway.ts`):
 
 The Vercel AI Gateway **free tier is heavily rate-limited**; the app degrades gracefully ("AI unavailable") and everything else keeps working.
 
-### Auth-readiness
+### Auth & roles (plan os-v1 W0)
 
-No auth yet (demo). All identity flows through `src/lib/identity.ts` (`currentActor()` stub); real auth replaces that one module. Audit actor is `demo-user` until then. `FRANK_PRODUCTION_OFFICE=true` is the hard gate for real-bank exports — never set it on a demo deployment.
+All identity flows through `src/lib/identity.ts` (`currentActor()`), in one of two modes decided by deployment config:
+
+- **clerk** — `CLERK_SECRET_KEY` + `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` set. Every route except `/sign-in` requires a Clerk session (`src/proxy.ts`). Actors are provisioned just-in-time: the first-ever sign-in becomes `bewindvoerder`; later sign-ins start as `assistent` unless allow-listed in `FRANK_BEWINDVOERDER_EMAILS` (comma-separated). Role changes happen on the Team page (audited).
+- **dev** — no Clerk keys. Three seeded demo identities with a labeled switcher in the topbar. Role and vier-ogen invariants are enforced identically in both modes (`src/lib/domain/authz.ts`).
+
+Reserved for the `bewindvoerder` role (server-enforced): batch approval, exclude/remove batch items, machtiging resolution, letter approval, team management. **Vier-ogen**: with more than one active bewindvoerder, a batch's approver must differ from its creator; a solo office degrades to the acknowledged-approve flow.
+
+### Database roles
+
+`DATABASE_URL` (owner) is used by migrations and scripts only. The app runs as the restricted `frank_app` role via `DATABASE_URL_APP` — it cannot `UPDATE`/`DELETE` on `audit_events`, so the audit log is append-only at the database level. Create/rotate the role with `FRANK_APP_DB_PASSWORD=... npx tsx scripts/db-extras.ts`, then set `DATABASE_URL_APP` to the same URL as `DATABASE_URL` with user `frank_app` and that password.
+
+`FRANK_PRODUCTION_OFFICE=true` is the hard gate for real-bank exports — never set it on a demo deployment.

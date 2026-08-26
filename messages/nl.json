@@ -1,7 +1,10 @@
 {
   "shell": {
     "demoBanner": "DEMO-OMGEVING — uitsluitend synthetische gegevens. Voer geen echte persoonsgegevens in.",
-    "demoShort": "Demo · synthetische data"
+    "demoShort": "Demo · synthetische data",
+    "deactivated": "Dit account is gedeactiveerd voor het kantoor. Neem contact op met een bewindvoerder.",
+    "devIdentity": "demo-id",
+    "devIdentityHint": "Demo-identiteiten — echte inlog wordt actief zodra Clerk-sleutels zijn ingesteld."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -11,7 +14,11 @@
     "payments": "Betalingen",
     "audit": "Auditlog",
     "tagline": "Besturingssysteem voor bewindvoering",
-    "role": "Bewindvoerder"
+    "role": {
+      "bewindvoerder": "Bewindvoerder",
+      "assistent": "Assistent"
+    },
+    "team": "Team"
   },
   "common": {
     "cancel": "Annuleren",
@@ -365,7 +372,8 @@
     "approved": "Brief goedgekeurd.",
     "markSent": "Markeren als verzonden",
     "sentDone": "Geregistreerd als verzonden.",
-    "officialOutput": "Officiële output: Nederlands — alle brieven worden in het Nederlands gegenereerd, ongeacht de taalinstelling."
+    "officialOutput": "Officiële output: Nederlands — alle brieven worden in het Nederlands gegenereerd, ongeacht de taalinstelling.",
+    "roleRequired": "Alleen een bewindvoerder kan brieven goedkeuren of versturen."
   },
   "filings": {
     "rvTitle": "Rekening en verantwoording {year}",
@@ -514,7 +522,12 @@
     "blockedNote": "{count} betaling(en) geblokkeerd op juridische beoordeling",
     "auditMicrocopy": "Goedkeuring wordt onder uw naam vastgelegd in het auditlog.",
     "approvedBanner": "Batch goedgekeurd door {name} — vergrendeld en vastgelegd in het auditlog. Het systeem maakt zelf nooit geld over.",
-    "emptyTitle": "Geen betaalbatches"
+    "emptyTitle": "Geen betaalbatches",
+    "approveRefused": {
+      "vier_ogen": "Vier-ogenprincipe: deze batch is door jou aangemaakt en moet door een andere bewindvoerder worden goedgekeurd.",
+      "role_required": "Alleen een bewindvoerder kan deze handeling uitvoeren.",
+      "inactive_actor": "Dit account is gedeactiveerd."
+    }
   },
   "machtiging": {
     "reason": {
@@ -537,5 +550,34 @@
       "detail": "Detail"
     },
     "appendOnlyNote": "Auditregels worden door de applicatie nooit gewijzigd of verwijderd. Actor is 'demo-user' totdat authenticatie is toegevoegd."
+  },
+  "team": {
+    "intro": "Wie er in Frank kan handelen, en met welke rol. Betaalbatches goedkeuren, juridische toetsingen afhandelen en brieven goedkeuren zijn voorbehouden aan de rol bewindvoerder.",
+    "devModeNote": "Demo-identiteiten zijn actief (geen Clerk-sleutels ingesteld). Rollen en het vier-ogenprincipe worden precies zo afgedwongen als bij echte inlog.",
+    "name": "Naam",
+    "email": "E-mail",
+    "roleHeader": "Rol",
+    "status": "Status",
+    "you": "(jij)",
+    "role": {
+      "bewindvoerder": "Bewindvoerder",
+      "assistent": "Assistent"
+    },
+    "active": "Actief",
+    "inactive": "Gedeactiveerd",
+    "makeAssistent": "Maak assistent",
+    "makeBewindvoerder": "Maak bewindvoerder",
+    "deactivate": "Deactiveren",
+    "reactivate": "Heractiveren",
+    "updated": "Team bijgewerkt.",
+    "vierOgenNote": "Bij meer dan één actieve bewindvoerder moet een betaalbatch worden goedgekeurd door iemand anders dan de maker (vier-ogenprincipe). Elke teamwijziging wordt vastgelegd in de auditlog.",
+    "error": {
+      "role_required": "Alleen een bewindvoerder kan het team beheren.",
+      "inactive_actor": "Dit account is gedeactiveerd.",
+      "self_change": "Je kunt je eigen rol of status niet wijzigen.",
+      "last_bewindvoerder": "Het kantoor moet minimaal één actieve bewindvoerder houden.",
+      "not_found": "Actor niet gevonden.",
+      "unknown": "Wijziging geweigerd."
+    }
   }
 }

@@ -9,7 +9,8 @@ import {
   paymentBatches,
   paymentItems,
 } from "@/lib/db/schema";
-import { currentActor } from "@/lib/identity";
+import { countActiveBewindvoerders, currentActor } from "@/lib/identity";
+import { canApproveBatch, canPerform } from "@/lib/domain/authz";
 import { writeAudit } from "@/lib/audit";
 import { checkMachtiging } from "@/lib/domain/machtiging";
 import { isValidIban } from "@/lib/domain/pain001";
@@ -63,6 +64,7 @@ export async function createPaymentProposals(): Promise<{
         name: `Betaalvoorstel ${isoDate(today)}`,
         executionDate: isoDate(execDate),
         status: "draft",
+        createdBy: actor.id,
         demoExport: true,
       })
       .returning();
@@ -203,6 +205,9 @@ export async function resolveMachtigingFlag(
   rationale: string
 ): Promise<{ ok: boolean; error?: string }> {
   const actor = await currentActor();
+  // Resolving a legal-review flag is a bewindvoerder act (plan os-v1 W0).
+  const verdict = canPerform(actor, "machtiging_resolve");
+  if (!verdict.allowed) return { ok: false, error: verdict.reason };
   if (!rationale.trim()) return { ok: false, error: "rationale_required" };
   const db = getDb();
   const item = await db.query.paymentItems.findFirst({
@@ -266,6 +271,16 @@ export async function approveBatch(
   });
   if (!batch || batch.status !== "draft") return { ok: false, error: "invalid_state" };
 
+  // Role + vier-ogen (plan os-v1 W0): approval is a bewindvoerder act, and
+  // with more than one active bewindvoerder the approver must differ from
+  // the batch creator. Enforced here, never in the UI.
+  const verdict = canApproveBatch(
+    actor,
+    batch.createdBy,
+    await countActiveBewindvoerders()
+  );
+  if (!verdict.allowed) return { ok: false, error: verdict.reason };
+
   // Server-side re-check (Temujin guardrail 2): excluded items neither block
   // nor count; everything else must be clean.
   const included = batch.items.filter((i) => !i.excluded);
@@ -310,6 +325,8 @@ export async function approveBatch(
 
 export async function removePaymentItem(itemId: string): Promise<void> {
   const actor = await currentActor();
+  // Same privilege as excluding: it changes the payable set.
+  if (!canPerform(actor, "batch_item_exclude").allowed) return;
   const db = getDb();
   const item = await db.query.paymentItems.findFirst({
     where: eq(paymentItems.id, itemId),
@@ -347,6 +364,9 @@ export async function setItemExcluded(
   excluded: boolean
 ): Promise<{ ok: boolean; error?: string }> {
   const actor = await currentActor();
+  // Changing the payable set is a bewindvoerder act (plan os-v1 W0).
+  const verdict = canPerform(actor, "batch_item_exclude");
+  if (!verdict.allowed) return { ok: false, error: verdict.reason };
   const db = getDb();
   const item = await db.query.paymentItems.findFirst({
     where: eq(paymentItems.id, itemId),

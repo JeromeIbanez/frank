@@ -132,6 +132,12 @@ export function ApproveBatchFooterButton({
                     if (res.ok) {
                       toast.success(t("approved"));
                       setOpen(false);
+                    } else if (
+                      res.error === "vier_ogen" ||
+                      res.error === "role_required" ||
+                      res.error === "inactive_actor"
+                    ) {
+                      toast.error(t(`approveRefused.${res.error}`));
                     } else toast.error(t("approveBlocked"));
                   })
                 }
@@ -175,7 +181,12 @@ export function ExcludeItemButton({
       onClick={() =>
         startTransition(async () => {
           const res = await setItemExcluded(itemId, !excluded);
-          if (!res.ok) toast.error(t("excludeLocked"));
+          if (!res.ok)
+            toast.error(
+              res.error === "role_required" || res.error === "inactive_actor"
+                ? t(`approveRefused.${res.error}`)
+                : t("excludeLocked")
+            );
         })
       }
       className={
@@ -284,6 +295,11 @@ export function MachtigingResolver({
                     if (res.ok) {
                       toast.success(t("machtigingResolved"));
                       setOpen(false);
+                    } else if (
+                      res.error === "role_required" ||
+                      res.error === "inactive_actor"
+                    ) {
+                      toast.error(t(`approveRefused.${res.error}`));
                     } else toast.error(res.error);
                   })
                 }

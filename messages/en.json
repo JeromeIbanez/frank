@@ -1,7 +1,10 @@
 {
   "shell": {
     "demoBanner": "DEMO ENVIRONMENT — synthetic data only. Do not enter real personal data.",
-    "demoShort": "Demo · synthetic data"
+    "demoShort": "Demo · synthetic data",
+    "deactivated": "This account has been deactivated for the office. Contact a bewindvoerder.",
+    "devIdentity": "demo-id",
+    "devIdentityHint": "Demo identities — real sign-in activates once Clerk keys are configured."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -11,7 +14,11 @@
     "payments": "Payments",
     "audit": "Audit log",
     "tagline": "Guardianship operating system",
-    "role": "Bewindvoerder"
+    "role": {
+      "bewindvoerder": "Bewindvoerder",
+      "assistent": "Assistent"
+    },
+    "team": "Team"
   },
   "common": {
     "cancel": "Cancel",
@@ -365,7 +372,8 @@
     "approved": "Letter approved.",
     "markSent": "Mark as sent",
     "sentDone": "Recorded as sent.",
-    "officialOutput": "Official output: Nederlands — all letters are generated in Dutch regardless of UI language."
+    "officialOutput": "Official output: Nederlands — all letters are generated in Dutch regardless of UI language.",
+    "roleRequired": "Only a bewindvoerder can approve or send letters."
   },
   "filings": {
     "rvTitle": "Annual account {year} (rekening & verantwoording)",
@@ -514,7 +522,12 @@
     "blockedNote": "{count} payment(s) blocked on legal review",
     "auditMicrocopy": "Approval is recorded in the audit log under your name.",
     "approvedBanner": "Batch approved by {name} — locked and recorded in the audit log. The OS never moves money itself.",
-    "emptyTitle": "No payment batches"
+    "emptyTitle": "No payment batches",
+    "approveRefused": {
+      "vier_ogen": "Four-eyes rule: this batch was created by you and must be approved by another bewindvoerder.",
+      "role_required": "Only a bewindvoerder can perform this action.",
+      "inactive_actor": "This account is deactivated."
+    }
   },
   "machtiging": {
     "reason": {
@@ -537,5 +550,34 @@
       "detail": "Detail"
     },
     "appendOnlyNote": "Audit rows are never updated or deleted by the application. Actor is 'demo-user' until authentication is added."
+  },
+  "team": {
+    "intro": "Who can act in Frank, and with which role. Approving payment batches, resolving legal-review flags and approving letters are reserved for the bewindvoerder role.",
+    "devModeNote": "Demo identities are active (no Clerk keys configured). Roles and the four-eyes rule are enforced exactly as with real sign-in.",
+    "name": "Name",
+    "email": "Email",
+    "roleHeader": "Role",
+    "status": "Status",
+    "you": "(you)",
+    "role": {
+      "bewindvoerder": "Bewindvoerder",
+      "assistent": "Assistent"
+    },
+    "active": "Active",
+    "inactive": "Deactivated",
+    "makeAssistent": "Make assistent",
+    "makeBewindvoerder": "Make bewindvoerder",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "updated": "Team updated.",
+    "vierOgenNote": "With more than one active bewindvoerder, a payment batch must be approved by someone other than its creator (four-eyes rule). Every team change is recorded in the audit log.",
+    "error": {
+      "role_required": "Only a bewindvoerder can manage the team.",
+      "inactive_actor": "This account is deactivated.",
+      "self_change": "You cannot change your own role or status.",
+      "last_bewindvoerder": "The office must keep at least one active bewindvoerder.",
+      "not_found": "Actor not found.",
+      "unknown": "Change refused."
+    }
   }
 }

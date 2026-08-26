@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { getAuditTrail } from "@/lib/queries";
+import { getDb } from "@/lib/db";
 import {
   Table,
   TableBody,
@@ -20,7 +21,13 @@ function actorChipClass(actorType: string): string {
 
 export default async function AuditPage() {
   const t = await getTranslations("audit");
-  const rows = await getAuditTrail(200);
+  const [rows, actorRows] = await Promise.all([
+    getAuditTrail(200),
+    getDb().query.actors.findMany(),
+  ]);
+  // Actor ids → display names; historic ids (demo-user, system) pass through.
+  const actorName = (id: string) =>
+    actorRows.find((a) => a.id === id)?.name ?? id;
 
   return (
     <div className="space-y-6">
@@ -61,7 +68,7 @@ export default async function AuditPage() {
                       actorChipClass(e.actorType)
                     }
                   >
-                    {e.actorId}
+                    {actorName(e.actorId)}
                   </span>
                 </TableCell>
                 <TableCell className="px-3 text-[13px]">{e.action}</TableCell>

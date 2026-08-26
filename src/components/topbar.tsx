@@ -15,10 +15,11 @@ const SECTION_BY_PREFIX: [string, string][] = [
   ["/inbox", "inbox"],
   ["/payments", "payments"],
   ["/audit", "audit"],
+  ["/team", "team"],
 ];
 
-/** 54px topbar: section title left; NL/EN segmented toggle + demo caption right. */
-export function Topbar() {
+/** 54px topbar: section title left; identity, NL/EN toggle + demo caption right. */
+export function Topbar({ identitySlot }: { identitySlot?: React.ReactNode }) {
   const pathname = usePathname();
   const t = useTranslations("nav");
   const ts = useTranslations("shell");
@@ -30,6 +31,7 @@ export function Topbar() {
     <header className="h-[54px] shrink-0 border-b border-hairline flex items-center justify-between px-8 print:hidden">
       <div className="text-base font-semibold text-ink-900">{t(sectionKey)}</div>
       <div className="flex items-center gap-4">
+        {identitySlot}
         <LanguageToggle />
         <Tooltip>
           <TooltipTrigger

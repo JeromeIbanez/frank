@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { paymentBatches } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
+import { canPerform } from "@/lib/domain/authz";
 import { writeAudit } from "@/lib/audit";
 import { generatePain001Multi } from "@/lib/domain/pain001";
 
@@ -21,6 +22,12 @@ export async function GET(
 ) {
   const { batchId } = await params;
   const actor = await currentActor();
+  // Exporting flips batch state to `exported` — a bewindvoerder act
+  // (Temujin PR-4 review P1-3).
+  const verdict = canPerform(actor, "batch_export");
+  if (!verdict.allowed) {
+    return NextResponse.json({ error: verdict.reason }, { status: 403 });
+  }
   const db = getDb();
 
   const batch = await db.query.paymentBatches.findFirst({
