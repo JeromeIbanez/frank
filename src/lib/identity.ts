@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { asc, count, eq, and, inArray } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { actors } from "@/lib/db/schema";
+import { bewindvoerderAllowlist, resolveAuthMode } from "@/lib/auth-config";
 
 /**
  * Identity chokepoint (plan os-v1 W0). Nothing else in the codebase may
@@ -26,11 +27,8 @@ export type Actor = {
   active: boolean;
 };
 
-export type AuthMode = "clerk" | "dev";
-
-export function authMode(): AuthMode {
-  return process.env.CLERK_SECRET_KEY ? "clerk" : "dev";
-}
+// Single source of truth shared with src/proxy.ts (Temujin round-2 #2).
+export { resolveAuthMode as authMode, type AuthMode } from "@/lib/auth-config";
 
 export const DEV_ACTOR_COOKIE = "frank-dev-actor";
 
@@ -109,11 +107,9 @@ function bootstrapRole(
   emailVerified: boolean
 ): "bewindvoerder" | "assistent" {
   if (!emailVerified) return "assistent";
-  const allow = (process.env.FRANK_BEWINDVOERDER_EMAILS ?? "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  return allow.includes(email.toLowerCase()) ? "bewindvoerder" : "assistent";
+  return bewindvoerderAllowlist().includes(email.toLowerCase())
+    ? "bewindvoerder"
+    : "assistent";
 }
 
 async function currentClerkActor(): Promise<Actor> {
@@ -159,7 +155,9 @@ async function currentClerkActor(): Promise<Actor> {
 
 /** Request-scoped: every caller in one request sees the same actor. */
 export const currentActor = cache(async (): Promise<Actor> => {
-  return authMode() === "clerk" ? currentClerkActor() : currentDevActor();
+  return resolveAuthMode() === "clerk"
+    ? currentClerkActor()
+    : currentDevActor();
 });
 
 export async function countActiveBewindvoerders(): Promise<number> {

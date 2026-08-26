@@ -1,20 +1,22 @@
 import { NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { resolveAuthMode } from "@/lib/auth-config";
 
 /**
- * Auth boundary (plan os-v1 W0). With Clerk keys configured, every route
- * except sign-in requires a session. Without keys (dev mode) requests pass
- * through and identity comes from seeded dev actors — see lib/identity.ts.
- * The mode is decided by deployment configuration only.
+ * Auth boundary (plan os-v1 W0). Uses the SAME configuration predicate as
+ * the identity layer (lib/auth-config.ts) — they can never disagree
+ * (Temujin PR-4 round-2 #2). An invalid configuration (one Clerk key
+ * without the other, or clerk mode without a bootstrap allowlist) throws
+ * here at module load, failing every request fast instead of running
+ * half-protected.
+ *
+ * clerk mode: every route except sign-in requires a session.
+ * dev mode: requests pass through; identity comes from seeded dev actors.
  */
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)"]);
 
-const hasClerk =
-  !!process.env.CLERK_SECRET_KEY &&
-  !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-export default hasClerk
+export default resolveAuthMode() === "clerk"
   ? clerkMiddleware(async (auth, req) => {
       if (!isPublicRoute(req)) await auth.protect();
     })

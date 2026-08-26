@@ -372,7 +372,8 @@
     "approved": "Letter approved.",
     "markSent": "Mark as sent",
     "sentDone": "Recorded as sent.",
-    "officialOutput": "Official output: Nederlands — all letters are generated in Dutch regardless of UI language."
+    "officialOutput": "Official output: Nederlands — all letters are generated in Dutch regardless of UI language.",
+    "roleRequired": "Only a bewindvoerder can approve or send letters."
   },
   "filings": {
     "rvTitle": "Annual account {year} (rekening & verantwoording)",

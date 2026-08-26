@@ -372,7 +372,8 @@
     "approved": "Brief goedgekeurd.",
     "markSent": "Markeren als verzonden",
     "sentDone": "Geregistreerd als verzonden.",
-    "officialOutput": "Officiële output: Nederlands — alle brieven worden in het Nederlands gegenereerd, ongeacht de taalinstelling."
+    "officialOutput": "Officiële output: Nederlands — alle brieven worden in het Nederlands gegenereerd, ongeacht de taalinstelling.",
+    "roleRequired": "Alleen een bewindvoerder kan brieven goedkeuren of versturen."
   },
   "filings": {
     "rvTitle": "Rekening en verantwoording {year}",

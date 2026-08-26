@@ -2,6 +2,8 @@ import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/format";
 import { getDossier, getDossierLetters } from "@/lib/queries";
+import { currentActor } from "@/lib/identity";
+import { canPerform } from "@/lib/domain/authz";
 import {
   AanschrijfPackButton,
   GenerateLetterForm,
@@ -20,6 +22,12 @@ export async function LettersTab({
   const t = await getTranslations("letters");
   const rows = await lettersPromise;
   const unNotified = dossier.contacts.filter((c) => !c.notified).length;
+  // Same verdict the server actions enforce — the UI mirrors it, never
+  // decides it (Temujin PR-4 round-2 #3).
+  const actor = await currentActor();
+  const mayHandle =
+    canPerform(actor, "letter_approve").allowed &&
+    canPerform(actor, "letter_mark_sent").allowed;
 
   return (
     <div className="space-y-6">
@@ -62,6 +70,7 @@ export async function LettersTab({
         {rows.map((letter) => (
           <LetterCard
             key={letter.id}
+            mayHandle={mayHandle}
             letter={{
               id: letter.id,
               subject: letter.subject,
