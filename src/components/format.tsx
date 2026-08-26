@@ -38,7 +38,7 @@ export function SeverityDot({
   severity,
   className,
 }: {
-  severity: "red" | "amber" | "green";
+  severity: "red" | "amber" | "green" | "info";
   className?: string;
 }) {
   return (
@@ -47,6 +47,7 @@ export function SeverityDot({
         "inline-block h-2 w-2 rounded-full shrink-0",
         severity === "red" && "bg-[#DC2626]",
         severity === "amber" && "bg-[#F59E0B]",
+        severity === "info" && "bg-[var(--ink-300)]",
         severity === "green" && "bg-[#22C55E]",
         className
       )}

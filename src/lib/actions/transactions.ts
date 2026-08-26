@@ -11,6 +11,7 @@ import { writeAudit } from "@/lib/audit";
 import { parseCamt053, dedupeHash } from "@/lib/domain/camt";
 import { ruleCategorize, CATEGORIES } from "@/lib/domain/categories";
 import { callStructured } from "@/lib/ai/gateway";
+import { refreshSignalsSafe } from "@/lib/signals";
 
 /**
  * CAMT.053 import with the PRD §6.3 money invariants:
@@ -131,6 +132,7 @@ export async function importCamtFile(
   });
 
   revalidatePath(`/dossiers/${account.dossierId}`);
+  await refreshSignalsSafe();
   return { ok: true, imported, duplicates, errors: parsed.errors };
 }
 
@@ -189,6 +191,7 @@ export async function addManualTransaction(
   });
 
   revalidatePath(`/dossiers/${account.dossierId}`);
+  await refreshSignalsSafe();
 }
 
 export async function setTransactionCategory(
@@ -220,6 +223,7 @@ export async function setTransactionCategory(
     versionAfter: { categoryKey, source: "human" },
   });
   revalidatePath(`/dossiers/${tx.dossierId}`);
+  await refreshSignalsSafe();
 }
 
 const aiCategorySchema = z.object({

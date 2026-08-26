@@ -6,6 +6,7 @@ import { getDb } from "@/lib/db";
 import { taskEvents, tasks } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
+import { refreshSignalsSafe } from "@/lib/signals";
 
 const TRANSITIONS: Record<string, string[]> = {
   open: ["prepared", "done", "cancelled"],
@@ -69,6 +70,7 @@ export async function transitionTask(input: {
 
   if (task.dossierId) revalidatePath(`/dossiers/${task.dossierId}`);
   revalidatePath("/my-day");
+  await refreshSignalsSafe();
   return { ok: true };
 }
 
@@ -108,6 +110,7 @@ export async function confirmDeadline(
 
   if (task.dossierId) revalidatePath(`/dossiers/${task.dossierId}`);
   revalidatePath("/my-day");
+  await refreshSignalsSafe();
 }
 
 export async function toggleChecklistItem(
