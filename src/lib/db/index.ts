@@ -3,7 +3,11 @@ import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "./schema";
 
 function createDb() {
-  const sql = neon(process.env.DATABASE_URL!);
+  // Runtime prefers the restricted frank_app role (audit_events append-only
+  // at the database level, plan os-v1 W0); DATABASE_URL stays the owner and
+  // is used by migrations/scripts only.
+  const url = process.env.DATABASE_URL_APP ?? process.env.DATABASE_URL!;
+  const sql = neon(url);
   return drizzle(sql, { schema });
 }
 

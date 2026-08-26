@@ -2,6 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getPaymentBatch } from "@/lib/queries";
+import { countActiveBewindvoerders, currentActor } from "@/lib/identity";
+import { canApproveBatch } from "@/lib/domain/authz";
+import { getDb } from "@/lib/db";
+import { actors } from "@/lib/db/schema";
+import { inArray } from "drizzle-orm";
 import { DateText, Money, StatusBadge } from "@/components/format";
 import {
   ApproveBatchFooterButton,
@@ -40,6 +45,27 @@ export default async function PaymentBatchPage({
   ).length;
   const isDraft = batch.status === "draft";
 
+  // Same verdict the server action will re-check; rendered so the reason
+  // for a refusal is visible before clicking (plan os-v1 W0).
+  const actor = await currentActor();
+  const verdict = canApproveBatch(
+    actor,
+    batch.createdBy,
+    await countActiveBewindvoerders()
+  );
+
+  // Actor ids → names for the created/approved provenance line.
+  const actorIds = [batch.createdBy, batch.approvedBy].filter(
+    (v): v is string => v !== null
+  );
+  const actorRows = actorIds.length
+    ? await getDb().query.actors.findMany({
+        where: inArray(actors.id, actorIds),
+      })
+    : [];
+  const actorName = (id: string | null) =>
+    actorRows.find((a) => a.id === id)?.name ?? id ?? "—";
+
   return (
     <div className="space-y-5">
       <div>
@@ -66,7 +92,7 @@ export default async function PaymentBatchPage({
       {batch.status !== "draft" && (
         <div className="rounded-[8px] bg-[#F0FDF4] border border-[#DCFCE7] text-[#15803D] text-[12.5px] px-4 py-2.5">
           {t("approvedBanner", {
-            name: batch.approvedBy ?? "—",
+            name: actorName(batch.approvedBy),
           })}
         </div>
       )}
@@ -208,11 +234,15 @@ export default async function PaymentBatchPage({
             {isDraft && (
               <>
                 <span className="text-[11.5px] text-ink-400 max-w-56 text-right">
-                  {t("auditMicrocopy")}
+                  {!verdict.allowed
+                    ? t(`approveRefused.${verdict.reason}`)
+                    : t("auditMicrocopy")}
                 </span>
                 <ApproveBatchFooterButton
                   batchId={batch.id}
-                  blocked={blockers > 0 || included.length === 0}
+                  blocked={
+                    blockers > 0 || included.length === 0 || !verdict.allowed
+                  }
                   summary={{
                     totalCents: total,
                     itemCount: included.length,

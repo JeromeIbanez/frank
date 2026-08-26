@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { contacts, dossiers, letters } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
+import { canPerform } from "@/lib/domain/authz";
 import { writeAudit } from "@/lib/audit";
 import { LETTER_TEMPLATES, renderTemplate } from "@/lib/letter-templates";
 import { callDraft } from "@/lib/ai/gateway";
@@ -159,6 +160,8 @@ export async function generateLetter(
 
 export async function approveLetter(letterId: string): Promise<void> {
   const actor = await currentActor();
+  // Approving outgoing correspondence is a bewindvoerder act (plan os-v1 W0).
+  if (!canPerform(actor, "letter_approve").allowed) return;
   const db = getDb();
   const letter = await db.query.letters.findFirst({
     where: eq(letters.id, letterId),
