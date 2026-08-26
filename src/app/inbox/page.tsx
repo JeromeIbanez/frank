@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getInboxDocuments, listDossiers } from "@/lib/queries";
 import { DocumentCard } from "@/components/document-card";
+import { EmptyState } from "@/components/format";
 import { UploadForm } from "@/components/upload-form";
 
 export const dynamic = "force-dynamic";
@@ -16,14 +17,9 @@ export default async function InboxPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
-      </div>
-
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("uploadTitle")}</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t("uploadTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <UploadForm />
@@ -54,7 +50,7 @@ export default async function InboxPage() {
           />
         ))}
         {docs.length === 0 && (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
+          <EmptyState title={t("emptyTitle")} sentence={t("emptySentence")} />
         )}
       </div>
     </div>

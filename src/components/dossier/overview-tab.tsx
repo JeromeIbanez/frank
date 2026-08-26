@@ -1,10 +1,27 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Money } from "@/components/format";
+import { DateText, Money } from "@/components/format";
 import { getDossier } from "@/lib/queries";
 import { ActivateButton, RvScheduleForm, AddAccountForm } from "./overview-client";
 
 type DossierFull = NonNullable<Awaited<ReturnType<typeof getDossier>>>;
+
+/** Debt status chips (handoff §2): open → amber, regeling → indigo; small inline. */
+function DebtStatusChip({ status }: { status: string }) {
+  const cls =
+    status === "regeling"
+      ? "bg-indigo-50 text-[#4338CA]"
+      : status === "open"
+        ? "bg-[#FFFBEB] text-[#B45309]"
+        : "border border-border bg-surface text-ink-600";
+  return (
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap ${cls}`}
+    >
+      {status}
+    </span>
+  );
+}
 
 export async function OverviewTab({
   dossier,
@@ -14,164 +31,200 @@ export async function OverviewTab({
   balances: Map<string, number>;
 }) {
   const t = await getTranslations("overview");
+  const notified = dossier.contacts.filter((c) => c.notified).length;
+  const rvRecorded = dossier.rvScheduleConfirmed && dossier.rvScheduleMonth;
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("person")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <dt className="text-muted-foreground">{t("dateOfBirth")}</dt>
-              <dd>{dossier.dateOfBirth ?? "—"}</dd>
-              <dt className="text-muted-foreground">{t("address")}</dt>
-              <dd>
-                {dossier.addressStreet ?? "—"}
-                {dossier.addressPostcode
-                  ? `, ${dossier.addressPostcode} ${dossier.addressCity ?? ""}`
-                  : ""}
-              </dd>
-              <dt className="text-muted-foreground">{t("gemeente")}</dt>
-              <dd>{dossier.gemeente ?? "—"}</dd>
-              <dt className="text-muted-foreground">{t("beschikking")}</dt>
-              <dd>{dossier.beschikkingDate ?? "—"}</dd>
-              <dt className="text-muted-foreground">{t("start")}</dt>
-              <dd>{dossier.startDate ?? "—"}</dd>
-              <dt className="text-muted-foreground">{t("leefgeld")}</dt>
-              <dd>
-                {dossier.leefgeldAmountCents ? (
-                  <>
-                    <Money cents={dossier.leefgeldAmountCents} />{" "}
-                    {t(`freq.${dossier.leefgeldFrequency ?? "weekly"}`)}
-                  </>
-                ) : (
-                  "—"
-                )}
-              </dd>
-            </dl>
-            {dossier.status !== "actief" && (
-              <div className="mt-4">
-                <ActivateButton
-                  dossierId={dossier.id}
-                  disabled={!dossier.startDate}
-                />
-                {!dossier.startDate && (
-                  <p className="text-xs text-amber-600 mt-1.5">
-                    {t("needStartDate")}
-                  </p>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("rvSchedule")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {dossier.rvScheduleConfirmed && dossier.rvScheduleMonth ? (
-              <p className="text-sm">
-                {t("rvConfirmed", { month: String(dossier.rvScheduleMonth) })}
-              </p>
-            ) : (
+    <div className="grid lg:grid-cols-2 gap-4">
+      {/* Client card — dl-grid with ~150px label column */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold">{t("person")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid grid-cols-[150px_1fr] gap-x-4 gap-y-2">
+            <dt className="text-[12.5px] text-ink-400">{t("dateOfBirth")}</dt>
+            <dd className="text-[13px]">
+              {dossier.dateOfBirth ? <DateText iso={dossier.dateOfBirth} /> : "—"}
+            </dd>
+            <dt className="text-[12.5px] text-ink-400">{t("address")}</dt>
+            <dd className="text-[13px]">
+              {dossier.addressStreet ?? "—"}
+              {dossier.addressPostcode
+                ? `, ${dossier.addressPostcode} ${dossier.addressCity ?? ""}`
+                : ""}
+            </dd>
+            <dt className="text-[12.5px] text-ink-400">{t("gemeente")}</dt>
+            <dd className="text-[13px]">{dossier.gemeente ?? "—"}</dd>
+            <dt className="text-[12.5px] text-ink-400">{t("beschikking")}</dt>
+            <dd className="text-[13px]">
+              {dossier.beschikkingDate ? (
+                <DateText iso={dossier.beschikkingDate} />
+              ) : (
+                "—"
+              )}
+            </dd>
+            <dt className="text-[12.5px] text-ink-400">{t("start")}</dt>
+            <dd className="text-[13px]">
+              {dossier.startDate ? <DateText iso={dossier.startDate} /> : "—"}
+            </dd>
+            <dt className="text-[12.5px] text-ink-400">{t("leefgeld")}</dt>
+            <dd className="text-[13px]">
+              {dossier.leefgeldAmountCents ? (
+                <>
+                  <Money cents={dossier.leefgeldAmountCents} />{" "}
+                  {t(`freq.${dossier.leefgeldFrequency ?? "weekly"}`)}
+                </>
+              ) : (
+                "—"
+              )}
+            </dd>
+            {rvRecorded && (
               <>
-                <p className="text-sm text-red-600 mb-3">{t("rvMissing")}</p>
-                <RvScheduleForm dossierId={dossier.id} />
+                <dt className="text-[12.5px] text-ink-400">{t("rvSchedule")}</dt>
+                <dd className="text-[13px]">
+                  {t("rvConfirmed", { month: String(dossier.rvScheduleMonth) })}
+                </dd>
               </>
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </dl>
 
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("accounts")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2.5">
+          {!rvRecorded && (
+            <div className="mt-4 rounded-md bg-surface-hover px-3 py-2.5 space-y-2.5">
+              <p className="flex items-start gap-2 text-[12.5px] text-ink-600">
+                <span
+                  aria-hidden
+                  className="mt-[5px] inline-block h-2 w-2 shrink-0 rounded-full bg-[#DC2626]"
+                />
+                <span>{t("rvMissing")}</span>
+              </p>
+              <RvScheduleForm dossierId={dossier.id} />
+            </div>
+          )}
+
+          {dossier.status !== "actief" && (
+            <div className="mt-4">
+              <ActivateButton
+                dossierId={dossier.id}
+                disabled={!dossier.startDate}
+              />
+              {!dossier.startDate && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-600">
+                  <span
+                    aria-hidden
+                    className="inline-block h-2 w-2 shrink-0 rounded-full bg-[#F59E0B]"
+                  />
+                  {t("needStartDate")}
+                </p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Accounts card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold">{t("accounts")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="divide-y divide-hairline">
             {dossier.accounts.map((acc) => (
               <div
                 key={acc.id}
-                className="flex items-center justify-between rounded-md border border-border/60 px-3 py-2 text-sm"
+                className="flex items-center justify-between gap-3 py-2.5 first:pt-0"
               >
-                <div>
-                  <div className="font-medium">{t(`accountType.${acc.type}`)}</div>
-                  <div className="text-muted-foreground font-mono text-xs">
-                    {acc.iban} {acc.bankName ? `· ${acc.bankName}` : ""}
+                <div className="min-w-0">
+                  <div className="text-[13.5px] font-[550]">
+                    {t(`accountType.${acc.type}`)}
+                  </div>
+                  <div className="font-mono text-xs text-ink-400">
+                    {acc.iban}
+                    {acc.bankName ? ` · ${acc.bankName}` : ""}
                   </div>
                 </div>
-                <Money cents={balances.get(acc.id) ?? 0} />
+                <span className="text-[15px] font-semibold">
+                  <Money cents={balances.get(acc.id) ?? 0} />
+                </span>
               </div>
             ))}
-            {dossier.accounts.length === 0 && (
-              <p className="text-sm text-muted-foreground">{t("noAccounts")}</p>
-            )}
+          </div>
+          {dossier.accounts.length === 0 && (
+            <p className="text-[12.5px] text-ink-400">{t("noAccounts")}</p>
+          )}
+          <div className="mt-3">
             <AddAccountForm dossierId={dossier.id} />
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* Agencies card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold flex items-baseline gap-2">
+            {t("contacts")}
+            <span className="font-mono text-xs font-normal text-ink-400 tabular-nums">
+              {notified}/{dossier.contacts.length} {t("notified")}
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-1.5">
+            {dossier.contacts.map((c) => (
+              <span
+                key={c.id}
+                className={
+                  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold " +
+                  (c.notified
+                    ? "bg-indigo-50 text-[#4338CA]"
+                    : "border border-border bg-surface text-ink-400")
+                }
+              >
+                {c.notified && <span aria-hidden>✓</span>}
+                {c.name}
+              </span>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Debts card */}
+      {dossier.debts.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              {t("contacts")} ({dossier.contacts.filter((c) => c.notified).length}/
-              {dossier.contacts.length} {t("notified")})
-            </CardTitle>
+            <CardTitle className="text-sm font-semibold">{t("debts")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-1.5">
-              {dossier.contacts.map((c) => (
-                <span
-                  key={c.id}
-                  className={
-                    "text-xs rounded-full px-2.5 py-1 " +
-                    (c.notified
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-muted text-muted-foreground")
-                  }
-                >
-                  {c.name}
-                </span>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {dossier.debts.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t("debts")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+            <div className="divide-y divide-hairline">
               {dossier.debts.map((debt) => (
                 <div
                   key={debt.id}
-                  className="flex items-center justify-between text-sm"
+                  className="flex items-center justify-between gap-3 py-2 first:pt-0"
                 >
-                  <div>
-                    <span className="font-medium">{debt.creditor}</span>
-                    <span className="text-muted-foreground/70 ml-2 text-xs uppercase">
-                      {debt.status}
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="truncate text-[13.5px] font-[550]">
+                      {debt.creditor}
                     </span>
+                    <DebtStatusChip status={debt.status} />
                   </div>
                   <Money cents={debt.currentAmountCents} />
                 </div>
               ))}
-              <div className="border-t border-border/60 pt-2 flex justify-between text-sm font-medium">
-                <span>{t("debtTotal")}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between border-t border-hairline pt-2.5">
+              <span className="text-[13px] font-medium">{t("debtTotal")}</span>
+              <span className="text-sm font-semibold">
                 <Money
                   cents={dossier.debts.reduce(
                     (s, d) => s + d.currentAmountCents,
                     0
                   )}
                 />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

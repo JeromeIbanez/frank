@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/format";
 import { getDossier, getDossierLetters } from "@/lib/queries";
 import {
   AanschrijfPackButton,
@@ -22,16 +23,17 @@ export async function LettersTab({
 
   return (
     <div className="space-y-6">
-      <div className="inline-flex items-center gap-1.5 rounded-full bg-muted text-muted-foreground text-xs px-3 py-1">
+      <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs text-ink-600">
+        <span className="font-mono text-[11px] font-semibold">NL</span>
         {t("officialOutput")}
       </div>
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("packTitle")}</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t("packTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-[12.5px] text-ink-600">
               {t("packHint", { count: unNotified })}
             </p>
             <AanschrijfPackButton dossierId={dossier.id} disabled={unNotified === 0} />
@@ -39,7 +41,7 @@ export async function LettersTab({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("generateTitle")}</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t("generateTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             <GenerateLetterForm dossierId={dossier.id} />
@@ -48,11 +50,14 @@ export async function LettersTab({
       </div>
 
       <div className="space-y-3">
-        <h3 className="font-medium">
-          {t("listTitle")} ({rows.length})
+        <h3 className="text-sm font-semibold">
+          {t("listTitle")}{" "}
+          <span className="font-mono text-xs font-normal text-ink-400 tabular-nums">
+            {rows.length}
+          </span>
         </h3>
         {rows.length === 0 && (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
+          <EmptyState title={t("emptyTitle")} sentence={t("emptySentence")} />
         )}
         {rows.map((letter) => (
           <LetterCard

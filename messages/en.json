@@ -10,7 +10,8 @@
     "inbox": "Inbox",
     "payments": "Payments",
     "audit": "Audit log",
-    "tagline": "Guardianship operating system"
+    "tagline": "Guardianship operating system",
+    "role": "Bewindvoerder"
   },
   "common": {
     "cancel": "Cancel",
@@ -21,13 +22,18 @@
     "subtitle": "Office overview: deadlines, exceptions and workload at a glance.",
     "tiles": {
       "dossiers": "Active dossiers",
+      "dossiersSub": "across all measures",
       "openTasks": "Open tasks",
+      "openTasksSub": "across all dossiers",
       "overdue": "Overdue",
-      "newDocuments": "New documents"
+      "overdueSub": "past their due date",
+      "newDocuments": "New documents",
+      "newDocumentsSub": "awaiting triage"
     },
     "exceptions": {
       "title": "Exceptions",
       "none": "No exceptions — all dossiers within expectations.",
+      "emptyTitle": "No exceptions",
       "missed_income": "Expected income not received",
       "balance_floor": "Account balance below floor",
       "uncategorized": "Transactions to review",
@@ -36,7 +42,10 @@
     "deadlines": {
       "title": "Upcoming deadlines",
       "none": "No upcoming deadlines.",
-      "office": "Office-level"
+      "emptyTitle": "No deadlines",
+      "office": "Office-level",
+      "overdueTag": "Overdue",
+      "daysTag": "{count, plural, one {# day} other {# days}}"
     },
     "aiUsage": "AI usage (demo cap): {used} / {cap} tokens. All AI output is a proposal until a human approves it."
   },
@@ -74,6 +83,7 @@
   "tasksUi": {
     "none": "No open tasks.",
     "completed": "{count} completed or closed",
+    "subtasksDone": "{done} / {total} subtasks done",
     "due": "due",
     "basis": "Basis",
     "confirmDeadline": "Confirm deadline",
@@ -130,7 +140,8 @@
       "overleden": "Deceased",
       "afgesloten": "Closed"
     },
-    "empty": "No dossiers yet. Create the first one."
+    "empty": "No dossiers yet. Create the first one.",
+    "emptyTitle": "No dossiers yet"
   },
   "newDossier": {
     "title": "New dossier",
@@ -257,7 +268,9 @@
     "lineAdded": "Budget line added.",
     "leefgeldTitle": "Living allowance (leefgeld)",
     "leefgeldSaved": "Leefgeld updated.",
-    "save": "Save"
+    "save": "Save",
+    "purposeTagPlaceholder": "Purpose tag (optional, e.g. inboedel-2026)",
+    "purposeTagHint": "Only for discretionary spending with one identifiable purpose (LOVT B.D3): triggers the €2,000 legal-review guard with yearly same-purpose aggregation. Leave empty for contractual fixed charges."
   },
   "transactions": {
     "importTitle": "Import bank statement (CAMT.053)",
@@ -272,7 +285,8 @@
       "category": "Category",
       "amount": "Amount"
     },
-    "empty": "No transactions yet. Import a CAMT.053 file or add one manually.",
+    "empty": "Import a CAMT.053 file or add one manually.",
+    "emptyTitle": "No transactions yet",
     "importResult": "Imported: {imported} new, {duplicates} duplicates skipped.",
     "importing": "Importing…",
     "import": "Import",
@@ -287,6 +301,7 @@
   },
   "documents": {
     "emptyDossier": "No documents in this dossier.",
+    "emptyTitle": "No documents yet",
     "status": {
       "new": "New",
       "triaged": "Triaged",
@@ -338,6 +353,8 @@
     "generated": "Draft created — review below.",
     "listTitle": "Letters",
     "empty": "No letters yet.",
+    "emptyTitle": "No letters yet",
+    "emptySentence": "Generated letters appear here for review and approval.",
     "status": {
       "draft": "Draft",
       "approved": "Approved",
@@ -430,7 +447,9 @@
     "upload": "Add to inbox",
     "uploaded": "Document added and triaged.",
     "aiTriageNote": "AI triage proposes; nothing happens without your approval.",
-    "empty": "Inbox empty."
+    "empty": "Inbox empty.",
+    "emptyTitle": "Inbox empty",
+    "emptySentence": "Uploaded documents appear here for AI triage and dossier linking."
   },
   "payments": {
     "title": "Payments",
@@ -442,7 +461,7 @@
     "items": "payments",
     "flagged": "{count} need legal review",
     "status": {
-      "draft": "Draft",
+      "draft": "Awaiting review",
       "approved": "Approved",
       "exported": "Exported",
       "cancelled": "Cancelled"
@@ -482,8 +501,20 @@
       "accounts": "accounts",
       "execution": "Execution date",
       "unresolved": "Unresolved reviews",
-      "demoWarning": "DEMO batch: the export is labeled 'not for bank submission' and no money ever moves from this system."
-    }
+      "demoWarning": "DEMO batch: the export is labeled 'not for bank submission' and no money ever moves from this system.",
+      "ack": "I have reviewed every payment in this batch and confirm the approval.",
+      "lockWarning": "Approval locks the batch and is recorded in the audit log under your name. A locked batch can only be revoked, not edited.",
+      "excluded": "Excluded"
+    },
+    "approveEllipsis": "Approve batch…",
+    "excludeFromBatch": "Exclude from batch",
+    "excludedHeld": "Excluded — held for court authorisation",
+    "undo": "Undo",
+    "excludeLocked": "Batch is locked — exclusions can no longer change.",
+    "blockedNote": "{count} payment(s) blocked on legal review",
+    "auditMicrocopy": "Approval is recorded in the audit log under your name.",
+    "approvedBanner": "Batch approved by {name} — locked and recorded in the audit log. The OS never moves money itself.",
+    "emptyTitle": "No payment batches"
   },
   "machtiging": {
     "reason": {

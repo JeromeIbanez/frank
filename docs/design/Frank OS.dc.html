@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#F7F6F3;}
+a{color:#4F46E5;text-decoration:none;}
+a:hover{color:#4338CA;}
+*{box-sizing:border-box;}
+input[type="checkbox"]{accent-color:#4F46E5;}
+details summary::-webkit-details-marker{display:none;}
+details summary{list-style:none;}
+</style>
+</helmet>
+<div style="display:flex; min-height:100vh; min-width:1280px; overflow-x:auto; background:#F7F6F3; font-family:'Geist',system-ui,sans-serif; color:#1C1B18; -webkit-font-smoothing:antialiased;">
+
+  <!-- Sidebar -->
+  <div style="width:216px; flex-shrink:0; border-right:1px solid #E7E4DE; display:flex; flex-direction:column; padding:20px 12px 16px 12px; background:#F7F6F3;">
+    <div style="padding:0 12px 20px 12px;">
+      <div style="display:flex; align-items:baseline; gap:3px;"><span style="font-size:20px; font-weight:650; letter-spacing:-0.02em;">Frank</span><span style="width:6px; height:6px; background:#4F46E5; border-radius:1.5px; display:inline-block;"></span></div>
+      <div style="font-size:11px; color:#8F8A80; margin-top:2px; letter-spacing:0.02em;">Guardianship OS</div>
+    </div>
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+      <div onClick="{{ n.go }}" style="display:flex; align-items:center; justify-content:space-between; padding:7px 12px; margin-bottom:2px; border-radius:7px; cursor:pointer; font-size:13.5px; font-weight:{{ n.fw }}; color:{{ n.color }}; background:{{ n.bg }};" style-hover="background:#EFEDE8;">
+        <span>{{ n.label }}</span>
+        <span style="font-size:11px; font-family:'Geist Mono',monospace; color:{{ n.badgeColor }};">{{ n.badge }}</span>
+      </div>
+    </sc-for>
+    <div style="flex:1;"></div>
+    <div onClick="{{ goFoundations }}" style="padding:7px 12px; border-radius:7px; cursor:pointer; font-size:13px; color:{{ foundationsColor }}; background:{{ foundationsBg }};" style-hover="background:#EFEDE8;">{{ t.foundations }}</div>
+    <div style="display:flex; align-items:center; gap:10px; padding:12px 12px 0 12px; border-top:1px solid #EFEDE8; margin-top:10px;">
+      <div style="width:28px; height:28px; border-radius:50%; background:#4F46E5; color:#fff; font-size:11.5px; font-weight:600; display:flex; align-items:center; justify-content:center;">MK</div>
+      <div>
+        <div style="font-size:12.5px; font-weight:550;">M. Kuipers</div>
+        <div style="font-size:11px; color:#8F8A80;">Bewindvoerder</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
+    <!-- Topbar -->
+    <div style="height:54px; flex-shrink:0; border-bottom:1px solid #E7E4DE; display:flex; align-items:center; justify-content:space-between; padding:0 32px; background:#F7F6F3;">
+      <div style="font-size:16px; font-weight:600; letter-spacing:-0.01em;">{{ pageTitle }}</div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="display:flex; border:1px solid #E7E4DE; border-radius:7px; overflow:hidden; background:#fff;">
+          <div onClick="{{ setNl }}" style="padding:4px 10px; font-size:12px; font-weight:600; cursor:pointer; color:{{ nlColor }}; background:{{ nlBg }};">NL</div>
+          <div onClick="{{ setEn }}" style="padding:4px 10px; font-size:12px; font-weight:600; cursor:pointer; color:{{ enColor }}; background:{{ enBg }}; border-left:1px solid #E7E4DE;">EN</div>
+        </div>
+        <div style="font-size:11.5px; color:#8F8A80; font-family:'Geist Mono',monospace;">Demo · synthetic data</div>
+      </div>
+    </div>
+
+    <div style="flex:1; overflow:auto;">
+    <!-- ============ DASHBOARD ============ -->
+    <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+      <div data-screen-label="Dashboard" style="padding:28px 32px; max-width:1180px;">
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:18px 20px;">
+            <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80;">{{ t.activeDossiers }}</div>
+            <div style="font-size:28px; font-weight:600; letter-spacing:-0.02em; margin-top:8px; font-variant-numeric:tabular-nums;">8</div>
+            <div style="font-size:12px; color:#8F8A80; margin-top:4px;">2 intake · 6 lopend</div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:18px 20px;">
+            <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80;">{{ t.openTasks }}</div>
+            <div style="font-size:28px; font-weight:600; letter-spacing:-0.02em; margin-top:8px; font-variant-numeric:tabular-nums;">42</div>
+            <div style="font-size:12px; color:#8F8A80; margin-top:4px;">12 {{ t.thisWeek }}</div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:18px 20px;">
+            <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80;">{{ t.overdue }}</div>
+            <div style="display:flex; align-items:baseline; gap:8px; margin-top:8px;">
+              <div style="font-size:28px; font-weight:600; letter-spacing:-0.02em; color:#DC2626; font-variant-numeric:tabular-nums;">17</div>
+              <div style="width:8px; height:8px; border-radius:50%; background:#DC2626;"></div>
+            </div>
+            <div style="font-size:12px; color:#8F8A80; margin-top:4px;">4 &gt; 30 {{ t.days }}</div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:18px 20px;">
+            <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80;">{{ t.newDocs }}</div>
+            <div style="font-size:28px; font-weight:600; letter-spacing:-0.02em; margin-top:8px; font-variant-numeric:tabular-nums;">2</div>
+            <div style="font-size:12px; color:#8F8A80; margin-top:4px;">{{ t.awaitingTriage }}</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:7fr 5fr; gap:14px; margin-top:14px; align-items:start;">
+          <!-- Exceptions -->
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid #EFEDE8;">
+              <div style="display:flex; align-items:baseline; gap:8px;">
+                <span style="font-size:14px; font-weight:600;">{{ t.exceptions }}</span>
+                <span style="font-size:12px; color:#8F8A80; font-family:'Geist Mono',monospace;">10</span>
+              </div>
+              <a href="#" style="font-size:12.5px; font-weight:500;">{{ t.viewAll }}</a>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; border-bottom:1px solid #EFEDE8; cursor:pointer;" style-hover="background:#FAF9F6;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#DC2626; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13.5px; font-weight:550;">Maria Jansen</div>
+                <div style="font-size:12.5px; color:#5B564E;">Expected income not received · Bijstandsuitkering</div>
+              </div>
+              <div style="font-size:13px; font-family:'Geist Mono',monospace; color:#DC2626;">€ 1.273,00</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; border-bottom:1px solid #EFEDE8; cursor:pointer;" style-hover="background:#FAF9F6;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#DC2626; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13.5px; font-weight:550;">Sandra Vermeulen</div>
+                <div style="font-size:12.5px; color:#5B564E;">Expected income not received · Bijstandsuitkering</div>
+              </div>
+              <div style="font-size:13px; font-family:'Geist Mono',monospace; color:#DC2626;">€ 1.217,00</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; border-bottom:1px solid #EFEDE8; cursor:pointer;" style-hover="background:#FAF9F6;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#F59E0B; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13.5px; font-weight:550;">Maria Jansen</div>
+                <div style="font-size:12.5px; color:#5B564E;">Huurtoeslag not received</div>
+              </div>
+              <div style="font-size:13px; font-family:'Geist Mono',monospace; color:#5B564E;">€ 362,00</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; border-bottom:1px solid #EFEDE8; cursor:pointer;" style-hover="background:#FAF9F6;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#F59E0B; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13.5px; font-weight:550;">Willem de Groot</div>
+                <div style="font-size:12.5px; color:#5B564E;">Transactions to review</div>
+              </div>
+              <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#8F8A80;">3×</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; border-bottom:1px solid #EFEDE8; cursor:pointer;" style-hover="background:#FAF9F6;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#F59E0B; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13.5px; font-weight:550;">Fatima el Amrani</div>
+                <div style="font-size:12.5px; color:#5B564E;">Transactions to review</div>
+              </div>
+              <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#8F8A80;">1×</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; cursor:pointer;" style-hover="background:#FAF9F6;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#F59E0B; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13.5px; font-weight:550;">Ahmed Yilmaz</div>
+                <div style="font-size:12.5px; color:#5B564E;">Transactions to review</div>
+              </div>
+              <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#8F8A80;">1×</div>
+            </div>
+          </div>
+
+          <!-- Deadlines -->
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid #EFEDE8;">
+              <span style="font-size:14px; font-weight:600;">{{ t.deadlines }}</span>
+              <a href="#" style="font-size:12.5px; font-weight:500;">{{ t.viewAll }}</a>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; border-bottom:1px solid #EFEDE8;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#DC2626; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:550;">Open beheer- en leefgeldrekening</div>
+                <div style="font-size:12px; color:#8F8A80;">Sandra Vermeulen</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#5B564E;">31 Dec 2025</div>
+                <div style="font-size:11px; font-weight:600; color:#DC2626;">{{ t.overdueTag }}</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; border-bottom:1px solid #EFEDE8;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#DC2626; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:550;">Aanschrijven instanties</div>
+                <div style="font-size:12px; color:#8F8A80;">Sandra Vermeulen</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#5B564E;">4 Jan 2026</div>
+                <div style="font-size:11px; font-weight:600; color:#DC2626;">{{ t.overdueTag }}</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; border-bottom:1px solid #EFEDE8;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#F59E0B; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:550;">Maandoverzicht naar cliënt</div>
+                <div style="font-size:12px; color:#8F8A80;">Alle dossiers</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#5B564E;">31 Aug 2026</div>
+                <div style="font-size:11px; color:#B45309; font-weight:600;">5 {{ t.days }}</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; border-bottom:1px solid #EFEDE8;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#F59E0B; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:550;">Plan van aanpak</div>
+                <div style="font-size:12px; color:#8F8A80;">Dennis Smit</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#5B564E;">4 Sep 2026</div>
+                <div style="font-size:11px; color:#B45309; font-weight:600;">9 {{ t.days }}</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px; border-bottom:1px solid #EFEDE8;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#22C55E; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:550;">Boedelbeschrijving indienen</div>
+                <div style="font-size:12px; color:#8F8A80;">Dennis Smit</div>
+              </div>
+              <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#5B564E;">25 Oct 2026</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 20px;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#22C55E; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:550;">Kwijtschelding gemeentebelasting</div>
+                <div style="font-size:12px; color:#8F8A80;">Ahmed Yilmaz</div>
+              </div>
+              <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#5B564E;">12 Nov 2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ DOSSIER ============ -->
+    <sc-if value="{{ isDossier }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Client dossier" style="padding:24px 32px; max-width:1180px;">
+        <div style="font-size:12px; color:#8F8A80; margin-bottom:10px;"><a href="#" style="color:#8F8A80;">{{ t.dossiersNav }}</a> <span style="margin:0 4px;">/</span> <span style="color:#5B564E;">Sandra Vermeulen</span></div>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div style="font-size:22px; font-weight:650; letter-spacing:-0.02em;">Sandra Vermeulen</div>
+          <div style="display:flex; gap:6px;">
+            <span style="font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">{{ t.active }}</span>
+            <span style="font-size:11.5px; font-weight:500; padding:3px 9px; border-radius:99px; background:#fff; color:#5B564E; border:1px solid #E7E4DE;">Schuldenbewind</span>
+            <span style="font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:99px; background:#FEF2F2; color:#DC2626; border:1px solid #FECACA;">5 {{ t.needAttention }} · 4 {{ t.overdueLower }}</span>
+          </div>
+        </div>
+        <div style="font-size:13px; color:#5B564E; margin-top:6px;">Bewind (administration) · Rechtbank Den Haag · <span style="font-family:'Geist Mono',monospace; font-size:12px;">C/16/65439</span></div>
+
+        <div style="display:flex; gap:2px; border-bottom:1px solid #E7E4DE; margin-top:20px;">
+          <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="8">
+            <div onClick="{{ tb.go }}" style="padding:9px 13px; font-size:13.5px; cursor:pointer; font-weight:{{ tb.fw }}; color:{{ tb.color }}; border-bottom:{{ tb.border }}; margin-bottom:-1px;" style-hover="color:#1C1B18;">{{ tb.label }}</div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ isOverviewTab }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:20px; align-items:start;">
+            <!-- Client card -->
+            <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:18px 20px;">
+              <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80; margin-bottom:14px;">{{ t.client }}</div>
+              <div style="display:grid; grid-template-columns:150px 1fr; row-gap:10px; font-size:13px;">
+                <div style="color:#8F8A80;">{{ t.dob }}</div><div style="font-family:'Geist Mono',monospace; font-size:12.5px;">13-04-1967</div>
+                <div style="color:#8F8A80;">{{ t.address }}</div><div>Demostraat 31, 1013 AB Den Haag</div>
+                <div style="color:#8F8A80;">{{ t.municipality }}</div><div>Den Haag</div>
+                <div style="color:#8F8A80;">{{ t.courtOrder }}</div><div style="font-family:'Geist Mono',monospace; font-size:12.5px;">27-12-2025</div>
+                <div style="color:#8F8A80;">{{ t.startMeasure }}</div><div style="font-family:'Geist Mono',monospace; font-size:12.5px;">25-12-2025</div>
+                <div style="color:#8F8A80;">{{ t.allowance }}</div><div>€ 80,00 <span style="color:#8F8A80;">/ {{ t.week }}</span></div>
+              </div>
+              <div style="margin-top:16px; padding:12px 14px; background:#FAF9F6; border:1px solid #EFEDE8; border-radius:8px; font-size:12.5px; color:#5B564E; line-height:1.5;">
+                {{ t.rvNote }} <a href="#" style="font-weight:550;">{{ t.recordSchedule }}</a>
+              </div>
+            </div>
+
+            <!-- Accounts -->
+            <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px;">
+              <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80; padding:18px 20px 4px 20px;">{{ t.accounts }}</div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 20px; border-bottom:1px solid #EFEDE8;">
+                <div>
+                  <div style="font-size:13.5px; font-weight:550;">Beheerrekening</div>
+                  <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#8F8A80; margin-top:2px;">NL89 ABNA 0417 1641 42 · ABN AMRO</div>
+                </div>
+                <div style="font-size:15px; font-weight:600; font-family:'Geist Mono',monospace;">€ 268,15</div>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 20px; border-bottom:1px solid #EFEDE8;">
+                <div>
+                  <div style="font-size:13.5px; font-weight:550;">Leefgeldrekening</div>
+                  <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#8F8A80; margin-top:2px;">NL58 RABO 0123 4561 49 · Rabobank</div>
+                </div>
+                <div style="font-size:15px; font-weight:600; font-family:'Geist Mono',monospace;">€ 34,00</div>
+              </div>
+              <div style="padding:12px 20px;">
+                <span style="font-size:12.5px; font-weight:550; color:#4F46E5; cursor:pointer;" style-hover="color:#4338CA;">+ {{ t.addAccount }}</span>
+              </div>
+            </div>
+
+            <!-- Agencies -->
+            <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:18px 20px;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px;">
+                <span style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80;">{{ t.agencies }}</span>
+                <span style="font-size:12px; font-family:'Geist Mono',monospace; color:#5B564E;">7/9 {{ t.notified }}</span>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                <span style="font-size:12px; font-weight:500; padding:4px 10px; border-radius:99px; background:#EEF2FF; color:#4338CA; border:1px solid #E0E7FF;">✓ Belastingdienst / Toeslagen</span>
+                <span style="font-size:12px; font-weight:500; padding:4px 10px; border-radius:99px; background:#EEF2FF; color:#4338CA; border:1px solid #E0E7FF;">✓ Gemeente</span>
+                <span style="font-size:12px; font-weight:500; padding:4px 10px; border-radius:99px; background:#EEF2FF; color:#4338CA; border:1px solid #E0E7FF;">✓ UWV</span>
+                <span style="font-size:12px; font-weight:500; padding:4px 10px; border-radius:99px; background:#EEF2FF; color:#4338CA; border:1px solid #E0E7FF;">✓ SVB</span>
+                <span style="font-size:12px; font-weight:500; padding:4px 10px; border-radius:99px; background:#EEF2FF; color:#4338CA; border:1px solid #E0E7FF;">✓ Zorgverzekeraar</span>
+                <span style="font-size:12px; font-weight:500; padding:4px 10px; border-radius:99px; background:#EEF2FF; color:#4338CA; border:1px solid #E0E7FF;">✓ Energieleverancier</span>
+                <span style="font-size:12px; font-weight:500; padding:4px 10px; border-radius:99px; background:#EEF2FF; color:#4338CA; border:1px solid #E0E7FF;">✓ Woningcorporatie</span>
+                <span style="font-size:12px; font-weight:500; padding:4px 10px; border-radius:99px; background:#fff; color:#8F8A80; border:1px solid #E7E4DE;">CAK</span>
+                <span style="font-size:12px; font-weight:500; padding:4px 10px; border-radius:99px; background:#fff; color:#8F8A80; border:1px solid #E7E4DE;">Waterschap</span>
+              </div>
+            </div>
+
+            <!-- Debts -->
+            <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px;">
+              <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80; padding:18px 20px 4px 20px;">{{ t.debts }}</div>
+              <div style="display:flex; align-items:center; gap:10px; padding:12px 20px; border-bottom:1px solid #EFEDE8;">
+                <div style="flex:1; font-size:13.5px; font-weight:550;">Vattenfall <span style="font-weight:400; color:#8F8A80;">eindafrekening</span></div>
+                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#FFFBEB; color:#B45309; border:1px solid #FDE68A;">open</span>
+                <div style="width:90px; text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 684,00</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; padding:12px 20px; border-bottom:1px solid #EFEDE8;">
+                <div style="flex:1; font-size:13.5px; font-weight:550;">KPN</div>
+                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#EEF2FF; color:#4338CA; border:1px solid #E0E7FF;">regeling</span>
+                <div style="width:90px; text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 423,00</div>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 20px;">
+                <span style="font-size:12.5px; color:#8F8A80;">{{ t.totalDebt }}</span>
+                <span style="font-size:14px; font-weight:600; font-family:'Geist Mono',monospace;">€ 1.107,00</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isOtherTab }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:10px; padding:80px 0; text-align:center;">
+            <div style="width:32px; height:32px; border-radius:50%; border:1.5px solid #D6D2CA;"></div>
+            <div style="font-size:13.5px; font-weight:600; color:#5B564E;">{{ emptyTabTitle }}</div>
+            <div style="font-size:13px; color:#8F8A80; max-width:340px; line-height:1.5;">{{ emptyTabBody }}</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ============ PAYMENTS ============ -->
+    <sc-if value="{{ isPayments }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Payments batch review" style="padding:24px 32px; max-width:1180px;">
+        <div style="font-size:12px; color:#8F8A80; margin-bottom:10px;"><a href="#" style="color:#8F8A80;">{{ t.paymentsNav }}</a> <span style="margin:0 4px;">/</span> <span style="color:#5B564E;">Betaalvoorstel 2026-08-26</span></div>
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="font-size:22px; font-weight:650; letter-spacing:-0.02em;">Betaalvoorstel 2026-08-26</div>
+            <sc-if value="{{ approved }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">{{ t.approvedChip }}</span>
+            </sc-if>
+            <sc-if value="{{ notApproved }}" hint-placeholder-val="{{ true }}">
+              <span style="font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:99px; background:#fff; color:#5B564E; border:1px solid #E7E4DE;">{{ t.draftChip }}</span>
+            </sc-if>
+          </div>
+        </div>
+        <div style="font-size:13px; color:#5B564E; margin-top:6px;">{{ t.execution }} <span style="font-family:'Geist Mono',monospace; font-size:12.5px;">28-08-2026</span> · {{ payCount }} {{ t.paymentsLower }} · <span style="font-family:'Geist Mono',monospace; font-size:12.5px;">{{ payTotal }}</span></div>
+
+        <sc-if value="{{ approved }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; gap:10px; margin-top:16px; padding:12px 16px; background:#F0FDF4; border:1px solid #DCFCE7; border-radius:8px;">
+            <div style="width:8px; height:8px; border-radius:50%; background:#22C55E;"></div>
+            <div style="font-size:13px; color:#15803D;">{{ t.approvedBanner }}</div>
+          </div>
+        </sc-if>
+
+        <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; margin-top:16px; overflow:hidden;">
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #E7E4DE; font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80;">
+            <div>{{ t.colDossier }}</div><div>{{ t.colCreditor }}</div><div>{{ t.colDesc }}</div><div style="text-align:right;">{{ t.colAmount }}</div><div>{{ t.colReview }}</div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #EFEDE8; align-items:center;" style-hover="background:#FAF9F6;">
+            <div style="font-size:13px; font-weight:550;">de Groot, W.</div>
+            <div><div style="font-size:13px;">Willem de Groot <span style="color:#8F8A80;">(leefgeld)</span></div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL28 RABO 0123 4561 07</div></div>
+            <div style="font-size:12.5px; color:#5B564E;">Leefgeld week 35</div>
+            <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 65,00</div>
+            <div><span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">OK</span></div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #EFEDE8; align-items:center;" style-hover="background:#FAF9F6;">
+            <div style="font-size:13px; font-weight:550;">de Groot, W.</div>
+            <div><div style="font-size:13px;">Woningcorporatie Thuis</div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL63 TRIO 0212 3456 78</div></div>
+            <div style="font-size:12.5px; color:#5B564E;">Huur september</div>
+            <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 725,00</div>
+            <div><span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">OK</span></div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #EFEDE8; align-items:center;" style-hover="background:#FAF9F6;">
+            <div style="font-size:13px; font-weight:550;">de Groot, W.</div>
+            <div><div style="font-size:13px;">Zilveren Kruis</div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL57 INGB 0000 0088 88</div></div>
+            <div style="font-size:12.5px; color:#5B564E;">Zorgverzekering</div>
+            <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 147,50</div>
+            <div><span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">OK</span></div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #EFEDE8; align-items:center;" style-hover="background:#FAF9F6;">
+            <div style="font-size:13px; font-weight:550;">de Groot, W.</div>
+            <div><div style="font-size:13px;">Vattenfall</div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL51 INGB 0000 1234 56</div></div>
+            <div style="font-size:12.5px; color:#5B564E;">Energie</div>
+            <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 168,00</div>
+            <div><span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">OK</span></div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #EFEDE8; align-items:center;" style-hover="background:#FAF9F6;">
+            <div style="font-size:13px; font-weight:550;">de Groot, W.</div>
+            <div><div style="font-size:13px;">Frank Bewindvoering</div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL23 BUNQ 0123 4567 89</div></div>
+            <div style="font-size:12.5px; color:#5B564E;">Bewindvoerderskosten</div>
+            <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 135,83</div>
+            <div><span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">OK</span></div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #EFEDE8; align-items:center;" style-hover="background:#FAF9F6;">
+            <div style="font-size:13px; font-weight:550;">Vermeulen, S.</div>
+            <div><div style="font-size:13px;">Sandra Vermeulen <span style="color:#8F8A80;">(leefgeld)</span></div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL58 RABO 0123 4561 49</div></div>
+            <div style="font-size:12.5px; color:#5B564E;">Leefgeld week 35</div>
+            <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 80,00</div>
+            <div><span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">OK</span></div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #EFEDE8; align-items:center;" style-hover="background:#FAF9F6;">
+            <div style="font-size:13px; font-weight:550;">Vermeulen, S.</div>
+            <div><div style="font-size:13px;">Woningcorporatie Thuis</div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL63 TRIO 0212 3456 78</div></div>
+            <div style="font-size:12.5px; color:#5B564E;">Huur september</div>
+            <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 743,00</div>
+            <div><span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">OK</span></div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #EFEDE8; align-items:center;" style-hover="background:#FAF9F6;">
+            <div style="font-size:13px; font-weight:550;">Vermeulen, S.</div>
+            <div><div style="font-size:13px;">Zilveren Kruis</div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL57 INGB 0000 0088 88</div></div>
+            <div style="font-size:12.5px; color:#5B564E;">Zorgverzekering</div>
+            <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 147,50</div>
+            <div><span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">OK</span></div>
+          </div>
+          <!-- amber row -->
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #EFEDE8; align-items:center; background:#FFFDF5;">
+            <div style="font-size:13px; font-weight:550;">Vermeulen, S.</div>
+            <div><div style="font-size:13px;">Vattenfall</div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL51 INGB 0000 1234 56</div></div>
+            <div style="font-size:12.5px; color:#5B564E;">Energie + regeling</div>
+            <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 231,00</div>
+            <div>
+              <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#FFFBEB; color:#B45309; border:1px solid #FDE68A;">{{ t.checkAmount }}</span>
+              <div style="font-size:11.5px; color:#B45309; margin-top:4px;">{{ t.deviates }} € 168,00</div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:10px 20px; border-bottom:1px solid #EFEDE8; align-items:center;" style-hover="background:#FAF9F6;">
+            <div style="font-size:13px; font-weight:550;">Bakker, J.</div>
+            <div><div style="font-size:13px;">Johannes Bakker <span style="color:#8F8A80;">(leefgeld)</span></div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL48 RABO 0123 4561 35</div></div>
+            <div style="font-size:12.5px; color:#5B564E;">Leefgeld week 35</div>
+            <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace;">€ 55,00</div>
+            <div><span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">OK</span></div>
+          </div>
+          <!-- legal review row -->
+          <sc-if value="{{ legalPending }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:12px 20px; align-items:center; background:#FEF2F2; border-left:3px solid #DC2626;">
+              <div style="font-size:13px; font-weight:550;">Bakker, J.</div>
+              <div><div style="font-size:13px;">Tandtechniek Den Haag</div><div style="font-size:11.5px; white-space:nowrap; font-family:'Geist Mono',monospace; color:#8F8A80;">NL12 INGB 0004 5678 90</div></div>
+              <div style="font-size:12.5px; color:#5B564E;">Gebitsprothese (eenmalig)</div>
+              <div style="text-align:right; font-size:13px; font-weight:600; font-family:'Geist Mono',monospace; color:#DC2626;">€ 1.850,00</div>
+              <div>
+                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#DC2626; color:#fff;">{{ t.legalReview }}</span>
+                <div style="font-size:11.5px; color:#B91C1C; margin-top:5px; line-height:1.45;">{{ t.legalNote }} <span style="font-family:'Geist Mono',monospace; font-size:11px;">art. 1:441 lid 2 BW</span></div>
+                <div onClick="{{ excludeLegal }}" style="display:inline-block; margin-top:7px; font-size:12px; font-weight:600; color:#DC2626; border:1px solid #FECACA; background:#fff; border-radius:6px; padding:4px 10px; cursor:pointer;" style-hover="background:#FEF2F2;">{{ t.exclude }}</div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ legalExcluded }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid; grid-template-columns:150px 1fr 170px 110px 190px; gap:16px; padding:12px 20px; align-items:center; background:#FAF9F6; color:#8F8A80;">
+              <div style="font-size:13px; text-decoration:line-through;">Bakker, J.</div>
+              <div><div style="font-size:13px; text-decoration:line-through;">Tandtechniek Den Haag</div><div style="font-size:11.5px; font-family:'Geist Mono',monospace;">NL12 INGB 0004 5678 90</div></div>
+              <div style="font-size:12.5px; text-decoration:line-through;">Gebitsprothese (eenmalig)</div>
+              <div style="text-align:right; white-space:nowrap; font-size:13px; font-family:'Geist Mono',monospace; text-decoration:line-through;">€ 1.850,00</div>
+              <div style="font-size:12px;">{{ t.excludedNote }} <span onClick="{{ undoExclude }}" style="color:#4F46E5; font-weight:600; cursor:pointer;">{{ t.undo }}</span></div>
+            </div>
+          </sc-if>
+          <!-- footer -->
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-top:1px solid #E7E4DE; background:#FCFBF9;">
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div style="font-size:13px; color:#5B564E;">{{ payCount }} {{ t.paymentsLower }} · <span style="font-family:'Geist Mono',monospace; font-weight:600; color:#1C1B18;">{{ payTotal }}</span></div>
+              <sc-if value="{{ legalPending }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:#DC2626; font-weight:550;">
+                  <div style="width:7px; height:7px; border-radius:50%; background:#DC2626;"></div>{{ t.blockedNote }}
+                </div>
+              </sc-if>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <sc-if value="{{ notApproved }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:12px; color:#8F8A80;">{{ t.auditNote }}</div>
+                <div onClick="{{ approveClick }}" style="padding:8px 18px; border-radius:8px; font-size:13.5px; font-weight:600; color:#fff; background:{{ approveBg }}; cursor:{{ approveCursor }}; user-select:none;">{{ t.approveBatch }}</div>
+              </sc-if>
+              <sc-if value="{{ approved }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:8px 18px; border-radius:8px; font-size:13.5px; font-weight:600; color:#4F46E5; border:1px solid #C7D2FE; background:#fff; cursor:pointer;" style-hover="background:#EEF2FF;">{{ t.exportBtn }}</div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+
+        <!-- confirm modal -->
+        <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:fixed; inset:0; background:rgba(28,27,24,0.4); display:flex; align-items:center; justify-content:center; z-index:50;">
+            <div style="width:460px; background:#fff; border-radius:12px; padding:26px 28px; box-shadow:0 20px 50px rgba(28,27,24,0.25);">
+              <div style="font-size:17px; font-weight:650;">{{ t.confirmTitle }}</div>
+              <div style="margin-top:16px; border:1px solid #EFEDE8; border-radius:8px; overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; padding:9px 14px; border-bottom:1px solid #EFEDE8; font-size:13px;"><span style="color:#8F8A80;">{{ t.paymentsCap }}</span><span style="font-family:'Geist Mono',monospace;">{{ payCount }}</span></div>
+                <div style="display:flex; justify-content:space-between; padding:9px 14px; border-bottom:1px solid #EFEDE8; font-size:13px;"><span style="color:#8F8A80;">{{ t.totalCap }}</span><span style="font-family:'Geist Mono',monospace; font-weight:600;">{{ payTotal }}</span></div>
+                <div style="display:flex; justify-content:space-between; padding:9px 14px; border-bottom:1px solid #EFEDE8; font-size:13px;"><span style="color:#8F8A80;">{{ t.execution }}</span><span style="font-family:'Geist Mono',monospace;">28-08-2026</span></div>
+                <div style="display:flex; justify-content:space-between; padding:9px 14px; font-size:13px;"><span style="color:#8F8A80;">{{ t.excludedCap }}</span><span style="font-family:'Geist Mono',monospace;">1 · € 1.850,00</span></div>
+              </div>
+              <div style="font-size:12.5px; color:#5B564E; margin-top:14px; line-height:1.5;">{{ t.confirmBody }}</div>
+              <label style="display:flex; gap:10px; align-items:flex-start; margin-top:14px; padding:12px 14px; background:#FAF9F6; border:1px solid #EFEDE8; border-radius:8px; cursor:pointer;">
+                <input type="checkbox" onChange="{{ toggleAck }}" style="width:16px; height:16px; margin-top:1px;">
+                <span style="font-size:13px; line-height:1.45;">{{ t.ackLabel }}</span>
+              </label>
+              <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <div onClick="{{ cancelConfirm }}" style="padding:8px 16px; border-radius:8px; font-size:13.5px; font-weight:550; color:#5B564E; border:1px solid #E7E4DE; cursor:pointer;" style-hover="background:#FAF9F6;">{{ t.cancel }}</div>
+                <div onClick="{{ doApprove }}" style="padding:8px 18px; border-radius:8px; font-size:13.5px; font-weight:600; color:#fff; background:{{ confirmBg }}; cursor:{{ confirmCursor }}; user-select:none;">{{ t.confirmApprove }}</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ============ TASKS ============ -->
+    <sc-if value="{{ isTasks }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Task list" style="padding:24px 32px; max-width:920px;">
+        <div style="display:flex; gap:8px; margin-bottom:18px;">
+          <span style="font-size:12.5px; font-weight:600; padding:5px 12px; border-radius:99px; background:#1C1B18; color:#fff;">{{ t.all }} 12</span>
+          <span style="font-size:12.5px; font-weight:500; padding:5px 12px; border-radius:99px; background:#fff; color:#5B564E; border:1px solid #E7E4DE; cursor:pointer;" style-hover="border-color:#D6D2CA;">{{ t.overdue }} 4</span>
+          <span style="font-size:12.5px; font-weight:500; padding:5px 12px; border-radius:99px; background:#fff; color:#5B564E; border:1px solid #E7E4DE; cursor:pointer;" style-hover="border-color:#D6D2CA;">{{ t.dueThisWeek }} 3</span>
+          <span style="font-size:12.5px; font-weight:500; padding:5px 12px; border-radius:99px; background:#fff; color:#5B564E; border:1px solid #E7E4DE; cursor:pointer;" style-hover="border-color:#D6D2CA;">{{ t.done }} 4</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:16px 20px;">
+            <div style="display:flex; align-items:flex-start; gap:12px;">
+              <div style="width:9px; height:9px; border-radius:50%; background:#DC2626; margin-top:5px; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:14px; font-weight:600;">Open beheer- en leefgeldrekening</div>
+                <div style="font-size:12.5px; color:#5B564E; margin-top:3px;">Sandra Vermeulen · <span style="font-family:'Geist Mono',monospace; font-size:11.5px; color:#8F8A80;">LOVT B.B2 · basis 25-12-2025</span></div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#fff; color:#5B564E; border:1px solid #E7E4DE;">{{ t.statusOpen }}</span>
+                <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#DC2626; margin-top:5px;">31-12-2025 · {{ t.overdueTag }}</div>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:7px; margin:12px 0 0 21px; padding-top:12px; border-top:1px solid #EFEDE8;">
+              <label style="display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer;"><input type="checkbox" defaultChecked="{{ true }}" style="width:15px; height:15px;"><span style="color:#8F8A80;">Beheerrekening geopend</span></label>
+              <label style="display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer;"><input type="checkbox" defaultChecked="{{ true }}" style="width:15px; height:15px;"><span style="color:#8F8A80;">Leefgeldrekening geopend</span></label>
+              <label style="display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer;"><input type="checkbox" style="width:15px; height:15px;"><span>Oude betaalpassen geblokkeerd</span></label>
+            </div>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:16px 20px;">
+            <div style="display:flex; align-items:flex-start; gap:12px;">
+              <div style="width:9px; height:9px; border-radius:50%; background:#DC2626; margin-top:5px; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:14px; font-weight:600;">Aanschrijven instanties</div>
+                <div style="font-size:12.5px; color:#5B564E; margin-top:3px;">Sandra Vermeulen · <span style="font-family:'Geist Mono',monospace; font-size:11.5px; color:#8F8A80;">Aanbevelingen meerderjarigenbewind · LOVT B.B3</span></div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#EEF2FF; color:#4338CA; border:1px solid #E0E7FF;">{{ t.statusPrep }}</span>
+                <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#DC2626; margin-top:5px;">04-01-2026 · {{ t.overdueTag }}</div>
+              </div>
+            </div>
+            <details style="margin:10px 0 0 21px;">
+              <summary style="font-size:12.5px; font-weight:550; color:#4F46E5; cursor:pointer;">7 / 9 {{ t.subDone }}</summary>
+              <div style="display:flex; flex-direction:column; gap:7px; margin-top:10px; padding-top:10px; border-top:1px solid #EFEDE8;">
+                <label style="display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer;"><input type="checkbox" defaultChecked="{{ true }}" style="width:15px; height:15px;"><span style="color:#8F8A80;">Belastingdienst / Toeslagen</span></label>
+                <label style="display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer;"><input type="checkbox" defaultChecked="{{ true }}" style="width:15px; height:15px;"><span style="color:#8F8A80;">Gemeente (uitkering &amp; belastingen)</span></label>
+                <label style="display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer;"><input type="checkbox" style="width:15px; height:15px;"><span>CAK</span></label>
+                <label style="display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer;"><input type="checkbox" style="width:15px; height:15px;"><span>Waterschap</span></label>
+              </div>
+            </details>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:16px 20px;">
+            <div style="display:flex; align-items:flex-start; gap:12px;">
+              <div style="width:9px; height:9px; border-radius:50%; background:#F59E0B; margin-top:5px; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:14px; font-weight:600;">Maandoverzicht naar cliënt versturen</div>
+                <div style="font-size:12.5px; color:#5B564E; margin-top:3px;">Alle dossiers · <span style="font-family:'Geist Mono',monospace; font-size:11.5px; color:#8F8A80;">Besluit kwaliteitseisen art. 5 lid 6 · 2026-08.1</span></div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#fff; color:#5B564E; border:1px solid #E7E4DE;">{{ t.statusOpen }}</span>
+                <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#B45309; margin-top:5px;">31-08-2026 · 5 {{ t.days }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:16px 20px;">
+            <div style="display:flex; align-items:flex-start; gap:12px;">
+              <div style="width:9px; height:9px; border-radius:50%; background:#F59E0B; margin-top:5px; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:14px; font-weight:600;">Plan van aanpak opstellen</div>
+                <div style="font-size:12.5px; color:#5B564E; margin-top:3px;">Dennis Smit · <span style="font-family:'Geist Mono',monospace; font-size:11.5px; color:#8F8A80;">art. 1:432a BW · LOVT B.B4 (incl. aanvullend schuldenplan)</span></div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#EEF2FF; color:#4338CA; border:1px solid #E0E7FF;">{{ t.statusPrep }}</span>
+                <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#B45309; margin-top:5px;">04-09-2026 · 9 {{ t.days }}</div>
+              </div>
+            </div>
+            <details style="margin:10px 0 0 21px;">
+              <summary style="font-size:12.5px; font-weight:550; color:#4F46E5; cursor:pointer;">1 / 3 {{ t.subDone }}</summary>
+              <div style="display:flex; flex-direction:column; gap:7px; margin-top:10px; padding-top:10px; border-top:1px solid #EFEDE8;">
+                <label style="display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer;"><input type="checkbox" defaultChecked="{{ true }}" style="width:15px; height:15px;"><span style="color:#8F8A80;">Inkomsten en vaste lasten geïnventariseerd</span></label>
+                <label style="display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer;"><input type="checkbox" style="width:15px; height:15px;"><span>Schuldenoverzicht opgesteld</span></label>
+                <label style="display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer;"><input type="checkbox" style="width:15px; height:15px;"><span>Concept besproken met cliënt</span></label>
+              </div>
+            </details>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:16px 20px;">
+            <div style="display:flex; align-items:flex-start; gap:12px;">
+              <div style="width:9px; height:9px; border-radius:50%; background:#22C55E; margin-top:5px; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:14px; font-weight:600;">Boedelbeschrijving indienen</div>
+                <div style="font-size:12.5px; color:#5B564E; margin-top:3px;">Dennis Smit · <span style="font-family:'Geist Mono',monospace; font-size:11.5px; color:#8F8A80;">art. 1:436 BW · LOVT B.B1 · basis 25-04-2026</span></div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#fff; color:#5B564E; border:1px solid #E7E4DE;">{{ t.statusOpen }}</span>
+                <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#5B564E; margin-top:5px;">25-10-2026</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:16px 20px;">
+            <div style="display:flex; align-items:flex-start; gap:12px;">
+              <div style="width:9px; height:9px; border-radius:50%; background:#22C55E; margin-top:5px; flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:14px; font-weight:600;">Vijfjaarlijkse evaluatie van de maatregel</div>
+                <div style="font-size:12.5px; color:#5B564E; margin-top:3px;">Sandra Vermeulen · <span style="font-family:'Geist Mono',monospace; font-size:11.5px; color:#8F8A80;">art. 1:446a BW · LOVT M.B10 · basis 25-12-2025</span></div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#fff; color:#5B564E; border:1px solid #E7E4DE;">{{ t.statusOpen }}</span>
+                <div style="font-size:12px; font-family:'Geist Mono',monospace; color:#5B564E; margin-top:5px;">25-12-2030</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80; margin-top:10px;">4 {{ t.completedClosed }}</div>
+          <div style="background:#FCFBF9; border:1px solid #EFEDE8; border-radius:10px; padding:13px 20px; display:flex; align-items:center; gap:12px;">
+            <div style="flex:1;">
+              <div style="font-size:13.5px; font-weight:500; color:#8F8A80; text-decoration:line-through;">Plan van aanpak concept (boedel)</div>
+              <div style="font-size:11.5px; font-family:'Geist Mono',monospace; color:#B5B0A6; margin-top:2px;">art. 1:432a BW · LOVT B.B4</div>
+            </div>
+            <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">✓ {{ t.confirmed }}</span>
+          </div>
+          <div style="background:#FCFBF9; border:1px solid #EFEDE8; border-radius:10px; padding:13px 20px; display:flex; align-items:center; gap:12px;">
+            <div style="flex:1;">
+              <div style="font-size:13.5px; font-weight:500; color:#8F8A80; text-decoration:line-through;">Bijzondere bijstand aanvragen (bewindvoerderskosten)</div>
+              <div style="font-size:11.5px; font-family:'Geist Mono',monospace; color:#B5B0A6; margin-top:2px;">Participatiewet art. 35 · basis 25-12-2025</div>
+            </div>
+            <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; background:#F0FDF4; color:#15803D; border:1px solid #DCFCE7;">✓ {{ t.done }}</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ INBOX (empty state, live) ============ -->
+    <sc-if value="{{ isInbox }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Inbox" style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:140px 0; text-align:center;">
+        <div style="width:36px; height:36px; border-radius:50%; border:1.5px solid #D6D2CA;"></div>
+        <div style="font-size:14px; font-weight:600; color:#5B564E;">{{ t.inboxEmptyTitle }}</div>
+        <div style="font-size:13px; color:#8F8A80; max-width:360px; line-height:1.5;">{{ t.inboxEmptyBody }}</div>
+        <div style="margin-top:6px; padding:7px 16px; border-radius:8px; font-size:13px; font-weight:550; color:#4F46E5; border:1px solid #C7D2FE; background:#fff; cursor:pointer;" style-hover="background:#EEF2FF;">{{ t.uploadDoc }}</div>
+      </div>
+    </sc-if>
+
+    <!-- ============ FOUNDATIONS ============ -->
+    <sc-if value="{{ isFoundations }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Foundations" style="padding:28px 32px; max-width:1080px;">
+        <div style="font-size:13.5px; color:#5B564E; max-width:640px; line-height:1.55;">One accent, warm neutrals, and a strict severity scale. Personality comes from type and spacing; red, amber and green are reserved for deadline severity and money risk — never decoration.</div>
+
+        <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80; margin:28px 0 12px 0;">Logo — the square full stop</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:20px; display:flex; align-items:center; justify-content:center; min-height:130px;">
+            <div style="display:flex; align-items:baseline; gap:6px;"><span style="font-size:44px; font-weight:650; letter-spacing:-0.03em;">Frank</span><span style="width:10px; height:10px; background:#4F46E5; border-radius:2px; display:inline-block;"></span></div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:20px; display:flex; align-items:center; justify-content:center; gap:18px; min-height:130px;">
+            <div style="width:64px; height:64px; border-radius:16px; background:#FFFFFF; border:1.5px solid #E7E4DE; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="font-size:32px; font-weight:650; letter-spacing:-0.03em; color:#1C1B18;">F</span><span style="width:8px; height:8px; background:#4F46E5; border-radius:1.5px; margin-top:16px;"></span></div>
+            <div style="width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid #E7E4DE; display:flex; align-items:center; justify-content:center; gap:2px;"><span style="font-size:16px; font-weight:650; color:#1C1B18;">F</span><span style="width:4px; height:4px; background:#4F46E5; border-radius:1px; margin-top:8px;"></span></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#fff; border:1px solid #E7E4DE; display:flex; align-items:center; justify-content:center;"><span style="width:6px; height:6px; background:#4F46E5; border-radius:1.5px;"></span></div>
+          </div>
+        </div>
+        <div style="font-size:12.5px; color:#5B564E; margin-top:10px; line-height:1.55; max-width:640px;">Wordmark: Geist 650, tracking −0.03em, with a square full stop in indigo-600 set on the baseline at ~0.22× cap height. The square is the brand gesture — a deliberate, stamp-like "full stop": direct and honest, administration closed. At 16px only the indigo square survives (favicon). The square never rotates, never gets a gradient, and appears in indigo-600 only.</div>
+
+        <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80; margin:28px 0 12px 0;">Color tokens</div>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:14px;">
+            <div style="height:44px; border-radius:7px; background:#F7F6F3; border:1px solid #EFEDE8;"></div>
+            <div style="font-size:12px; font-weight:600; margin-top:10px; font-family:'Geist Mono',monospace;">canvas</div>
+            <div style="font-size:11px; color:#8F8A80; font-family:'Geist Mono',monospace;">#F7F6F3</div>
+            <div style="font-size:12px; color:#5B564E; margin-top:4px;">App background, warm off-white</div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:14px;">
+            <div style="height:44px; border-radius:7px; background:#FFFFFF; border:1px solid #E7E4DE;"></div>
+            <div style="font-size:12px; font-weight:600; margin-top:10px; font-family:'Geist Mono',monospace;">surface</div>
+            <div style="font-size:11px; color:#8F8A80; font-family:'Geist Mono',monospace;">#FFFFFF</div>
+            <div style="font-size:12px; color:#5B564E; margin-top:4px;">Cards, tables, inputs</div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:14px;">
+            <div style="height:44px; border-radius:7px; background:#E7E4DE;"></div>
+            <div style="font-size:12px; font-weight:600; margin-top:10px; font-family:'Geist Mono',monospace;">border / hairline</div>
+            <div style="font-size:11px; color:#8F8A80; font-family:'Geist Mono',monospace;">#E7E4DE · #EFEDE8</div>
+            <div style="font-size:12px; color:#5B564E; margin-top:4px;">Card edges · row dividers</div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:14px;">
+            <div style="height:44px; border-radius:7px; display:flex; overflow:hidden;"><div style="flex:1; background:#1C1B18;"></div><div style="flex:1; background:#5B564E;"></div><div style="flex:1; background:#8F8A80;"></div></div>
+            <div style="font-size:12px; font-weight:600; margin-top:10px; font-family:'Geist Mono',monospace;">ink-900 / 600 / 400</div>
+            <div style="font-size:11px; color:#8F8A80; font-family:'Geist Mono',monospace;">#1C1B18 · #5B564E · #8F8A80</div>
+            <div style="font-size:12px; color:#5B564E; margin-top:4px;">Primary · secondary · labels</div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:14px;">
+            <div style="height:44px; border-radius:7px; display:flex; overflow:hidden;"><div style="flex:2; background:#4F46E5;"></div><div style="flex:1; background:#4338CA;"></div><div style="flex:1; background:#EEF2FF;"></div></div>
+            <div style="font-size:12px; font-weight:600; margin-top:10px; font-family:'Geist Mono',monospace;">indigo-600 / 700 / 50</div>
+            <div style="font-size:11px; color:#8F8A80; font-family:'Geist Mono',monospace;">#4F46E5 · #4338CA · #EEF2FF</div>
+            <div style="font-size:12px; color:#5B564E; margin-top:4px;">The one accent: actions, links, selection</div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:14px;">
+            <div style="height:44px; border-radius:7px; display:flex; overflow:hidden;"><div style="flex:2; background:#DC2626;"></div><div style="flex:1; background:#FEF2F2;"></div></div>
+            <div style="font-size:12px; font-weight:600; margin-top:10px; font-family:'Geist Mono',monospace;">red-600 / 50</div>
+            <div style="font-size:11px; color:#8F8A80; font-family:'Geist Mono',monospace;">#DC2626 · #FEF2F2</div>
+            <div style="font-size:12px; color:#5B564E; margin-top:4px;">Overdue, blocked, legal review</div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:14px;">
+            <div style="height:44px; border-radius:7px; display:flex; overflow:hidden;"><div style="flex:2; background:#F59E0B;"></div><div style="flex:1; background:#FFFBEB;"></div></div>
+            <div style="font-size:12px; font-weight:600; margin-top:10px; font-family:'Geist Mono',monospace;">amber-500 / 50</div>
+            <div style="font-size:11px; color:#8F8A80; font-family:'Geist Mono',monospace;">#F59E0B · text #B45309</div>
+            <div style="font-size:12px; color:#5B564E; margin-top:4px;">Due soon, needs a check</div>
+          </div>
+          <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:14px;">
+            <div style="height:44px; border-radius:7px; display:flex; overflow:hidden;"><div style="flex:2; background:#22C55E;"></div><div style="flex:1; background:#F0FDF4;"></div></div>
+            <div style="font-size:12px; font-weight:600; margin-top:10px; font-family:'Geist Mono',monospace;">green-500 / 50</div>
+            <div style="font-size:11px; color:#8F8A80; font-family:'Geist Mono',monospace;">#22C55E · text #15803D</div>
+            <div style="font-size:12px; color:#5B564E; margin-top:4px;">On track, approved, done</div>
+          </div>
+        </div>
+
+        <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80; margin:28px 0 12px 0;">Type scale — Geist + Geist Mono</div>
+        <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px;">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:14px 20px; border-bottom:1px solid #EFEDE8;">
+            <div style="font-size:28px; font-weight:600; letter-spacing:-0.02em; font-variant-numeric:tabular-nums;">€ 8.750,56</div>
+            <div style="font-size:11.5px; font-family:'Geist Mono',monospace; color:#8F8A80;">28/34 · 600 · KPI numerals</div>
+          </div>
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:14px 20px; border-bottom:1px solid #EFEDE8;">
+            <div style="font-size:22px; font-weight:650; letter-spacing:-0.02em;">Sandra Vermeulen</div>
+            <div style="font-size:11.5px; font-family:'Geist Mono',monospace; color:#8F8A80;">22/28 · 650 · page &amp; dossier titles</div>
+          </div>
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:14px 20px; border-bottom:1px solid #EFEDE8;">
+            <div style="font-size:14px; font-weight:600;">Upcoming deadlines</div>
+            <div style="font-size:11.5px; font-family:'Geist Mono',monospace; color:#8F8A80;">14/20 · 600 · card titles, task names</div>
+          </div>
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:14px 20px; border-bottom:1px solid #EFEDE8;">
+            <div style="font-size:13px;">Bewind (administration) · Rechtbank Den Haag</div>
+            <div style="font-size:11.5px; font-family:'Geist Mono',monospace; color:#8F8A80;">13/19 · 400 · body, table cells</div>
+          </div>
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:14px 20px; border-bottom:1px solid #EFEDE8;">
+            <div style="font-size:12px; font-family:'Geist Mono',monospace;">NL89 ABNA 0417 1641 42 · art. 1:441 lid 2 BW</div>
+            <div style="font-size:11.5px; font-family:'Geist Mono',monospace; color:#8F8A80;">12 mono · IBANs, dates, legal refs, case nos.</div>
+          </div>
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:14px 20px;">
+            <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80;">Section label</div>
+            <div style="font-size:11.5px; font-family:'Geist Mono',monospace; color:#8F8A80;">11 · 600 · caps 0.08em · table headers</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:28px; align-items:start;">
+          <div>
+            <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80; margin-bottom:12px;">Table treatment</div>
+            <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:18px 20px;">
+              <div style="display:flex; flex-direction:column; gap:9px; font-size:13px; color:#5B564E; line-height:1.5;">
+                <div>· 40px rows, hairline <span style="font-family:'Geist Mono',monospace; font-size:11.5px;">#EFEDE8</span> dividers — no zebra striping</div>
+                <div>· Headers 11px caps, ink-400; no header background</div>
+                <div>· Amounts right-aligned, Geist Mono, <span style="font-family:'Geist Mono',monospace; font-size:11.5px;">tabular-nums</span></div>
+                <div>· IBANs and dates always mono, 11.5–12px, ink-400</div>
+                <div>· Row states: hover <span style="font-family:'Geist Mono',monospace; font-size:11.5px;">#FAF9F6</span>; attention = amber tint; blocked = red tint + 3px left rule</div>
+                <div>· Status chips 11px/600 in 99px pills; severity dots 8px</div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8F8A80; margin-bottom:12px;">Empty states</div>
+            <div style="background:#fff; border:1px solid #E7E4DE; border-radius:10px; padding:34px 20px; display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center;">
+              <div style="width:30px; height:30px; border-radius:50%; border:1.5px solid #D6D2CA;"></div>
+              <div style="font-size:13.5px; font-weight:600; color:#5B564E;">No letters yet</div>
+              <div style="font-size:12.5px; color:#8F8A80; max-width:300px; line-height:1.5;">Generated letters to agencies and the court appear here with their delivery status.</div>
+              <div style="margin-top:4px; padding:6px 14px; border-radius:8px; font-size:12.5px; font-weight:550; color:#4F46E5; border:1px solid #C7D2FE; background:#fff; cursor:pointer;">Draft a letter</div>
+            </div>
+            <div style="font-size:12px; color:#8F8A80; margin-top:10px; line-height:1.5;">Pattern: circle glyph, one 13.5px title, one 12.5px sentence stating what will appear, at most one secondary action. No illustrations.</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;startScreen&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dashboard&quot;, &quot;dossier&quot;, &quot;payments&quot;, &quot;tasks&quot;, &quot;foundations&quot;], &quot;default&quot;: &quot;dashboard&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;View&quot;},
+  &quot;lang&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;en&quot;, &quot;nl&quot;], &quot;default&quot;: &quot;en&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;View&quot;}
+}">
+class Component extends DCLogic {
+  state = { screen: null, lang: null, tab: 'overview', legalExcluded: false, confirmOpen: false, ack: false, approved: false };
+  renderVals() {
+    const lang = this.state.lang ?? this.props.lang ?? 'en';
+    const screen = this.state.screen ?? this.props.startScreen ?? 'dashboard';
+    const D = {
+      en: {
+        dashboard: 'Dashboard', myday: 'My day', dossiersNav: 'Dossiers', inboxNav: 'Inbox', paymentsNav: 'Payments', audit: 'Audit log', foundations: 'Foundations',
+        activeDossiers: 'Active dossiers', openTasks: 'Open tasks', overdue: 'Overdue', newDocs: 'New documents',
+        thisWeek: 'due this week', days: 'days', awaitingTriage: 'awaiting triage',
+        exceptions: 'Exceptions', deadlines: 'Upcoming deadlines', viewAll: 'View all', overdueTag: 'Overdue',
+        client: 'Client', accounts: 'Accounts', agencies: 'Agencies', debts: 'Debts', totalDebt: 'Total debt',
+        dob: 'Date of birth', address: 'Address', municipality: 'Municipality', courtOrder: 'Court order', startMeasure: 'Start of measure', allowance: 'Living allowance', week: 'week',
+        active: 'Active', needAttention: 'need attention', overdueLower: 'overdue', notified: 'notified', addAccount: 'Add account',
+        rvNote: "The court's R&V schedule has not been recorded. No R&V deadline is tracked until you set it — this is an explicit dossier fact, never inferred.", recordSchedule: 'Record schedule',
+        tabOverview: 'Overview', tabTasks: 'Tasks', tabBudget: 'Budget plan', tabTrans: 'Transactions', tabDocs: 'Documents', tabLetters: 'Letters', tabFilings: 'Court filings', tabCopilot: 'Copilot',
+        emptyBody: 'appear here once added to this dossier. Nothing is generated without your approval.',
+        colDossier: 'Dossier', colCreditor: 'Creditor', colDesc: 'Description', colAmount: 'Amount', colReview: 'Review',
+        execution: 'Execution', paymentsLower: 'payments', draftChip: 'Awaiting review', approvedChip: 'Approved',
+        checkAmount: 'Check amount', deviates: 'Deviates from budget plan:', legalReview: 'Legal review required',
+        legalNote: 'Expenditure above € 1.500 requires kantonrechter authorisation —', exclude: 'Exclude from batch',
+        excludedNote: 'Excluded — held for court authorisation.', undo: 'Undo',
+        blockedNote: '1 payment blocked on legal review', auditNote: 'Approval is recorded in the audit log under your name.',
+        approveBatch: 'Approve batch…', exportBtn: 'Export pain.001',
+        approvedBanner: 'Batch approved by M. Kuipers · 26-08-2026 14:32 — locked and recorded in the audit log. The OS never moves money itself.',
+        confirmTitle: 'Approve this batch?', paymentsCap: 'Payments', totalCap: 'Total', excludedCap: 'Excluded',
+        confirmBody: 'Approving locks the batch and generates a pain.001 file for the bank. This action is recorded in the audit log and cannot be edited afterwards — only revoked.',
+        ackLabel: 'I have checked every payment against the budget plan and leefgeld schedule.',
+        cancel: 'Cancel', confirmApprove: 'Approve & lock batch',
+        all: 'All', dueThisWeek: 'Due this week', done: 'Done', statusOpen: 'Open', statusPrep: 'In preparation', subDone: 'subtasks done', completedClosed: 'completed or closed', confirmed: 'Confirmed',
+        inboxEmptyTitle: 'Inbox is empty', inboxEmptyBody: 'Scanned letters and uploaded documents appear here for triage. Everything is filed to a dossier before it counts.', uploadDoc: 'Upload document'
+      },
+      nl: {
+        dashboard: 'Dashboard', myday: 'Mijn dag', dossiersNav: 'Dossiers', inboxNav: 'Inbox', paymentsNav: 'Betalingen', audit: 'Auditlog', foundations: 'Stijlgids',
+        activeDossiers: 'Actieve dossiers', openTasks: 'Open taken', overdue: 'Te laat', newDocs: 'Nieuwe documenten',
+        thisWeek: 'deze week', days: 'dagen', awaitingTriage: 'wacht op triage',
+        exceptions: 'Uitzonderingen', deadlines: 'Komende deadlines', viewAll: 'Alles bekijken', overdueTag: 'Te laat',
+        client: 'Cliënt', accounts: 'Rekeningen', agencies: 'Instanties', debts: 'Schulden', totalDebt: 'Totale schuld',
+        dob: 'Geboortedatum', address: 'Adres', municipality: 'Gemeente', courtOrder: 'Beschikking', startMeasure: 'Start maatregel', allowance: 'Leefgeld', week: 'week',
+        active: 'Actief', needAttention: 'vragen aandacht', overdueLower: 'te laat', notified: 'aangeschreven', addAccount: 'Rekening toevoegen',
+        rvNote: 'Het R&V-schema van de rechtbank is niet vastgelegd. Er wordt geen R&V-deadline bewaakt tot u het vastlegt — dit is een expliciet dossierfeit, nooit afgeleid.', recordSchedule: 'Schema vastleggen',
+        tabOverview: 'Overzicht', tabTasks: 'Taken', tabBudget: 'Budgetplan', tabTrans: 'Transacties', tabDocs: 'Documenten', tabLetters: 'Brieven', tabFilings: 'Rechtbankstukken', tabCopilot: 'Copilot',
+        emptyBody: 'verschijnen hier zodra ze aan dit dossier zijn toegevoegd. Niets wordt gegenereerd zonder uw akkoord.',
+        colDossier: 'Dossier', colCreditor: 'Crediteur', colDesc: 'Omschrijving', colAmount: 'Bedrag', colReview: 'Controle',
+        execution: 'Uitvoering', paymentsLower: 'betalingen', draftChip: 'Wacht op controle', approvedChip: 'Goedgekeurd',
+        checkAmount: 'Controleer bedrag', deviates: 'Wijkt af van budgetplan:', legalReview: 'Juridische toets vereist',
+        legalNote: 'Uitgave boven € 1.500 vereist machtiging van de kantonrechter —', exclude: 'Uit batch halen',
+        excludedNote: 'Uitgesloten — wacht op machtiging.', undo: 'Ongedaan maken',
+        blockedNote: '1 betaling geblokkeerd op juridische toets', auditNote: 'Goedkeuring wordt op uw naam vastgelegd in de auditlog.',
+        approveBatch: 'Batch goedkeuren…', exportBtn: 'Exporteer pain.001',
+        approvedBanner: 'Batch goedgekeurd door M. Kuipers · 26-08-2026 14:32 — vergrendeld en vastgelegd in de auditlog. Het OS verplaatst zelf nooit geld.',
+        confirmTitle: 'Deze batch goedkeuren?', paymentsCap: 'Betalingen', totalCap: 'Totaal', excludedCap: 'Uitgesloten',
+        confirmBody: 'Goedkeuren vergrendelt de batch en genereert een pain.001-bestand voor de bank. Deze actie wordt vastgelegd in de auditlog en is achteraf niet te bewerken — alleen in te trekken.',
+        ackLabel: 'Ik heb elke betaling gecontroleerd tegen het budgetplan en leefgeldschema.',
+        cancel: 'Annuleren', confirmApprove: 'Goedkeuren & vergrendelen',
+        all: 'Alle', dueThisWeek: 'Deze week', done: 'Klaar', statusOpen: 'Open', statusPrep: 'In voorbereiding', subDone: 'subtaken klaar', completedClosed: 'afgerond of gesloten', confirmed: 'Bevestigd',
+        inboxEmptyTitle: 'De inbox is leeg', inboxEmptyBody: 'Gescande brieven en geüploade documenten verschijnen hier voor triage. Alles wordt aan een dossier gekoppeld voordat het telt.', uploadDoc: 'Document uploaden'
+      }
+    };
+    const t = D[lang];
+    const navDefs = [
+      { id: 'dashboard', label: t.dashboard, badge: '' },
+      { id: 'tasks', label: t.myday, badge: '12' },
+      { id: 'dossier', label: t.dossiersNav, badge: '8' },
+      { id: 'inbox', label: t.inboxNav, badge: '' },
+      { id: 'payments', label: t.paymentsNav, badge: '1' }
+    ];
+    const nav = navDefs.map(d => {
+      const on = screen === d.id;
+      return { label: d.label, badge: d.badge, go: () => this.setState({ screen: d.id }),
+        fw: on ? '600' : '450', color: on ? '#4338CA' : '#5B564E', bg: on ? '#EEF2FF' : 'transparent',
+        badgeColor: on ? '#4338CA' : '#B5B0A6' };
+    });
+    const tabDefs = [['overview', t.tabOverview], ['tasks', t.tabTasks], ['budget', t.tabBudget], ['transactions', t.tabTrans], ['documents', t.tabDocs], ['letters', t.tabLetters], ['filings', t.tabFilings], ['copilot', t.tabCopilot]];
+    const tabs = tabDefs.map(([id, label]) => {
+      const on = this.state.tab === id;
+      return { label, go: () => this.setState({ tab: id }),
+        fw: on ? '600' : '450', color: on ? '#4338CA' : '#5B564E',
+        border: on ? '2px solid #4F46E5' : '2px solid transparent' };
+    });
+    const activeTabLabel = (tabDefs.find(x => x[0] === this.state.tab) || tabDefs[0])[1];
+    const legalPending = !this.state.legalExcluded;
+    const approved = this.state.approved;
+    const titles = { dashboard: t.dashboard, tasks: t.myday, dossier: t.dossiersNav, inbox: t.inboxNav, payments: t.paymentsNav, foundations: t.foundations };
+    return {
+      t, nav, tabs,
+      pageTitle: titles[screen],
+      isDashboard: screen === 'dashboard', isDossier: screen === 'dossier', isPayments: screen === 'payments',
+      isTasks: screen === 'tasks', isInbox: screen === 'inbox', isFoundations: screen === 'foundations',
+      goFoundations: () => this.setState({ screen: 'foundations' }),
+      foundationsColor: screen === 'foundations' ? '#4338CA' : '#8F8A80',
+      foundationsBg: screen === 'foundations' ? '#EEF2FF' : 'transparent',
+      setEn: () => this.setState({ lang: 'en' }), setNl: () => this.setState({ lang: 'nl' }),
+      enColor: lang === 'en' ? '#4338CA' : '#8F8A80', enBg: lang === 'en' ? '#EEF2FF' : '#fff',
+      nlColor: lang === 'nl' ? '#4338CA' : '#8F8A80', nlBg: lang === 'nl' ? '#EEF2FF' : '#fff',
+      isOverviewTab: this.state.tab === 'overview', isOtherTab: this.state.tab !== 'overview',
+      emptyTabTitle: lang === 'nl' ? 'Nog geen ' + activeTabLabel.toLowerCase() : 'No ' + activeTabLabel.toLowerCase() + ' yet',
+      emptyTabBody: activeTabLabel + ' ' + t.emptyBody,
+      legalPending, legalExcluded: this.state.legalExcluded,
+      excludeLegal: () => this.setState({ legalExcluded: true }),
+      undoExclude: () => this.setState({ legalExcluded: false, approved: false }),
+      payCount: legalPending ? '11' : '10',
+      payTotal: legalPending ? '€ 4.347,83' : '€ 2.497,83',
+      approved, notApproved: !approved,
+      approveClick: () => { if (!legalPending && !approved) this.setState({ confirmOpen: true, ack: false }); },
+      approveBg: legalPending ? '#C9C6EE' : '#4F46E5',
+      approveCursor: legalPending ? 'not-allowed' : 'pointer',
+      confirmOpen: this.state.confirmOpen,
+      toggleAck: (e) => this.setState({ ack: e.target.checked }),
+      cancelConfirm: () => this.setState({ confirmOpen: false }),
+      doApprove: () => { if (this.state.ack) this.setState({ approved: true, confirmOpen: false }); },
+      confirmBg: this.state.ack ? '#4F46E5' : '#C9C6EE',
+      confirmCursor: this.state.ack ? 'pointer' : 'default'
+    };
+  }
+}
+</script>
+</body>
+</html>

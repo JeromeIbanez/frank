@@ -10,7 +10,8 @@
     "inbox": "Postbus",
     "payments": "Betalingen",
     "audit": "Auditlog",
-    "tagline": "Besturingssysteem voor bewindvoering"
+    "tagline": "Besturingssysteem voor bewindvoering",
+    "role": "Bewindvoerder"
   },
   "common": {
     "cancel": "Annuleren",
@@ -21,13 +22,18 @@
     "subtitle": "Kantooroverzicht: termijnen, signaleringen en werkvoorraad in één oogopslag.",
     "tiles": {
       "dossiers": "Actieve dossiers",
+      "dossiersSub": "over alle maatregelen",
       "openTasks": "Open taken",
+      "openTasksSub": "over alle dossiers",
       "overdue": "Verlopen",
-      "newDocuments": "Nieuwe documenten"
+      "overdueSub": "termijn verstreken",
+      "newDocuments": "Nieuwe documenten",
+      "newDocumentsSub": "wachten op triage"
     },
     "exceptions": {
       "title": "Signaleringen",
       "none": "Geen signaleringen — alle dossiers binnen verwachting.",
+      "emptyTitle": "Geen signaleringen",
       "missed_income": "Verwachte inkomsten niet ontvangen",
       "balance_floor": "Saldo onder de ondergrens",
       "uncategorized": "Transacties te beoordelen",
@@ -36,7 +42,10 @@
     "deadlines": {
       "title": "Komende termijnen",
       "none": "Geen komende termijnen.",
-      "office": "Kantoorniveau"
+      "emptyTitle": "Geen termijnen",
+      "office": "Kantoorniveau",
+      "overdueTag": "Verlopen",
+      "daysTag": "{count, plural, one {# dag} other {# dagen}}"
     },
     "aiUsage": "AI-verbruik (demolimiet): {used} / {cap} tokens. Alle AI-output is een voorstel totdat een mens het goedkeurt."
   },
@@ -74,6 +83,7 @@
   "tasksUi": {
     "none": "Geen open taken.",
     "completed": "{count} afgerond of gesloten",
+    "subtasksDone": "{done} / {total} subtaken klaar",
     "due": "uiterlijk",
     "basis": "Grondslag",
     "confirmDeadline": "Termijn bevestigen",
@@ -130,7 +140,8 @@
       "overleden": "Overleden",
       "afgesloten": "Afgesloten"
     },
-    "empty": "Nog geen dossiers. Maak het eerste aan."
+    "empty": "Nog geen dossiers. Maak het eerste aan.",
+    "emptyTitle": "Nog geen dossiers"
   },
   "newDossier": {
     "title": "Nieuw dossier",
@@ -257,7 +268,9 @@
     "lineAdded": "Budgetregel toegevoegd.",
     "leefgeldTitle": "Leefgeld",
     "leefgeldSaved": "Leefgeld bijgewerkt.",
-    "save": "Opslaan"
+    "save": "Opslaan",
+    "purposeTagPlaceholder": "Bestedingsdoel (optioneel, bijv. inboedel-2026)",
+    "purposeTagHint": "Alleen voor discretionaire uitgaven met één aanwijsbaar doel (LOVT B.D3): activeert de €2.000-beoordelingsvlag met jaarlijkse optelling per doel. Leeg laten voor contractuele vaste lasten."
   },
   "transactions": {
     "importTitle": "Bankafschrift importeren (CAMT.053)",
@@ -272,7 +285,8 @@
       "category": "Categorie",
       "amount": "Bedrag"
     },
-    "empty": "Nog geen transacties. Importeer een CAMT.053-bestand of voeg handmatig toe.",
+    "empty": "Importeer een CAMT.053-bestand of voeg handmatig toe.",
+    "emptyTitle": "Nog geen transacties",
     "importResult": "Geïmporteerd: {imported} nieuw, {duplicates} duplicaten overgeslagen.",
     "importing": "Importeren…",
     "import": "Importeren",
@@ -287,6 +301,7 @@
   },
   "documents": {
     "emptyDossier": "Geen documenten in dit dossier.",
+    "emptyTitle": "Nog geen documenten",
     "status": {
       "new": "Nieuw",
       "triaged": "Getriageerd",
@@ -338,6 +353,8 @@
     "generated": "Concept aangemaakt — beoordeel hieronder.",
     "listTitle": "Brieven",
     "empty": "Nog geen brieven.",
+    "emptyTitle": "Nog geen brieven",
+    "emptySentence": "Gegenereerde brieven verschijnen hier ter beoordeling en goedkeuring.",
     "status": {
       "draft": "Concept",
       "approved": "Goedgekeurd",
@@ -430,7 +447,9 @@
     "upload": "Toevoegen aan postbus",
     "uploaded": "Document toegevoegd en getriageerd.",
     "aiTriageNote": "AI-triage stelt voor; zonder uw goedkeuring gebeurt er niets.",
-    "empty": "Postbus leeg."
+    "empty": "Postbus leeg.",
+    "emptyTitle": "Postbus leeg",
+    "emptySentence": "Geüploade documenten verschijnen hier voor AI-triage en dossierkoppeling."
   },
   "payments": {
     "title": "Betalingen",
@@ -442,7 +461,7 @@
     "items": "betalingen",
     "flagged": "{count} vragen juridische beoordeling",
     "status": {
-      "draft": "Concept",
+      "draft": "Wacht op beoordeling",
       "approved": "Goedgekeurd",
       "exported": "Geëxporteerd",
       "cancelled": "Vervallen"
@@ -482,8 +501,20 @@
       "accounts": "rekeningen",
       "execution": "Uitvoeringsdatum",
       "unresolved": "Openstaande beoordelingen",
-      "demoWarning": "DEMO-batch: de export is gemarkeerd 'niet bij een bank aanleveren' en er wordt nooit geld vanuit dit systeem overgemaakt."
-    }
+      "demoWarning": "DEMO-batch: de export is gemarkeerd 'niet bij een bank aanleveren' en er wordt nooit geld vanuit dit systeem overgemaakt.",
+      "ack": "Ik heb elke betaling in deze batch beoordeeld en bevestig de goedkeuring.",
+      "lockWarning": "Goedkeuring vergrendelt de batch en wordt onder uw naam vastgelegd in het auditlog. Een vergrendelde batch kan alleen worden ingetrokken, niet bewerkt.",
+      "excluded": "Uitgesloten"
+    },
+    "approveEllipsis": "Batch goedkeuren…",
+    "excludeFromBatch": "Uitsluiten van batch",
+    "excludedHeld": "Uitgesloten — aangehouden voor machtiging kantonrechter",
+    "undo": "Ongedaan maken",
+    "excludeLocked": "Batch is vergrendeld — uitsluitingen kunnen niet meer wijzigen.",
+    "blockedNote": "{count} betaling(en) geblokkeerd op juridische beoordeling",
+    "auditMicrocopy": "Goedkeuring wordt onder uw naam vastgelegd in het auditlog.",
+    "approvedBanner": "Batch goedgekeurd door {name} — vergrendeld en vastgelegd in het auditlog. Het systeem maakt zelf nooit geld over.",
+    "emptyTitle": "Geen betaalbatches"
   },
   "machtiging": {
     "reason": {

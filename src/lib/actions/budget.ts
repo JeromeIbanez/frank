@@ -41,6 +41,9 @@ export async function addBudgetLine(
         String(formData.get("counterpartyIban") || "")
           .trim()
           .toUpperCase() || null,
+      // LOVT B.D3: identifiable single purpose => purchase semantics in the
+      // machtiging guard; empty => contractual fixed last (regular_bill).
+      purposeTag: String(formData.get("purposeTag") || "").trim() || null,
     })
     .returning();
   await writeAudit({
@@ -49,7 +52,12 @@ export async function addBudgetLine(
     action: "create",
     entityType: "budget_line",
     entityId: row.id,
-    versionAfter: { name: row.name, amountCents, kind: row.kind },
+    versionAfter: {
+      name: row.name,
+      amountCents,
+      kind: row.kind,
+      purposeTag: row.purposeTag,
+    },
   });
   revalidatePath(`/dossiers/${dossierId}`);
 }

@@ -62,12 +62,12 @@ export function DocumentCard({
   const [selectedDossier, setSelectedDossier] = useState("");
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-[10px] border border-border bg-card p-4">
       <div className="flex items-start gap-3">
-        <FileText className="h-5 w-5 text-muted-foreground/70 mt-0.5 shrink-0" />
+        <FileText className="h-5 w-5 text-ink-400 mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-medium text-sm">{doc.filename}</span>
+            <span className="text-[13.5px] font-[550]">{doc.filename}</span>
             <StatusBadge status={doc.status} label={t(`status.${doc.status}`)} />
             <FormSelect
               value={doc.classification ?? undefined}
@@ -85,37 +85,44 @@ export function DocumentCard({
               }))}
             />
             {doc.classificationSource === "ai" && (
-              <span className="text-[10px] text-muted-foreground/70">
+              <span className="text-[10px] text-ink-400">
                 ✦ {doc.classificationConfidence}%
               </span>
             )}
             {doc.dossierName && (
-              <span className="text-xs text-muted-foreground">{doc.dossierName}</span>
+              <span className="text-xs text-ink-400">{doc.dossierName}</span>
             )}
           </div>
 
           {doc.extracted && (
-            <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
+            <div className="text-xs text-ink-400 flex flex-wrap gap-x-3">
               {doc.extracted.sender && <span>{doc.extracted.sender}</span>}
               {doc.extracted.amountCents != null && (
-                <span>{formatEuro(doc.extracted.amountCents)}</span>
+                <span className="font-mono tabular-nums">
+                  {formatEuro(doc.extracted.amountCents)}
+                </span>
               )}
-              {doc.extracted.kenmerk && <span>{doc.extracted.kenmerk}</span>}
+              {doc.extracted.kenmerk && (
+                <span className="font-mono">{doc.extracted.kenmerk}</span>
+              )}
               {doc.extracted.deadline && (
-                <span className="text-red-600">
-                  {t("deadline")}: {doc.extracted.deadline}
+                <span className="text-[#DC2626]">
+                  {t("deadline")}:{" "}
+                  <span className="font-mono tabular-nums">
+                    {doc.extracted.deadline}
+                  </span>
                 </span>
               )}
             </div>
           )}
           {doc.extracted?.summary && (
-            <p className="text-sm text-muted-foreground">{doc.extracted.summary}</p>
+            <p className="text-[12.5px] text-ink-600">{doc.extracted.summary}</p>
           )}
 
           {doc.proposedAction && doc.status !== "linked" && (
             <div className="flex items-center gap-2 rounded-md bg-accent/60 px-3 py-2 mt-1">
-              <span className="text-sm text-accent-foreground flex-1">
-                <span className="text-[10px] uppercase tracking-wide text-primary/60 mr-1.5">
+              <span className="text-[13px] text-accent-foreground flex-1">
+                <span className="mr-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#4F46E5]">
                   {t("aiProposal")}
                 </span>
                 {doc.proposedAction}

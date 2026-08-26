@@ -35,10 +35,13 @@ export async function GET(
     );
   }
 
+  // Excluded items are held for court authorisation: they neither block the
+  // export nor appear in it (same invariant as approveBatch).
   const blocking = batch.items.filter(
     (i) =>
-      (i.validationErrors && i.validationErrors.length > 0) ||
-      (i.machtigingFlag?.triggered && !i.machtigingFlag.resolution)
+      !i.excluded &&
+      ((i.validationErrors && i.validationErrors.length > 0) ||
+        (i.machtigingFlag?.triggered && !i.machtigingFlag.resolution))
   );
   if (blocking.length > 0) {
     return NextResponse.json(
@@ -54,6 +57,7 @@ export async function GET(
     { debtorName: string; items: typeof batch.items }
   >();
   for (const item of batch.items) {
+    if (item.excluded) continue; // held for court authorisation — never exported
     const key = item.debtorAccount.iban;
     if (!byAccount.has(key)) {
       byAccount.set(key, {

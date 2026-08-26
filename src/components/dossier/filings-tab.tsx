@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Money } from "@/components/format";
+import { Money, SeverityDot } from "@/components/format";
 import { getDossier } from "@/lib/queries";
 import { buildRvPack } from "@/lib/rv";
 
@@ -15,29 +15,34 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
 
   return (
     <div className="space-y-4">
-      <div className="inline-flex items-center gap-1.5 rounded-full bg-muted text-muted-foreground text-xs px-3 py-1">
+      <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs text-ink-600">
+        <span className="font-mono text-[11px] font-semibold">NL</span>
         {t("officialOutput")}
       </div>
       <div className="grid lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">
+          <CardTitle className="type-section-label">
             {t("rvTitle", { year })}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">{t("rvExplainer")}</p>
+          <p className="text-[12.5px] text-ink-600">{t("rvExplainer")}</p>
 
           {pack && (
             <>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-md bg-muted/40 p-3">
-                  <div className="text-muted-foreground text-xs">{t("totalIncome")}</div>
-                  <Money cents={pack.totalIncomeCents} />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-md bg-surface-subtle p-3">
+                  <div className="type-section-label">{t("totalIncome")}</div>
+                  <div className="mt-1 text-sm font-semibold">
+                    <Money cents={pack.totalIncomeCents} />
+                  </div>
                 </div>
-                <div className="rounded-md bg-muted/40 p-3">
-                  <div className="text-muted-foreground text-xs">{t("totalExpenses")}</div>
-                  <Money cents={pack.totalExpenseCents} />
+                <div className="rounded-md bg-surface-subtle p-3">
+                  <div className="type-section-label">{t("totalExpenses")}</div>
+                  <div className="mt-1 text-sm font-semibold">
+                    <Money cents={pack.totalExpenseCents} />
+                  </div>
                 </div>
               </div>
 
@@ -45,19 +50,25 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
                 {pack.validations.map((v) => (
                   <div
                     key={v.key}
-                    className={
-                      "text-sm rounded-md px-3 py-2 " +
-                      (v.level === "error"
-                        ? "bg-red-50 text-red-700"
-                        : "bg-amber-50 text-amber-700")
-                    }
+                    className="flex items-start gap-2 text-[12.5px]"
                   >
-                    {t(`validation.${v.key}`, { detail: v.detail ?? "" })}
+                    <SeverityDot
+                      severity={v.level === "error" ? "red" : "amber"}
+                      className="mt-[5px]"
+                    />
+                    <span
+                      className={
+                        v.level === "error" ? "text-[#B91C1C]" : "text-[#B45309]"
+                      }
+                    >
+                      {t(`validation.${v.key}`, { detail: v.detail ?? "" })}
+                    </span>
                   </div>
                 ))}
                 {pack.validations.length === 0 && (
-                  <div className="text-sm rounded-md px-3 py-2 bg-emerald-50 text-emerald-700">
-                    {t("validationClean")}
+                  <div className="flex items-start gap-2 text-[12.5px]">
+                    <SeverityDot severity="green" className="mt-[5px]" />
+                    <span className="text-ink-600">{t("validationClean")}</span>
                   </div>
                 )}
               </div>
@@ -76,24 +87,29 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
               {t("openPackPrev", { year: year - 1 })}
             </Button>
           </div>
-          <p className="text-xs text-amber-600">{t("notForSubmission")}</p>
+          <p className="flex items-center gap-1.5 text-xs text-ink-600">
+            <SeverityDot severity="amber" />
+            {t("notForSubmission")}
+          </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("boedelTitle")}</CardTitle>
+          <CardTitle className="type-section-label">{t("boedelTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">{t("boedelExplainer")}</p>
-          <div className="text-sm space-y-1.5">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">{t("boedelAccounts")}</span>
-              <span>{dossier.accounts.length}</span>
+          <p className="text-[12.5px] text-ink-600">{t("boedelExplainer")}</p>
+          <div className="divide-y divide-hairline text-[13px]">
+            <div className="flex justify-between py-1.5 first:pt-0">
+              <span className="text-ink-400">{t("boedelAccounts")}</span>
+              <span className="font-mono tabular-nums">
+                {dossier.accounts.length}
+              </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">{t("boedelDebts")}</span>
-              <span>
+            <div className="flex justify-between py-1.5">
+              <span className="text-ink-400">{t("boedelDebts")}</span>
+              <span className="font-mono tabular-nums">
                 {dossier.debts.length} (
                 <Money
                   cents={dossier.debts.reduce((s, d) => s + d.currentAmountCents, 0)}
@@ -101,15 +117,17 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
                 )
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">{t("boedelIncome")}</span>
+            <div className="flex justify-between py-1.5 last:pb-0">
+              <span className="text-ink-400">{t("boedelIncome")}</span>
               <span>
-                {dossier.budgetLines.filter((b) => b.kind === "income" && b.active).length}{" "}
+                <span className="font-mono tabular-nums">
+                  {dossier.budgetLines.filter((b) => b.kind === "income" && b.active).length}
+                </span>{" "}
                 {t("boedelLines")}
               </span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground/70">{t("boedelHint")}</p>
+          <p className="text-xs text-ink-400">{t("boedelHint")}</p>
         </CardContent>
       </Card>
       </div>

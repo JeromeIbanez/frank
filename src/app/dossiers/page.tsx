@@ -10,83 +10,94 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listDossiers } from "@/lib/queries";
-import { StatusBadge } from "@/components/format";
+import { DateText, EmptyState, StatusBadge } from "@/components/format";
 import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+
+const HEAD_CLASS =
+  "h-10 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-400";
 
 export default async function DossiersPage() {
   const t = await getTranslations("dossiers");
   const rows = await listDossiers();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("count", { count: rows.length })}
-          </p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-end">
         <Button nativeButton={false} render={<Link href="/dossiers/new" />}>
           <Plus className="h-4 w-4" /> {t("new")}
         </Button>
       </div>
 
-      <div className="rounded-lg border border-border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("cols.name")}</TableHead>
-              <TableHead>{t("cols.regime")}</TableHead>
-              <TableHead>{t("cols.status")}</TableHead>
-              <TableHead>{t("cols.start")}</TableHead>
-              <TableHead>{t("cols.gemeente")}</TableHead>
-              <TableHead>{t("cols.accounts")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((d) => (
-              <TableRow key={d.id}>
-                <TableCell>
-                  <Link
-                    href={`/dossiers/${d.id}`}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {d.lastName}, {d.firstName}
-                  </Link>
-                  {d.schuldenbewind && (
-                    <span className="ml-2 text-[10px] uppercase tracking-wide bg-amber-50 text-amber-700 rounded px-1.5 py-0.5">
-                      {t("schulden")}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {t(`regime.${d.regime}`)}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={d.status} label={t(`status.${d.status}`)} />
-                </TableCell>
-                <TableCell className="tabular-nums text-muted-foreground">
-                  {d.startDate ?? "—"}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {d.gemeente ?? "—"}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {d.accounts.length}
-                </TableCell>
+      <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
+        {rows.length === 0 ? (
+          <EmptyState
+            title={t("emptyTitle")}
+            sentence={t("empty")}
+            action={
+              <Button
+                nativeButton={false}
+                variant="outline"
+                render={<Link href="/dossiers/new" />}
+              >
+                {t("new")}
+              </Button>
+            }
+          />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="border-hairline hover:bg-transparent">
+                <TableHead className={HEAD_CLASS}>{t("cols.name")}</TableHead>
+                <TableHead className={HEAD_CLASS}>{t("cols.regime")}</TableHead>
+                <TableHead className={HEAD_CLASS}>{t("cols.status")}</TableHead>
+                <TableHead className={HEAD_CLASS}>{t("cols.start")}</TableHead>
+                <TableHead className={HEAD_CLASS}>{t("cols.gemeente")}</TableHead>
+                <TableHead className={HEAD_CLASS + " text-right"}>
+                  {t("cols.accounts")}
+                </TableHead>
               </TableRow>
-            ))}
-            {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  {t("empty")}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {rows.map((d) => (
+                <TableRow
+                  key={d.id}
+                  className="h-10 border-hairline hover:bg-surface-hover"
+                >
+                  <TableCell className="px-4 py-2.5">
+                    <Link
+                      href={`/dossiers/${d.id}`}
+                      className="text-[13.5px] font-[550] text-[#4338CA] hover:underline"
+                    >
+                      {d.lastName}, {d.firstName}
+                    </Link>
+                    {d.schuldenbewind && (
+                      <span className="ml-2 inline-flex items-center rounded-full bg-[#FFFBEB] px-2 py-0.5 text-[11px] font-semibold text-[#B45309] whitespace-nowrap">
+                        {t("schulden")}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-4 py-2.5 text-[13px] text-ink-600">
+                    {t(`regime.${d.regime}`)}
+                  </TableCell>
+                  <TableCell className="px-4 py-2.5">
+                    <StatusBadge status={d.status} label={t(`status.${d.status}`)} />
+                  </TableCell>
+                  <TableCell className="px-4 py-2.5 text-ink-600">
+                    {d.startDate ? <DateText iso={d.startDate} /> : "—"}
+                  </TableCell>
+                  <TableCell className="px-4 py-2.5 text-[13px] text-ink-600">
+                    {d.gemeente ?? "—"}
+                  </TableCell>
+                  <TableCell className="px-4 py-2.5 text-right font-mono text-xs tabular-nums text-ink-600">
+                    {d.accounts.length}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
   );

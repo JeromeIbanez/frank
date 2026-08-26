@@ -4,10 +4,10 @@ import { revalidatePath } from "next/cache";
 import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
+  budgetLines,
   dossiers,
   paymentBatches,
   paymentItems,
-  transactions,
 } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
@@ -116,29 +116,43 @@ export async function createPaymentProposals(): Promise<{
         b.frequency === "monthly" &&
         b.counterpartyIban
     )) {
-      // Same-purpose aggregation this calendar year (LOVT B.D3)
-      const [spent] = await db
-        .select({
-          total: sql<number>`coalesce(sum(abs(${transactions.amountCents})),0)`,
-        })
-        .from(transactions)
-        .where(
-          and(
-            eq(transactions.dossierId, d.id),
-            eq(transactions.categoryKey, line.categoryKey),
-            gte(transactions.bookingDate, yearStart)
+      // LOVT B.D3 aggregation is per identifiable SINGLE purpose (driving
+      // lessons, a holiday, furnishing) — never a whole category (Temujin
+      // design-PR review #1). A line with a purposeTag is discretionary
+      // spending on that purpose: purchase semantics, aggregated over this
+      // calendar year's prior payment items for the same purpose. Lines
+      // without a purposeTag are contractual fixed lasten: regular_bill,
+      // never amount-triggered.
+      let yearSpentOnPurposeCents = 0;
+      if (line.purposeTag) {
+        const [spent] = await db
+          .select({
+            total: sql<number>`coalesce(sum(${paymentItems.amountCents}),0)`,
+          })
+          .from(paymentItems)
+          .innerJoin(
+            paymentBatches,
+            eq(paymentItems.batchId, paymentBatches.id)
           )
-        );
+          .innerJoin(budgetLines, eq(paymentItems.budgetLineId, budgetLines.id))
+          .where(
+            and(
+              eq(paymentItems.dossierId, d.id),
+              eq(paymentItems.excluded, false),
+              eq(budgetLines.purposeTag, line.purposeTag),
+              inArray(paymentBatches.status, ["approved", "exported"]),
+              gte(paymentBatches.executionDate, yearStart)
+            )
+          );
+        yearSpentOnPurposeCents = Number(spent?.total ?? 0);
+      }
 
       const flag = checkMachtiging({
         amountCents: line.amountCents,
         categoryKey: line.categoryKey,
-        purposeTag: line.categoryKey,
-        yearSpentOnPurposeCents:
-          line.categoryKey === "overige_uitgaven"
-            ? Number(spent?.total ?? 0)
-            : 0,
-        kind: "regular_bill",
+        purposeTag: line.purposeTag,
+        yearSpentOnPurposeCents,
+        kind: line.purposeTag ? "purchase" : "regular_bill",
       });
       const errors: string[] = [];
       if (!isValidIban(line.counterpartyIban!)) errors.push("invalid_iban");
@@ -195,6 +209,14 @@ export async function resolveMachtigingFlag(
     where: eq(paymentItems.id, itemId),
   });
   if (!item || !item.machtigingFlag?.triggered) return { ok: false, error: "not_found" };
+  // A locked (approved/exported) batch is immutable — including its legal-
+  // resolution records (Temujin design-PR review #2).
+  const parentBatch = await db.query.paymentBatches.findFirst({
+    where: eq(paymentBatches.id, item.batchId),
+  });
+  if (!parentBatch || parentBatch.status !== "draft") {
+    return { ok: false, error: "locked" };
+  }
 
   const next = {
     ...item.machtigingFlag,
@@ -230,17 +252,24 @@ export async function resolveMachtigingFlag(
  * unresolved machtiging flag (PRD money invariants).
  */
 export async function approveBatch(
-  batchId: string
+  batchId: string,
+  acknowledged?: boolean
 ): Promise<{ ok: boolean; error?: string }> {
   const actor = await currentActor();
   const db = getDb();
+  // The acknowledgment checkbox is UI, but the invariant is server-side
+  // (Temujin guardrail 3): no approval without an explicit acknowledgment.
+  if (!acknowledged) return { ok: false, error: "not_acknowledged" };
   const batch = await db.query.paymentBatches.findFirst({
     where: eq(paymentBatches.id, batchId),
     with: { items: true },
   });
   if (!batch || batch.status !== "draft") return { ok: false, error: "invalid_state" };
 
-  const blocking = batch.items.filter(
+  // Server-side re-check (Temujin guardrail 2): excluded items neither block
+  // nor count; everything else must be clean.
+  const included = batch.items.filter((i) => !i.excluded);
+  const blocking = included.filter(
     (i) =>
       (i.validationErrors && i.validationErrors.length > 0) ||
       (i.machtigingFlag?.triggered && !i.machtigingFlag.resolution)
@@ -248,6 +277,7 @@ export async function approveBatch(
   if (blocking.length > 0) {
     return { ok: false, error: `blocked:${blocking.length}` };
   }
+  if (included.length === 0) return { ok: false, error: "empty_batch" };
 
   await db
     .update(paymentBatches)
@@ -262,8 +292,15 @@ export async function approveBatch(
     entityId: batchId,
     approvalId: batchId,
     versionBefore: { status: "draft" },
-    versionAfter: { status: "approved", items: batch.items.length },
-    reason: "payment batch approved for export",
+    versionAfter: {
+      status: "approved",
+      items: included.length,
+      excludedItems: batch.items.length - included.length,
+      totalCents: included.reduce((s, i) => s + i.amountCents, 0),
+      acknowledged: true,
+    },
+    reason:
+      "payment batch approved for export — acknowledgment recorded; batch locked",
   });
 
   revalidatePath("/payments");
@@ -297,4 +334,50 @@ export async function removePaymentItem(itemId: string): Promise<void> {
   });
   revalidatePath(`/payments/${item.batchId}`);
   revalidatePath("/payments");
+}
+
+/**
+ * Soft-exclude / re-include an item ("held for court authorisation" in the
+ * deliberate-approve flow). Only while the batch is a draft; audited with
+ * the fixed reason (Temujin guardrail 3). Excluded items are skipped by
+ * approval gates and by the pain.001 export.
+ */
+export async function setItemExcluded(
+  itemId: string,
+  excluded: boolean
+): Promise<{ ok: boolean; error?: string }> {
+  const actor = await currentActor();
+  const db = getDb();
+  const item = await db.query.paymentItems.findFirst({
+    where: eq(paymentItems.id, itemId),
+  });
+  if (!item) return { ok: false, error: "not_found" };
+  const batch = await db.query.paymentBatches.findFirst({
+    where: eq(paymentBatches.id, item.batchId),
+  });
+  // Locked after approval (Temujin guardrail 2)
+  if (!batch || batch.status !== "draft") return { ok: false, error: "locked" };
+  if (item.excluded === excluded) return { ok: true };
+
+  await db
+    .update(paymentItems)
+    .set({ excluded })
+    .where(eq(paymentItems.id, itemId));
+
+  await writeAudit({
+    actorId: actor.id,
+    actorType: "human",
+    action: "update",
+    entityType: "payment_item",
+    entityId: itemId,
+    versionBefore: { excluded: item.excluded },
+    versionAfter: { excluded },
+    reason: excluded
+      ? "excluded from batch — held for court authorisation (machtiging)"
+      : "re-included in batch (exclusion undone)",
+  });
+
+  revalidatePath(`/payments/${item.batchId}`);
+  revalidatePath("/payments");
+  return { ok: true };
 }

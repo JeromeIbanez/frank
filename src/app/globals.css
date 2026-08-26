@@ -1,34 +1,53 @@
 @import "tailwindcss";
 
 /*
- * Frank OS design tokens — light-first, deliberately committed to a single
- * calm "Dutch fintech" look. Dark mode is intentionally NOT supported yet:
- * the earlier scaffold's prefers-color-scheme override made the canvas go
- * black under light components (Jerome's UX gripe). When dark mode lands,
- * it lands as designed token pairs, not an OS-media accident.
+ * Frank OS design tokens — implements the Claude Design identity handoff
+ * (docs/design/README.md). Single source of truth for color, type, radius.
+ * Light-only by design; severity colors (red/amber/green) appear ONLY as
+ * dots, chips, and row tints — never decoration. Indigo = interactive.
  */
 
 :root {
-  --background: oklch(0.985 0.002 90);        /* warm off-white canvas */
-  --foreground: oklch(0.235 0.015 260);       /* ink */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 260);
-  --primary: oklch(0.51 0.204 277);           /* indigo 600 */
-  --primary-foreground: oklch(0.985 0.005 277);
-  --secondary: oklch(0.955 0.005 90);
-  --secondary-foreground: oklch(0.32 0.015 260);
-  --muted: oklch(0.96 0.004 90);
-  --muted-foreground: oklch(0.53 0.012 260);
-  --accent: oklch(0.94 0.03 277);
-  --accent-foreground: oklch(0.42 0.18 277);
-  --destructive: oklch(0.55 0.2 25);
-  --destructive-foreground: oklch(0.98 0.01 25);
-  --border: oklch(0.915 0.005 90);
-  --input: oklch(0.915 0.005 90);
-  --ring: oklch(0.6 0.16 277);
-  --radius: 0.625rem;
+  /* Handoff palette */
+  --canvas: #f7f6f3;
+  --surface: #ffffff;
+  --border-c: #e7e4de;
+  --hairline: #efede8;
+  --surface-hover: #faf9f6;
+  --surface-subtle: #fcfbf9;
+  --ink-900: #1c1b18;
+  --ink-600: #5b564e;
+  --ink-400: #8f8a80;
+  --ink-300: #b5b0a6;
+  --ink-200: #d6d2ca;
+  --indigo-600: #4f46e5;
+  --indigo-700: #4338ca;
+  --indigo-50: #eef2ff;
+  --indigo-100: #e0e7ff;
+  --indigo-200: #c7d2fe;
+  --indigo-disabled: #c9c6ee;
+
+  /* shadcn semantic mapping */
+  --background: var(--canvas);
+  --foreground: var(--ink-900);
+  --card: var(--surface);
+  --card-foreground: var(--ink-900);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink-900);
+  --primary: var(--indigo-600);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-subtle);
+  --secondary-foreground: var(--ink-600);
+  --muted: var(--hairline);
+  --muted-foreground: var(--ink-600);
+  --accent: var(--indigo-50);
+  --accent-foreground: var(--indigo-700);
+  --destructive: #dc2626;
+  --destructive-foreground: #fef2f2;
+  --border: var(--border-c);
+  --input: var(--border-c);
+  --ring: var(--indigo-600);
+  --radius: 0.625rem; /* card 10px */
 }
 
 @theme inline {
@@ -51,6 +70,20 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* Named handoff tokens usable as utilities (bg-hairline, text-ink-400…) */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-hairline: var(--hairline);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-ink-900: var(--ink-900);
+  --color-ink-600: var(--ink-600);
+  --color-ink-400: var(--ink-400);
+  --color-ink-300: var(--ink-300);
+  --color-ink-200: var(--ink-200);
+  --color-indigo-disabled: var(--indigo-disabled);
+
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
@@ -63,7 +96,31 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 19px;
   font-feature-settings: "cv11", "ss01";
+}
+
+/* Handoff type scale helpers */
+.type-kpi {
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.type-page-title {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.type-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-400);
 }
 
 @media print {
@@ -71,6 +128,7 @@ body {
     background: white;
   }
   aside,
+  header,
   nav,
   .print\:hidden {
     display: none !important;
