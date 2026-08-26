@@ -1,6 +1,7 @@
 {
   "shell": {
-    "demoBanner": "DEMO ENVIRONMENT — synthetic data only. Do not enter real personal data."
+    "demoBanner": "DEMO ENVIRONMENT — synthetic data only. Do not enter real personal data.",
+    "demoShort": "Demo · synthetic data"
   },
   "nav": {
     "dashboard": "Dashboard",

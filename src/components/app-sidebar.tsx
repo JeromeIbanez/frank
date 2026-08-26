@@ -4,6 +4,7 @@ import { LanguageToggle } from "./language-toggle";
 
 export async function AppSidebar() {
   const t = await getTranslations("nav");
+  const ts = await getTranslations("shell");
 
   const items = [
     { href: "/", key: "dashboard", label: t("dashboard") },
@@ -25,8 +26,14 @@ export async function AppSidebar() {
         </div>
       </div>
       <SidebarNav items={items} />
-      <div className="mt-auto p-4 border-t border-border/60">
+      <div className="mt-auto p-4 border-t border-border/60 space-y-2.5">
         <LanguageToggle />
+        <div
+          className="text-center text-[10px] uppercase tracking-widest text-muted-foreground/70"
+          title={ts("demoBanner")}
+        >
+          {ts("demoShort")}
+        </div>
       </div>
     </aside>
   );

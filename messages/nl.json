@@ -1,6 +1,7 @@
 {
   "shell": {
-    "demoBanner": "DEMO-OMGEVING — uitsluitend synthetische gegevens. Voer geen echte persoonsgegevens in."
+    "demoBanner": "DEMO-OMGEVING — uitsluitend synthetische gegevens. Voer geen echte persoonsgegevens in.",
+    "demoShort": "Demo · synthetische data"
   },
   "nav": {
     "dashboard": "Dashboard",
