@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { AppSidebar } from "@/components/app-sidebar";
-import { DemoBanner } from "@/components/demo-banner";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
@@ -29,18 +28,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
-  const t = await getTranslations("shell");
 
   return (
     <html lang={locale}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-neutral-50 text-neutral-900`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextIntlClientProvider>
           <div className="flex min-h-screen">
             <AppSidebar />
             <div className="flex-1 flex flex-col min-w-0">
-              <DemoBanner label={t("demoBanner")} />
               <main className="flex-1 px-8 py-6 max-w-7xl w-full mx-auto">
                 {children}
               </main>

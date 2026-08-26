@@ -61,7 +61,7 @@ export default async function DossierPage({
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-sm text-neutral-500">
+          <div className="text-sm text-muted-foreground">
             <Link href="/dossiers" className="hover:underline">
               {td("title")}
             </Link>{" "}
@@ -79,7 +79,7 @@ export default async function DossierPage({
               </span>
             )}
           </h1>
-          <p className="text-sm text-neutral-500 mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             {td(`regime.${dossier.regime}`)}
             {dossier.rechtbank ? ` · ${dossier.rechtbank}` : ""}
             {dossier.zaaknummer ? ` · ${dossier.zaaknummer}` : ""}
@@ -88,38 +88,45 @@ export default async function DossierPage({
       </div>
 
       {(urgency.overdue > 0 || urgency.unconfirmed > 0 || urgency.dueSoon > 0) && (
-        <div className="flex flex-wrap gap-2">
-          {urgency.overdue > 0 && (
-            <Link
-              href={`/dossiers/${id}?tab=tasks`}
-              className="inline-flex items-center gap-1.5 rounded-full bg-red-50 text-red-700 text-xs px-3 py-1 hover:bg-red-100"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-              {t("urgency.overdue", { count: urgency.overdue })}
-            </Link>
+        <Link
+          href={`/dossiers/${id}?tab=tasks`}
+          className={cn(
+            "inline-flex items-center gap-2 rounded-full text-xs px-3 py-1 transition-colors",
+            urgency.overdue > 0 || urgency.unconfirmed > 0
+              ? "bg-red-50 text-red-700 hover:bg-red-100"
+              : "bg-amber-50 text-amber-700 hover:bg-amber-100"
           )}
-          {urgency.unconfirmed > 0 && (
-            <Link
-              href={`/dossiers/${id}?tab=tasks`}
-              className="inline-flex items-center gap-1.5 rounded-full bg-red-50 text-red-700 text-xs px-3 py-1 hover:bg-red-100"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-              {t("urgency.unconfirmed", { count: urgency.unconfirmed })}
-            </Link>
-          )}
-          {urgency.dueSoon > 0 && (
-            <Link
-              href={`/dossiers/${id}?tab=tasks`}
-              className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 text-amber-700 text-xs px-3 py-1 hover:bg-amber-100"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              {t("urgency.dueSoon", { count: urgency.dueSoon })}
-            </Link>
-          )}
-        </div>
+        >
+          <span
+            className={cn(
+              "h-1.5 w-1.5 rounded-full",
+              urgency.overdue > 0 || urgency.unconfirmed > 0
+                ? "bg-red-500"
+                : "bg-amber-500"
+            )}
+          />
+          {t("urgency.summary", {
+            count: urgency.overdue + urgency.unconfirmed + urgency.dueSoon,
+          })}
+          <span className="text-current/70">
+            {[
+              urgency.overdue > 0
+                ? t("urgency.overdue", { count: urgency.overdue })
+                : null,
+              urgency.unconfirmed > 0
+                ? t("urgency.unconfirmed", { count: urgency.unconfirmed })
+                : null,
+              urgency.dueSoon > 0
+                ? t("urgency.dueSoon", { count: urgency.dueSoon })
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </span>
+        </Link>
       )}
 
-      <nav className="flex gap-1 border-b border-neutral-200 overflow-x-auto">
+      <nav className="flex gap-1 border-b border-border overflow-x-auto">
         {TABS.map((tabKey) => (
           <Link
             key={tabKey}
@@ -127,8 +134,8 @@ export default async function DossierPage({
             className={cn(
               "px-3.5 py-2 text-sm whitespace-nowrap border-b-2 -mb-px transition-colors",
               tab === tabKey
-                ? "border-indigo-600 text-indigo-700 font-medium"
-                : "border-transparent text-neutral-500 hover:text-neutral-900"
+                ? "border-primary text-primary font-medium"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             )}
           >
             {t(`tabs.${tabKey}`)}

@@ -32,7 +32,7 @@ export default async function RvPackPage({
       <div className="flex items-center justify-between print:hidden">
         <Link
           href={`/dossiers/${id}?tab=filings`}
-          className="text-sm text-indigo-700 hover:underline"
+          className="text-sm text-primary hover:underline"
         >
           ← {t("back")}
         </Link>
@@ -47,12 +47,12 @@ export default async function RvPackPage({
         <h1 className="text-xl font-semibold">
           {t("title", { year })}
         </h1>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-muted-foreground">
           {dossier.firstName} {dossier.lastName}
           {dossier.zaaknummer ? ` · ${dossier.zaaknummer}` : ""}
           {dossier.rechtbank ? ` · ${dossier.rechtbank}` : ""}
         </p>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-muted-foreground">
           {t("period")}: {pack.periodStart} — {pack.periodEnd}
         </p>
       </header>
@@ -61,7 +61,7 @@ export default async function RvPackPage({
         <h2 className="font-medium mb-2">{t("balances")}</h2>
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-neutral-300 text-left text-neutral-500">
+            <tr className="border-b border-border text-left text-muted-foreground">
               <th className="py-1.5">{t("account")}</th>
               <th className="py-1.5 text-right">{t("opening")}</th>
               <th className="py-1.5 text-right">{t("closing")}</th>
@@ -69,12 +69,12 @@ export default async function RvPackPage({
           </thead>
           <tbody>
             {pack.accounts.map((acc) => (
-              <tr key={acc.iban} className="border-b border-neutral-100">
+              <tr key={acc.iban} className="border-b border-border/60">
                 <td className="py-1.5">
                   <span className="font-mono">{acc.iban}</span>{" "}
-                  <span className="text-neutral-400">({acc.type})</span>
+                  <span className="text-muted-foreground/70">({acc.type})</span>
                   {acc.leefgeldOnly && (
-                    <span className="text-xs text-neutral-400 block">
+                    <span className="text-xs text-muted-foreground/70 block">
                       {t("leefgeldNote")}
                     </span>
                   )}
@@ -97,7 +97,7 @@ export default async function RvPackPage({
           <table className="w-full text-sm">
             <tbody>
               {pack.incomeByCategory.map((c) => (
-                <tr key={c.key} className="border-b border-neutral-100">
+                <tr key={c.key} className="border-b border-border/60">
                   <td className="py-1">{c.nl}</td>
                   <td className="py-1 text-right">
                     <Money cents={c.cents} />
@@ -118,7 +118,7 @@ export default async function RvPackPage({
           <table className="w-full text-sm">
             <tbody>
               {pack.expenseByCategory.map((c) => (
-                <tr key={c.key} className="border-b border-neutral-100">
+                <tr key={c.key} className="border-b border-border/60">
                   <td className="py-1">{c.nl}</td>
                   <td className="py-1 text-right">
                     <Money cents={c.cents} />
@@ -139,11 +139,11 @@ export default async function RvPackPage({
       {pack.largeExpenses.length > 0 && (
         <section>
           <h2 className="font-medium mb-2">{t("largeExpenses")}</h2>
-          <p className="text-xs text-neutral-500 mb-2">{t("largeExpensesHint")}</p>
+          <p className="text-xs text-muted-foreground mb-2">{t("largeExpensesHint")}</p>
           <table className="w-full text-sm">
             <tbody>
               {pack.largeExpenses.map((e, i) => (
-                <tr key={i} className="border-b border-neutral-100">
+                <tr key={i} className="border-b border-border/60">
                   <td className="py-1 tabular-nums">{e.date}</td>
                   <td className="py-1">{e.counterparty ?? "—"}</td>
                   <td className="py-1 text-right">
@@ -183,14 +183,14 @@ export default async function RvPackPage({
                   "inline-block h-3.5 w-3.5 rounded border " +
                   (a.done
                     ? "bg-emerald-500 border-emerald-500"
-                    : "border-neutral-300")
+                    : "border-border")
                 }
               />
               {t(`attachment.${a.key}`)}
             </li>
           ))}
         </ul>
-        <p className="text-xs text-neutral-500 mt-3">{t("mijnCbmNote")}</p>
+        <p className="text-xs text-muted-foreground mt-3">{t("mijnCbmNote")}</p>
       </section>
     </div>
   );

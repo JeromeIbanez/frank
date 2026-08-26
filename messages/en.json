@@ -1,6 +1,7 @@
 {
   "shell": {
-    "demoBanner": "DEMO ENVIRONMENT — synthetic data only. Do not enter real personal data."
+    "demoBanner": "DEMO ENVIRONMENT — synthetic data only. Do not enter real personal data.",
+    "demoShort": "Demo · synthetic data"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -167,9 +168,10 @@
       "copilot": "Copilot"
     },
     "urgency": {
+      "summary": "{count} need attention",
       "overdue": "{count} overdue",
-      "unconfirmed": "{count} unconfirmed legal deadline(s)",
-      "dueSoon": "{count} due within 14 days"
+      "unconfirmed": "{count} unconfirmed",
+      "dueSoon": "{count} due soon"
     }
   },
   "overview": {

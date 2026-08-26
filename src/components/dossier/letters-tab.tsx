@@ -22,7 +22,7 @@ export async function LettersTab({
 
   return (
     <div className="space-y-6">
-      <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 text-neutral-600 text-xs px-3 py-1">
+      <div className="inline-flex items-center gap-1.5 rounded-full bg-muted text-muted-foreground text-xs px-3 py-1">
         {t("officialOutput")}
       </div>
       <div className="grid lg:grid-cols-2 gap-6">
@@ -31,7 +31,7 @@ export async function LettersTab({
             <CardTitle className="text-base">{t("packTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-muted-foreground">
               {t("packHint", { count: unNotified })}
             </p>
             <AanschrijfPackButton dossierId={dossier.id} disabled={unNotified === 0} />
@@ -52,7 +52,7 @@ export async function LettersTab({
           {t("listTitle")} ({rows.length})
         </h3>
         {rows.length === 0 && (
-          <p className="text-sm text-neutral-500">{t("empty")}</p>
+          <p className="text-sm text-muted-foreground">{t("empty")}</p>
         )}
         {rows.map((letter) => (
           <LetterCard

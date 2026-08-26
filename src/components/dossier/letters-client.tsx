@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Mails } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormSelect } from "@/components/form-select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/format";
@@ -56,20 +57,17 @@ export function GenerateLetterForm({ dossierId }: { dossierId: string }) {
         })
       }
     >
-      <select
+      <FormSelect
         name="templateKey"
         value={templateKey}
-        onChange={(e) => setTemplateKey(e.target.value)}
-        className="h-9 w-full rounded-md border border-neutral-200 bg-white px-3 text-sm"
-      >
-        {LETTER_TEMPLATES.filter((tpl) => tpl.key !== "aanschrijfbrief").map(
-          (tpl) => (
-            <option key={tpl.key} value={tpl.key}>
-              {t(`templates.${tpl.key}`)}
-            </option>
-          )
-        )}
-      </select>
+        onValueChange={setTemplateKey}
+        options={LETTER_TEMPLATES.filter(
+          (tpl) => tpl.key !== "aanschrijfbrief"
+        ).map((tpl) => ({
+          value: tpl.key,
+          label: t(`templates.${tpl.key}`),
+        }))}
+      />
       <div className="grid grid-cols-2 gap-2">
         <Input name="recipient" placeholder={t("recipient")} />
         <Input name="kenmerk" placeholder={t("kenmerk")} />
@@ -85,7 +83,7 @@ export function GenerateLetterForm({ dossierId }: { dossierId: string }) {
         placeholder={t("contextPlaceholder")}
         className="min-h-16"
       />
-      <p className="text-xs text-neutral-400">{t("aiNote")}</p>
+      <p className="text-xs text-muted-foreground/70">{t("aiNote")}</p>
       <Button type="submit" disabled={isPending}>
         {isPending ? t("generating") : t("generate")}
       </Button>
@@ -111,25 +109,25 @@ export function LetterCard({
   const [isPending, startTransition] = useTransition();
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white">
+    <div className="rounded-lg border border-border bg-card">
       <button
         className="w-full text-left px-4 py-3 flex items-center gap-3"
         onClick={() => setExpanded((e) => !e)}
       >
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium truncate">{letter.subject}</div>
-          <div className="text-xs text-neutral-500">
+          <div className="text-xs text-muted-foreground">
             {letter.recipientName ?? "—"} · {letter.createdAt}
           </div>
         </div>
         <StatusBadge status={letter.status} label={t(`status.${letter.status}`)} />
       </button>
       {expanded && (
-        <div className="border-t border-neutral-100 px-4 py-3 space-y-3">
-          <pre className="whitespace-pre-wrap text-sm font-sans bg-neutral-50 rounded-md p-4 max-h-96 overflow-y-auto">
+        <div className="border-t border-border/60 px-4 py-3 space-y-3">
+          <pre className="whitespace-pre-wrap text-sm font-sans bg-muted/40 rounded-md p-4 max-h-96 overflow-y-auto">
             {letter.body}
           </pre>
-          <p className="text-xs text-neutral-400">{t("dutchNote")}</p>
+          <p className="text-xs text-muted-foreground/70">{t("dutchNote")}</p>
           <div className="flex gap-2">
             {letter.status === "draft" && (
               <Button

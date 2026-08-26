@@ -41,7 +41,7 @@ export default async function PaymentBatchPage({
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-sm text-neutral-500">
+          <div className="text-sm text-muted-foreground">
             <Link href="/payments" className="hover:underline">
               {t("title")}
             </Link>{" "}
@@ -51,7 +51,7 @@ export default async function PaymentBatchPage({
             {batch.name}
             <StatusBadge status={batch.status} label={t(`status.${batch.status}`)} />
           </h1>
-          <p className="text-sm text-neutral-500 mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             {t("execution")}: {batch.executionDate} · {batch.items.length}{" "}
             {t("items")} · <Money cents={total} />
           </p>
@@ -89,7 +89,7 @@ export default async function PaymentBatchPage({
         </div>
       )}
 
-      <div className="rounded-lg border border-neutral-200 bg-white overflow-x-auto">
+      <div className="rounded-lg border border-border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -104,16 +104,16 @@ export default async function PaymentBatchPage({
           <TableBody>
             {batch.items.map((item) => (
               <TableRow key={item.id}>
-                <TableCell className="text-neutral-600 whitespace-nowrap">
+                <TableCell className="text-muted-foreground whitespace-nowrap">
                   {item.dossier.lastName}, {item.dossier.firstName}
                 </TableCell>
                 <TableCell>
                   <div className="font-medium text-sm">{item.creditorName}</div>
-                  <div className="font-mono text-xs text-neutral-400">
+                  <div className="font-mono text-xs text-muted-foreground/70">
                     {item.creditorIban}
                   </div>
                 </TableCell>
-                <TableCell className="text-neutral-500 max-w-44 truncate">
+                <TableCell className="text-muted-foreground max-w-44 truncate">
                   {item.remittanceInfo}
                 </TableCell>
                 <TableCell className="text-right">

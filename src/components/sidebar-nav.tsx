@@ -40,14 +40,30 @@ export function SidebarNav({
           <Link
             key={item.key}
             href={item.href}
+            aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
+              "group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
               active
-                ? "bg-indigo-50 text-indigo-700 font-medium"
-                : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                ? "bg-accent text-accent-foreground font-medium"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
-            {Icon && <Icon className="h-4 w-4" />}
+            <span
+              className={cn(
+                "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary transition-opacity",
+                active ? "opacity-100" : "opacity-0"
+              )}
+            />
+            {Icon && (
+              <Icon
+                className={cn(
+                  "h-4 w-4",
+                  active
+                    ? "text-primary"
+                    : "text-muted-foreground group-hover:text-foreground"
+                )}
+              />
+            )}
             {item.label}
           </Link>
         );

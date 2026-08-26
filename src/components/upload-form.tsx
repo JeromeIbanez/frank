@@ -33,8 +33,8 @@ export function UploadForm() {
           className={
             "rounded-md px-3 py-1.5 " +
             (mode === "paste"
-              ? "bg-indigo-50 text-indigo-700 font-medium"
-              : "text-neutral-500 hover:bg-neutral-50")
+              ? "bg-accent text-accent-foreground font-medium"
+              : "text-muted-foreground hover:bg-muted/50")
           }
         >
           {t("pasteMode")}
@@ -45,8 +45,8 @@ export function UploadForm() {
           className={
             "rounded-md px-3 py-1.5 " +
             (mode === "file"
-              ? "bg-indigo-50 text-indigo-700 font-medium"
-              : "text-neutral-500 hover:bg-neutral-50")
+              ? "bg-accent text-accent-foreground font-medium"
+              : "text-muted-foreground hover:bg-muted/50")
           }
         >
           {t("fileMode")}
@@ -67,7 +67,7 @@ export function UploadForm() {
         <Button type="submit" disabled={isPending}>
           {isPending ? t("processing") : t("upload")}
         </Button>
-        <span className="text-xs text-neutral-400">{t("aiTriageNote")}</span>
+        <span className="text-xs text-muted-foreground/70">{t("aiTriageNote")}</span>
       </div>
     </form>
   );

@@ -45,7 +45,7 @@ export async function TransactionsTab({
                 type: a.type,
               }))}
             />
-            <p className="text-xs text-neutral-400 mt-2">{t("importHint")}</p>
+            <p className="text-xs text-muted-foreground/70 mt-2">{t("importHint")}</p>
           </CardContent>
         </Card>
         <Card>
@@ -76,7 +76,7 @@ export async function TransactionsTab({
         {uncategorized > 0 && <AiCategorizeButton dossierId={dossier.id} />}
       </div>
 
-      <div className="rounded-lg border border-neutral-200 bg-white overflow-x-auto">
+      <div className="rounded-lg border border-border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -90,13 +90,13 @@ export async function TransactionsTab({
           <TableBody>
             {rows.map((tx) => (
               <TableRow key={tx.id}>
-                <TableCell className="tabular-nums text-neutral-600 whitespace-nowrap">
+                <TableCell className="tabular-nums text-muted-foreground whitespace-nowrap">
                   {tx.bookingDate}
                 </TableCell>
                 <TableCell className="max-w-44 truncate">
                   {tx.counterpartyName ?? "—"}
                 </TableCell>
-                <TableCell className="max-w-56 truncate text-neutral-500">
+                <TableCell className="max-w-56 truncate text-muted-foreground">
                   {tx.description ?? ""}
                 </TableCell>
                 <TableCell>
@@ -114,7 +114,7 @@ export async function TransactionsTab({
             ))}
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-neutral-500 py-8">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                   {t("empty")}
                 </TableCell>
               </TableRow>
