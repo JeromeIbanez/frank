@@ -89,10 +89,20 @@ export async function addAccount(
   }
   if (!isValidIban(iban)) return { ok: false, error: "invalid_iban" };
   if (!Number.isFinite(balance)) return { ok: false, error: "invalid_amount" };
+  // Idempotent materialization (Temujin PR-6 r2 #1).
+  const sourceProposalId =
+    String(formData.get("sourceProposalId") || "") || null;
+  if (sourceProposalId) {
+    const existing = await db.query.accounts.findFirst({
+      where: eq(accounts.sourceProposalId, sourceProposalId),
+    });
+    if (existing) return { ok: true, entityId: existing.id };
+  }
   const [row] = await db
     .insert(accounts)
     .values({
       dossierId,
+      sourceProposalId,
       type: type as "beheer" | "leefgeld" | "spaar",
       iban,
       bankName: String(formData.get("bankName") || "") || null,

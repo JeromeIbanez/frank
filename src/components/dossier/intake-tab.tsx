@@ -28,9 +28,10 @@ export async function IntakeTab({ dossier }: { dossier: DossierFull }) {
   const db = getDb();
   const [pending, decidedRecent, linkedDocs] = await Promise.all([
     db.query.aiProposals.findMany({
+      // `accepting` = a crashed accept — still needs the human, retryable.
       where: and(
         eq(aiProposals.dossierId, dossier.id),
-        eq(aiProposals.status, "proposed")
+        inArray(aiProposals.status, ["proposed", "accepting"])
       ),
       with: { sourceDocument: true },
       orderBy: desc(aiProposals.createdAt),

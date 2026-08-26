@@ -100,6 +100,11 @@ export const dossiers = pgTable("dossiers", {
 
 export const accounts = pgTable("accounts", {
   id: text("id").primaryKey().$defaultFn(createId),
+  // Durable idempotent-materialization key (Temujin PR-6 r2 #1): set
+  // when this row was created by accepting an AI proposal; retries find
+  // the existing row instead of duplicating.
+  sourceProposalId: text("source_proposal_id"),
+
   dossierId: text("dossier_id")
     .notNull()
     .references(() => dossiers.id),
@@ -113,6 +118,11 @@ export const accounts = pgTable("accounts", {
 
 export const contacts = pgTable("contacts", {
   id: text("id").primaryKey().$defaultFn(createId),
+  // Durable idempotent-materialization key (Temujin PR-6 r2 #1): set
+  // when this row was created by accepting an AI proposal; retries find
+  // the existing row instead of duplicating.
+  sourceProposalId: text("source_proposal_id"),
+
   dossierId: text("dossier_id")
     .notNull()
     .references(() => dossiers.id),
@@ -128,6 +138,11 @@ export const contacts = pgTable("contacts", {
 
 export const debts = pgTable("debts", {
   id: text("id").primaryKey().$defaultFn(createId),
+  // Durable idempotent-materialization key (Temujin PR-6 r2 #1): set
+  // when this row was created by accepting an AI proposal; retries find
+  // the existing row instead of duplicating.
+  sourceProposalId: text("source_proposal_id"),
+
   dossierId: text("dossier_id")
     .notNull()
     .references(() => dossiers.id),
@@ -149,6 +164,11 @@ export const debts = pgTable("debts", {
 
 export const budgetLines = pgTable("budget_lines", {
   id: text("id").primaryKey().$defaultFn(createId),
+  // Durable idempotent-materialization key (Temujin PR-6 r2 #1): set
+  // when this row was created by accepting an AI proposal; retries find
+  // the existing row instead of duplicating.
+  sourceProposalId: text("source_proposal_id"),
+
   dossierId: text("dossier_id")
     .notNull()
     .references(() => dossiers.id),
@@ -341,7 +361,9 @@ export const aiProposals = pgTable(
     confidence: integer("confidence"), // 0-100
     extractorVersion: text("extractor_version").notNull(), // model + prompt version
     payloadHash: text("payload_hash").notNull(),
-    status: text("status", { enum: ["proposed", "accepted", "rejected"] })
+    status: text("status", {
+      enum: ["proposed", "accepting", "accepted", "rejected"],
+    })
       .notNull()
       .default("proposed"),
     decidedBy: text("decided_by"),

@@ -12,6 +12,7 @@ import {
   extractIntakeProposals,
   updateIntakeNotes,
 } from "@/lib/actions/intake";
+import { parseEuro } from "@/lib/domain/money";
 
 export function ExtractButton({ documentId }: { documentId: string }) {
   const t = useTranslations("intake");
@@ -85,14 +86,13 @@ export function ProposalCard({
   );
 
   // Cents fields are edited as euro amounts ("486,30") and parsed back to
-  // integer cents; the server contract stays cents (Temujin PR-6 UX).
+  // integer cents by the shared locale-aware parser — the final separator
+  // is the decimal, so "486.30" is €486,30, never €48.630 (Temujin PR-6
+  // r2 #3). The server contract stays cents and re-validates.
   const isCents = (key: string) => key.endsWith("Cents");
   const centsToEuro = (v: unknown) =>
     typeof v === "number" ? (v / 100).toFixed(2).replace(".", ",") : "";
-  const euroToCents = (raw: string): number | null => {
-    const n = Number(raw.replace(/\./g, "").replace(",", "."));
-    return Number.isFinite(n) ? Math.round(n * 100) : null;
-  };
+  const euroToCents = (raw: string): number | null => parseEuro(raw);
 
   return (
     <div className="rounded-[10px] border border-border bg-surface p-3 space-y-2.5">

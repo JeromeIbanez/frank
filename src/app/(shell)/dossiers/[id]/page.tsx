@@ -23,7 +23,7 @@ import { CopilotChat } from "@/components/dossier/copilot-chat";
 import { IntakeTab } from "@/components/dossier/intake-tab";
 import { getDb } from "@/lib/db";
 import { aiProposals } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { boedelChecklist, completeness } from "@/lib/domain/intake";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +65,10 @@ export default async function DossierPage({
     .select({ id: aiProposals.id })
     .from(aiProposals)
     .where(
-      and(eq(aiProposals.dossierId, id), eq(aiProposals.status, "proposed"))
+      and(
+        eq(aiProposals.dossierId, id),
+        inArray(aiProposals.status, ["proposed", "accepting"])
+      )
     )
     .limit(1);
   const intakeItems = boedelChecklist({

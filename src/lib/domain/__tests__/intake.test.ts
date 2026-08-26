@@ -128,13 +128,14 @@ describe("flat model item → strict payload mapping", () => {
   });
 });
 
-describe("verifyProvenance (Temujin PR-6 #2)", () => {
+describe("verifyProvenance (Temujin PR-6 #2 + r2 #2)", () => {
   const doc = `AANMANING\nSchuldeiser: KPN B.V.\nOpenstaand saldo: EUR 486,30\nNettoloon: EUR 1.842,50 per maand`;
   const debtPayload = proposalPayload.parse({
     kind: "debt", creditor: "KPN B.V.", currentAmountCents: 48630,
   });
   const item = (prov: { field: string; snippet: string }[]) => ({
-    kind: "debt" as const, lineKind: null, name: null, categoryKey: null,
+    kind: "debt" as const,
+    lineKind: null, name: null, categoryKey: null,
     amountCents: null, frequency: null, expectedDay: null,
     counterpartyName: null, counterpartyIban: null,
     creditor: "KPN B.V.", reference: null, currentAmountCents: 48630,
@@ -143,13 +144,14 @@ describe("verifyProvenance (Temujin PR-6 #2)", () => {
     openingBalanceCents: null, openingBalanceDate: null,
     provenance: prov, confidence: 80,
   });
+  const bound = [
+    { field: "creditor", snippet: "Schuldeiser: KPN B.V." },
+    { field: "saldo", snippet: "Openstaand saldo: EUR 486,30" },
+  ];
 
-  it("verified snippet containing the amount → material claim evidenced", () => {
-    const r = verifyProvenance(
-      item([{ field: "saldo", snippet: "Openstaand saldo: EUR 486,30" }]),
-      debtPayload, doc
-    );
-    expect(r.materialVerified).toBe(true);
+  it("amount + creditor evidenced nearby → ok", () => {
+    const r = verifyProvenance(item(bound), debtPayload, doc);
+    expect(r.ok).toBe(true);
     expect(r.verified.saldo).toBeDefined();
   });
 
@@ -159,23 +161,73 @@ describe("verifyProvenance (Temujin PR-6 #2)", () => {
       debtPayload, doc
     );
     expect(Object.keys(r.verified)).toHaveLength(0);
-    expect(r.materialVerified).toBe(false);
+    expect(r.ok).toBe(false);
   });
 
-  it("real snippet that does NOT contain the claimed amount → unevidenced", () => {
+  it("amount evidenced but creditor NOT evidenced → debt rejected", () => {
+    const r = verifyProvenance(
+      item([{ field: "saldo", snippet: "Openstaand saldo: EUR 486,30" }]),
+      debtPayload, doc
+    );
+    expect(r.ok).toBe(false);
+  });
+
+  it("creditor evidenced but amount not → rejected", () => {
     const r = verifyProvenance(
       item([{ field: "x", snippet: "Schuldeiser: KPN B.V." }]),
       debtPayload, doc
     );
-    expect(r.materialVerified).toBe(false);
+    expect(r.ok).toBe(false);
+  });
+
+  it("creditor and amount evidence too far apart in the source → rejected (binding)", () => {
+    const farDoc = "Schuldeiser: KPN B.V.\n" + "x".repeat(800) + "\nOpenstaand saldo: EUR 486,30";
+    const r = verifyProvenance(item(bound), debtPayload, farDoc);
+    expect(r.ok).toBe(false);
   });
 
   it("whitespace differences do not break matching", () => {
     const r = verifyProvenance(
-      item([{ field: "saldo", snippet: "Openstaand   saldo:  EUR 486,30" }]),
+      item([
+        { field: "creditor", snippet: "Schuldeiser:   KPN B.V." },
+        { field: "saldo", snippet: "Openstaand   saldo:  EUR 486,30" },
+      ]),
       debtPayload, doc
     );
-    expect(r.materialVerified).toBe(true);
+    expect(r.ok).toBe(true);
+  });
+
+  it("unevidenced optional originalAmount is STRIPPED, not trusted", () => {
+    const payload = proposalPayload.parse({
+      kind: "debt", creditor: "KPN B.V.", currentAmountCents: 48630,
+      originalAmountCents: 41200, reference: "8877-KPN-2026",
+    });
+    const r = verifyProvenance(
+      { ...item(bound), originalAmountCents: 41200, reference: "8877-KPN-2026" },
+      payload, doc
+    );
+    expect(r.ok).toBe(true);
+    expect((r.sanitizedPayload as { originalAmountCents?: number | null }).originalAmountCents).toBeNull();
+    expect((r.sanitizedPayload as { reference?: string | null }).reference).toBeNull();
+  });
+
+  it("negative opening balance requires a printed minus (sign enforcement)", () => {
+    const posDoc = "Rekening NL01BANK: saldo 500,00 per 01-08-2026";
+    const negPayload = proposalPayload.parse({
+      kind: "account_opening_balance", iban: "NL01BANK0000000001",
+      accountType: "beheer", openingBalanceCents: -50000,
+    });
+    const negItem = {
+      ...item([{ field: "saldo", snippet: "saldo 500,00 per 01-08-2026" }]),
+      kind: "account_opening_balance" as const,
+    };
+    expect(verifyProvenance(negItem, negPayload, posDoc).ok).toBe(false);
+    const negDoc = "Rekening NL01BANK: saldo -500,00 per 01-08-2026";
+    const negItem2 = {
+      ...item([{ field: "saldo", snippet: "saldo -500,00 per 01-08-2026" }]),
+      kind: "account_opening_balance" as const,
+    };
+    expect(verifyProvenance(negItem2, negPayload, negDoc).ok).toBe(true);
   });
 
   it("grouped euro form (1.842,50) is recognized", () => {
@@ -187,7 +239,7 @@ describe("verifyProvenance (Temujin PR-6 #2)", () => {
       { ...item([{ field: "loon", snippet: "Nettoloon: EUR 1.842,50" }]), kind: "budget_line" as const },
       linePayload, doc
     );
-    expect(r.materialVerified).toBe(true);
+    expect(r.ok).toBe(true);
   });
 });
 

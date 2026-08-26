@@ -20,10 +20,20 @@ export async function addBudgetLine(
   if (!Number.isFinite(amountEuro) || amountEuro <= 0)
     return { ok: false, error: "invalid_amount" };
   const amountCents = Math.round(amountEuro * 100);
+  // Idempotent materialization (Temujin PR-6 r2 #1).
+  const sourceProposalId =
+    String(formData.get("sourceProposalId") || "") || null;
+  if (sourceProposalId) {
+    const existing = await db.query.budgetLines.findFirst({
+      where: eq(budgetLines.sourceProposalId, sourceProposalId),
+    });
+    if (existing) return { ok: true, entityId: existing.id };
+  }
   const [row] = await db
     .insert(budgetLines)
     .values({
       dossierId,
+      sourceProposalId,
       kind: String(formData.get("kind") || "expense") as
         | "income"
         | "expense"

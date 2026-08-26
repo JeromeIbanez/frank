@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   aiProposals,
@@ -45,10 +45,21 @@ export async function addDebt(
     String(formData.get("originalAmount") || "").replace(",", ".")
   );
   const currentCents = Math.round(amountEuro * 100);
+  // Idempotent materialization (Temujin PR-6 r2 #1): a retry of the same
+  // proposal finds the existing row instead of duplicating.
+  const sourceProposalId =
+    String(formData.get("sourceProposalId") || "") || null;
+  if (sourceProposalId) {
+    const existing = await db.query.debts.findFirst({
+      where: eq(debts.sourceProposalId, sourceProposalId),
+    });
+    if (existing) return { ok: true, entityId: existing.id };
+  }
   const [row] = await db
     .insert(debts)
     .values({
       dossierId,
+      sourceProposalId,
       creditor,
       reference: String(formData.get("reference") || "").trim() || null,
       originalAmountCents:
@@ -81,10 +92,19 @@ export async function addContact(
   const name = String(formData.get("name") || "").trim();
   const kind = String(formData.get("kind") || "overig").trim();
   if (name.length < 2) return { ok: false, error: "invalid_name" };
+  const sourceProposalId =
+    String(formData.get("sourceProposalId") || "") || null;
+  if (sourceProposalId) {
+    const existing = await db.query.contacts.findFirst({
+      where: eq(contacts.sourceProposalId, sourceProposalId),
+    });
+    if (existing) return { ok: true, entityId: existing.id };
+  }
   const [row] = await db
     .insert(contacts)
     .values({
       dossierId,
+      sourceProposalId,
       kind,
       name,
       reference: String(formData.get("reference") || "").trim() || null,
@@ -184,14 +204,12 @@ export async function extractIntakeProposals(documentId: string): Promise<{
     // payload schema is dropped, never loosened.
     const payload = toProposalPayload(item);
     if (!payload) continue;
-    // Provenance gate (Temujin PR-6 #2): fabricated snippets are discarded
-    // and an unevidenced material claim never becomes a proposal.
-    const { verified, materialVerified } = verifyProvenance(
-      item,
-      payload,
-      doc.textContent
-    );
-    if (!materialVerified) {
+    // Provenance gate (Temujin PR-6 #2 + r2 #2): fabricated snippets are
+    // discarded, every material claim must be evidenced with sign (debts
+    // additionally bound creditor↔amount), and unevidenced optional
+    // values are stripped rather than trusted.
+    const verdict = verifyProvenance(item, payload, doc.textContent);
+    if (!verdict.ok) {
       droppedUnevidenced++;
       continue;
     }
@@ -201,12 +219,12 @@ export async function extractIntakeProposals(documentId: string): Promise<{
         dossierId: doc.dossierId,
         sourceDocumentId: doc.id,
         sourceDocumentSha256: doc.sha256,
-        kind: payload.kind,
-        payload,
-        fieldProvenance: verified,
+        kind: verdict.sanitizedPayload.kind,
+        payload: verdict.sanitizedPayload,
+        fieldProvenance: verdict.verified,
         confidence: Math.round(item.confidence),
         extractorVersion,
-        payloadHash: payloadHash(payload),
+        payloadHash: payloadHash(verdict.sanitizedPayload),
       })
       .onConflictDoNothing()
       .returning();
@@ -255,18 +273,27 @@ export async function decideProposal(
     parsedEdit = parsed.data;
   }
 
-  // Atomic claim (Temujin PR-6 #1): exactly ONE request can move the row
-  // out of `proposed`; a concurrent duplicate gets zero rows back and can
-  // never materialize a second real entity.
+  // Crash-safe claim (Temujin PR-6 #1 + r2 #1). Reject: proposed→rejected,
+  // one winner. Accept: proposed/accepting→accepting — `accepting` is the
+  // durable intermediate, so a crash mid-materialization leaves a
+  // retryable `accepting` row, never a phantom `accepted`. Retries are
+  // safe because materialization itself is idempotent: every created
+  // entity carries a unique sourceProposalId, and the creation actions
+  // return the existing row for a repeated key.
   const [claimed] = await db
     .update(aiProposals)
     .set({
-      status: decision === "accept" ? "accepted" : "rejected",
+      status: decision === "accept" ? "accepting" : "rejected",
       decidedBy: actor.id,
       decidedAt: new Date(),
     })
     .where(
-      and(eq(aiProposals.id, proposalId), eq(aiProposals.status, "proposed"))
+      and(
+        eq(aiProposals.id, proposalId),
+        decision === "accept"
+          ? inArray(aiProposals.status, ["proposed", "accepting"])
+          : eq(aiProposals.status, "proposed")
+      )
     )
     .returning();
   if (!claimed) return { ok: false, error: "decided" };
@@ -279,7 +306,8 @@ export async function decideProposal(
       ? { success: true as const, data: parsedEdit }
       : proposalPayload.safeParse(claimed.payload);
     const fail = async (error: string) => {
-      // Materialization failed — release the claim so the human can retry.
+      // VALIDATION failure — release the claim so the human can fix and
+      // retry. (A crash instead leaves `accepting`, also retryable.)
       await db
         .update(aiProposals)
         .set({ status: "proposed", decidedBy: null, decidedAt: null })
@@ -288,13 +316,18 @@ export async function decideProposal(
     };
     if (!parsed.success) return fail("invalid_payload");
     if (parsed.data.kind !== claimed.kind) return fail("kind_mismatch");
-    const materialized = await materialize(claimed.dossierId, parsed.data);
+    const materialized = await materialize(
+      claimed.dossierId,
+      parsed.data,
+      proposalId
+    );
     if (!materialized.ok)
       return fail(materialized.error ?? "materialize_failed");
     resultEntityId = materialized.entityId ?? null;
     await db
       .update(aiProposals)
       .set({
+        status: "accepted",
         resultEntityId,
         ...(parsedEdit ? { payload: parsedEdit } : {}),
       })
@@ -341,9 +374,11 @@ export async function decideProposal(
 
 async function materialize(
   dossierId: string,
-  p: ProposalPayload
+  p: ProposalPayload,
+  sourceProposalId: string
 ): Promise<{ ok: boolean; error?: string; entityId?: string }> {
   const fd = new FormData();
+  fd.set("sourceProposalId", sourceProposalId);
   switch (p.kind) {
     case "budget_line": {
       fd.set("kind", p.lineKind);
