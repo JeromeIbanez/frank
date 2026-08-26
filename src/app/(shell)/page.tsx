@@ -53,7 +53,15 @@ function signalHref(s: SignalRow): string {
 
 const SEVERITY_ORDER = { red: 0, amber: 1, info: 2 } as const;
 
-export default async function TodayPage() {
+const GROUP_CAP = 8;
+
+export default async function TodayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ signals?: string }>;
+}) {
+  const { signals: signalsParam } = await searchParams;
+  const showAll = signalsParam === "all";
   const t = await getTranslations("dashboard");
   const ts = await getTranslations("signals");
   const tAll = await getTranslations();
@@ -71,6 +79,14 @@ export default async function TodayPage() {
       SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity] ||
       (a.dossier?.lastName ?? "").localeCompare(b.dossier?.lastName ?? "")
   );
+  // Per-severity cap (Temujin PR-6 UX): each group truncates independently,
+  // so a flood of info rows never buries red ones — and vice versa.
+  const visible = showAll
+    ? sorted
+    : (["red", "amber", "info"] as const).flatMap((sev) =>
+        sorted.filter((s) => s.severity === sev).slice(0, GROUP_CAP)
+      );
+  const hiddenCount = sorted.length - visible.length;
 
   /** One human sentence per detector, params from the signal payload. */
   function sentence(s: SignalRow): string {
@@ -191,7 +207,7 @@ export default async function TodayPage() {
             {sorted.length === 0 && (
               <EmptyState title={ts("emptyTitle")} sentence={ts("emptySentence")} />
             )}
-            {sorted.map((s) => (
+            {visible.map((s) => (
               <div
                 key={s.id}
                 className="flex items-start gap-2.5 rounded-md px-2.5 py-2 hover:bg-surface-hover"
@@ -212,6 +228,22 @@ export default async function TodayPage() {
                 <DismissSignalButton signalId={s.id} />
               </div>
             ))}
+            {hiddenCount > 0 && (
+              <Link
+                href="/?signals=all"
+                className="block px-2.5 pt-2 text-[12.5px] font-semibold text-primary hover:underline"
+              >
+                {ts("showAll", { count: sorted.length })}
+              </Link>
+            )}
+            {showAll && sorted.length > GROUP_CAP && (
+              <Link
+                href="/"
+                className="block px-2.5 pt-2 text-[12.5px] font-semibold text-primary hover:underline"
+              >
+                {ts("showLess")}
+              </Link>
+            )}
           </CardContent>
         </Card>
 

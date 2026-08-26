@@ -83,6 +83,12 @@ export const dossiers = pgTable("dossiers", {
   })
     .notNull()
     .default("aanmelding"),
+  // Intake werkdocumenten (plan os-v1 W2): free-text sections maintained on
+  // the dossier, code-assembled into boedelbeschrijving / plan van aanpak.
+  inboedelNote: text("inboedel_note"),
+  pvaGoals: text("pva_goals"),
+  pvaAgreements: text("pva_agreements"),
+  pvaDebtStrategy: text("pva_debt_strategy"), // schuldenbewind supplement
   leefgeldAmountCents: integer("leefgeld_amount_cents"),
   leefgeldFrequency: text("leefgeld_frequency", {
     enum: ["weekly", "monthly"],
@@ -94,6 +100,11 @@ export const dossiers = pgTable("dossiers", {
 
 export const accounts = pgTable("accounts", {
   id: text("id").primaryKey().$defaultFn(createId),
+  // Durable idempotent-materialization key (Temujin PR-6 r2 #1): set
+  // when this row was created by accepting an AI proposal; retries find
+  // the existing row instead of duplicating.
+  sourceProposalId: text("source_proposal_id"),
+
   dossierId: text("dossier_id")
     .notNull()
     .references(() => dossiers.id),
@@ -107,6 +118,11 @@ export const accounts = pgTable("accounts", {
 
 export const contacts = pgTable("contacts", {
   id: text("id").primaryKey().$defaultFn(createId),
+  // Durable idempotent-materialization key (Temujin PR-6 r2 #1): set
+  // when this row was created by accepting an AI proposal; retries find
+  // the existing row instead of duplicating.
+  sourceProposalId: text("source_proposal_id"),
+
   dossierId: text("dossier_id")
     .notNull()
     .references(() => dossiers.id),
@@ -122,6 +138,11 @@ export const contacts = pgTable("contacts", {
 
 export const debts = pgTable("debts", {
   id: text("id").primaryKey().$defaultFn(createId),
+  // Durable idempotent-materialization key (Temujin PR-6 r2 #1): set
+  // when this row was created by accepting an AI proposal; retries find
+  // the existing row instead of duplicating.
+  sourceProposalId: text("source_proposal_id"),
+
   dossierId: text("dossier_id")
     .notNull()
     .references(() => dossiers.id),
@@ -143,6 +164,11 @@ export const debts = pgTable("debts", {
 
 export const budgetLines = pgTable("budget_lines", {
   id: text("id").primaryKey().$defaultFn(createId),
+  // Durable idempotent-materialization key (Temujin PR-6 r2 #1): set
+  // when this row was created by accepting an AI proposal; retries find
+  // the existing row instead of duplicating.
+  sourceProposalId: text("source_proposal_id"),
+
   dossierId: text("dossier_id")
     .notNull()
     .references(() => dossiers.id),
@@ -303,6 +329,75 @@ export const documents = pgTable("documents", {
   proposedAction: text("proposed_action"),
   uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
 });
+
+// ---------- AI intake proposals (plan os-v1 W2) ----------
+//
+// AI NEVER writes to real tables. Extraction lands here as proposals;
+// accepting one materializes the real row through the SAME server actions
+// as manual entry (same validation, same audit), with the audit carrying
+// proposal id + source document hash. Idempotent per
+// (document, kind, payloadHash, extractorVersion) — re-running extraction
+// never duplicates proposals.
+
+export const aiProposals = pgTable(
+  "ai_proposals",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    dossierId: text("dossier_id")
+      .notNull()
+      .references(() => dossiers.id),
+    sourceDocumentId: text("source_document_id")
+      .notNull()
+      .references(() => documents.id),
+    /** Immutable copy of the source document's hash at extraction time —
+     *  provenance must not depend on a mutable relation (Temujin PR-6 #4). */
+    sourceDocumentSha256: text("source_document_sha256").notNull().default(""),
+    kind: text("kind", {
+      enum: ["budget_line", "debt", "contact", "account_opening_balance"],
+    }).notNull(),
+    payload: jsonb("payload").notNull().$type<Record<string, unknown>>(),
+    /** Per extracted field: the verbatim source snippet it came from. */
+    fieldProvenance: jsonb("field_provenance").$type<Record<string, string>>(),
+    confidence: integer("confidence"), // 0-100
+    extractorVersion: text("extractor_version").notNull(), // model + prompt version
+    payloadHash: text("payload_hash").notNull(),
+    status: text("status", {
+      enum: ["proposed", "accepting", "accepted", "rejected"],
+    })
+      .notNull()
+      .default("proposed"),
+    /** Exclusive lease on `accepting` (Temujin PR-6 r3 #1): the claim
+     *  writes a fresh token + timestamp; finalisation requires the same
+     *  token; a stale lease may be re-claimed only after expiry. */
+    claimToken: text("claim_token"),
+    claimedAt: timestamp("claimed_at"),
+    decidedBy: text("decided_by"),
+    decidedAt: timestamp("decided_at"),
+    /** Entity created on acceptance (audit cross-reference). */
+    resultEntityId: text("result_entity_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("ai_proposals_idempotent").on(
+      t.sourceDocumentId,
+      t.kind,
+      t.payloadHash,
+      t.extractorVersion
+    ),
+    index("ai_proposals_dossier").on(t.dossierId, t.status),
+  ]
+);
+
+export const aiProposalsRelations = relations(aiProposals, ({ one }) => ({
+  dossier: one(dossiers, {
+    fields: [aiProposals.dossierId],
+    references: [dossiers.id],
+  }),
+  sourceDocument: one(documents, {
+    fields: [aiProposals.sourceDocumentId],
+    references: [documents.id],
+  }),
+}));
 
 // ---------- Letters & filings ----------
 

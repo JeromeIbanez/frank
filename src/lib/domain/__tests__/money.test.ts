@@ -57,3 +57,18 @@ describe("parseEuro", () => {
     }
   });
 });
+
+describe("parseEuro — decimal-separator cases from PR-6 r2 #3", () => {
+  it("dot as decimal: '486.30' is €486,30, never €48.630", () => {
+    expect(parseEuro("486.30")).toBe(48_630);
+  });
+  it("comma as decimal: '486,30'", () => {
+    expect(parseEuro("486,30")).toBe(48_630);
+  });
+  it("Dutch grouping + comma decimal: '1.842,50'", () => {
+    expect(parseEuro("1.842,50")).toBe(184_250);
+  });
+  it("English grouping + dot decimal: '1,842.50'", () => {
+    expect(parseEuro("1,842.50")).toBe(184_250);
+  });
+});

@@ -11,18 +11,32 @@ import { refreshSignalsSafe } from "@/lib/signals";
 export async function addBudgetLine(
   dossierId: string,
   formData: FormData
-): Promise<void> {
+): Promise<{ ok: boolean; error?: string; entityId?: string }> {
   const actor = await currentActor();
   const db = getDb();
   const amountEuro = Number(
     String(formData.get("amount") || "0").replace(",", ".")
   );
-  if (!Number.isFinite(amountEuro) || amountEuro <= 0) return;
+  if (!Number.isFinite(amountEuro) || amountEuro <= 0)
+    return { ok: false, error: "invalid_amount" };
   const amountCents = Math.round(amountEuro * 100);
+  // Idempotent materialization (Temujin PR-6 r2 #1).
+  const sourceProposalId =
+    String(formData.get("sourceProposalId") || "") || null;
+  if (sourceProposalId) {
+    const existing = await db.query.budgetLines.findFirst({
+      where: eq(budgetLines.sourceProposalId, sourceProposalId),
+    });
+    if (existing) return { ok: true, entityId: existing.id };
+  }
+  // DB-boundary race handling (Temujin PR-6 r3 #3): a concurrent retry
+  // that loses the unique-index race resumes on the existing row instead
+  // of throwing.
   const [row] = await db
     .insert(budgetLines)
     .values({
       dossierId,
+      sourceProposalId,
       kind: String(formData.get("kind") || "expense") as
         | "income"
         | "expense"
@@ -46,7 +60,17 @@ export async function addBudgetLine(
       // machtiging guard; empty => contractual fixed last (regular_bill).
       purposeTag: String(formData.get("purposeTag") || "").trim() || null,
     })
+    .onConflictDoNothing()
     .returning();
+  if (!row) {
+    if (sourceProposalId) {
+      const existing = await db.query.budgetLines.findFirst({
+        where: eq(budgetLines.sourceProposalId, sourceProposalId),
+      });
+      if (existing) return { ok: true, entityId: existing.id };
+    }
+    return { ok: false, error: "insert_conflict" };
+  }
   await writeAudit({
     actorId: actor.id,
     actorType: "human",
@@ -62,6 +86,7 @@ export async function addBudgetLine(
   });
   revalidatePath(`/dossiers/${dossierId}`);
   await refreshSignalsSafe();
+  return { ok: true, entityId: row.id };
 }
 
 export async function deactivateBudgetLine(lineId: string): Promise<void> {

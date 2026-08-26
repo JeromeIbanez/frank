@@ -20,11 +20,17 @@ import { DocumentsTab } from "@/components/dossier/documents-tab";
 import { LettersTab } from "@/components/dossier/letters-tab";
 import { FilingsTab } from "@/components/dossier/filings-tab";
 import { CopilotChat } from "@/components/dossier/copilot-chat";
+import { IntakeTab } from "@/components/dossier/intake-tab";
+import { getDb } from "@/lib/db";
+import { aiProposals } from "@/lib/db/schema";
+import { and, eq, inArray } from "drizzle-orm";
+import { boedelChecklist, completeness } from "@/lib/domain/intake";
 
 export const dynamic = "force-dynamic";
 
 const TABS = [
   "overview",
+  "intake",
   "tasks",
   "budget",
   "transactions",
@@ -51,6 +57,49 @@ export default async function DossierPage({
   const dossier = await getDossier(id);
   if (!dossier) notFound();
   const urgency = await dossierUrgency(id);
+
+  // Intake collapses once onboarding is done (Temujin PR-6 UX): checklist
+  // complete, no pending proposals, dossier active. The werkdocumenten stay
+  // reachable from the Filings tab.
+  const [pendingProposal] = await getDb()
+    .select({ id: aiProposals.id })
+    .from(aiProposals)
+    .where(
+      and(
+        eq(aiProposals.dossierId, id),
+        inArray(aiProposals.status, ["proposed", "accepting"])
+      )
+    )
+    .limit(1);
+  const intakeItems = boedelChecklist({
+    accounts: dossier.accounts.map((a) => ({
+      type: a.type,
+      openingBalanceCents: a.openingBalanceCents,
+      openingBalanceDate: a.openingBalanceDate,
+    })),
+    incomeLines: dossier.budgetLines.filter(
+      (b) => b.kind === "income" && b.active
+    ).length,
+    expenseLines: dossier.budgetLines.filter(
+      (b) => b.kind === "expense" && b.active
+    ).length,
+    debts: dossier.debts.length,
+    schuldenbewind: dossier.schuldenbewind,
+    contactsTotal: dossier.contacts.length,
+    contactsNotified: dossier.contacts.filter((c) => c.notified).length,
+    inboedelNoteSet: !!dossier.inboedelNote,
+    leefgeldSet: !!dossier.leefgeldAmountCents,
+    pvaGoalsSet: !!dossier.pvaGoals,
+    pvaDebtStrategySet: !!dossier.pvaDebtStrategy,
+  });
+  const intakeProgress = completeness(intakeItems);
+  const intakeDone =
+    intakeProgress.done === intakeProgress.total &&
+    !pendingProposal &&
+    dossier.status === "actief";
+  const visibleTabs = TABS.filter((k) => k !== "intake" || !intakeDone);
+  const effectiveTab: Tab =
+    tab === "intake" && intakeDone ? "overview" : tab;
 
   const balances = new Map<string, number>();
   for (const acc of dossier.accounts) {
@@ -137,13 +186,13 @@ export default async function DossierPage({
       </div>
 
       <nav className="flex gap-1 border-b border-hairline overflow-x-auto">
-        {TABS.map((tabKey) => (
+        {visibleTabs.map((tabKey) => (
           <Link
             key={tabKey}
             href={`/dossiers/${id}?tab=${tabKey}`}
             className={cn(
               "px-[13px] py-[9px] text-[13.5px] whitespace-nowrap border-b-2 -mb-px",
-              tab === tabKey
+              effectiveTab === tabKey
                 ? "border-[#4F46E5] text-[#4338CA] font-semibold"
                 : "border-transparent text-ink-600 hover:text-ink-900"
             )}
@@ -153,23 +202,24 @@ export default async function DossierPage({
         ))}
       </nav>
 
-      {tab === "overview" && <OverviewTab dossier={dossier} balances={balances} />}
-      {tab === "tasks" && <TasksTab dossierId={id} tasksPromise={getDossierTasks(id)} />}
-      {tab === "budget" && <BudgetTab dossier={dossier} />}
-      {tab === "transactions" && (
+      {effectiveTab === "overview" && <OverviewTab dossier={dossier} balances={balances} />}
+      {effectiveTab === "intake" && <IntakeTab dossier={dossier} />}
+      {effectiveTab === "tasks" && <TasksTab dossierId={id} tasksPromise={getDossierTasks(id)} />}
+      {effectiveTab === "budget" && <BudgetTab dossier={dossier} />}
+      {effectiveTab === "transactions" && (
         <TransactionsTab
           dossier={dossier}
           transactionsPromise={getDossierTransactions(id)}
         />
       )}
-      {tab === "documents" && (
+      {effectiveTab === "documents" && (
         <DocumentsTab dossierId={id} documentsPromise={getDossierDocuments(id)} />
       )}
-      {tab === "letters" && (
+      {effectiveTab === "letters" && (
         <LettersTab dossier={dossier} lettersPromise={getDossierLetters(id)} />
       )}
-      {tab === "filings" && <FilingsTab dossier={dossier} />}
-      {tab === "copilot" && <CopilotChat dossierId={id} />}
+      {effectiveTab === "filings" && <FilingsTab dossier={dossier} />}
+      {effectiveTab === "copilot" && <CopilotChat dossierId={id} />}
     </div>
   );
 }

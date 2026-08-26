@@ -74,7 +74,7 @@ export async function createDossier(formData: FormData): Promise<void> {
 export async function addAccount(
   dossierId: string,
   formData: FormData
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; entityId?: string }> {
   const actor = await currentActor();
   const db = getDb();
   // Validate at the boundary (Temujin code review finding 8): invalid data
@@ -89,17 +89,44 @@ export async function addAccount(
   }
   if (!isValidIban(iban)) return { ok: false, error: "invalid_iban" };
   if (!Number.isFinite(balance)) return { ok: false, error: "invalid_amount" };
+  // Idempotent materialization (Temujin PR-6 r2 #1).
+  const sourceProposalId =
+    String(formData.get("sourceProposalId") || "") || null;
+  if (sourceProposalId) {
+    const existing = await db.query.accounts.findFirst({
+      where: eq(accounts.sourceProposalId, sourceProposalId),
+    });
+    if (existing) return { ok: true, entityId: existing.id };
+  }
+  // DB-boundary race handling (Temujin PR-6 r3 #3): a concurrent retry
+  // that loses the unique-index race resumes on the existing row instead
+  // of throwing.
   const [row] = await db
     .insert(accounts)
     .values({
       dossierId,
+      sourceProposalId,
       type: type as "beheer" | "leefgeld" | "spaar",
       iban,
       bankName: String(formData.get("bankName") || "") || null,
       openingBalanceCents: Math.round(balance * 100),
-      openingBalanceDate: isoToday(),
+      openingBalanceDate: /^\d{4}-\d{2}-\d{2}$/.test(
+        String(formData.get("openingBalanceDate") || "")
+      )
+        ? String(formData.get("openingBalanceDate"))
+        : isoToday(),
     })
+    .onConflictDoNothing()
     .returning();
+  if (!row) {
+    if (sourceProposalId) {
+      const existing = await db.query.accounts.findFirst({
+        where: eq(accounts.sourceProposalId, sourceProposalId),
+      });
+      if (existing) return { ok: true, entityId: existing.id };
+    }
+    return { ok: false, error: "insert_conflict" };
+  }
   await writeAudit({
     actorId: actor.id,
     actorType: "human",
@@ -109,7 +136,7 @@ export async function addAccount(
     versionAfter: { iban: row.iban, type: row.type },
   });
   revalidatePath(`/dossiers/${dossierId}`);
-  return { ok: true };
+  return { ok: true, entityId: row.id };
 }
 
 /**

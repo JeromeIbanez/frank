@@ -10,6 +10,7 @@ import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
 import { callStructured } from "@/lib/ai/gateway";
 import { refreshSignalsSafe } from "@/lib/signals";
+import { extractIntakeProposals } from "@/lib/actions/intake";
 
 const CLASSIFICATIONS = [
   "factuur",
@@ -168,6 +169,13 @@ export async function linkDocumentToDossier(
   });
   revalidatePath("/inbox");
   revalidatePath(`/dossiers/${dossierId}`);
+  // Linked document with text → offer intake proposals (fallback-safe;
+  // a failed/unavailable extraction never breaks the link action).
+  try {
+    await extractIntakeProposals(documentId);
+  } catch (e) {
+    console.error("intake extraction failed:", e);
+  }
   await refreshSignalsSafe();
 }
 
