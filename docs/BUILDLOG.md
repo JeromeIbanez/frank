@@ -1,5 +1,20 @@
 # Frank OS — Build Log
 
+## OS v1 PR-2: Signals + Today shipped — 2026-08-26
+- 11 pure detectors (signals-v2) over an office-TZ snapshot; conservative
+  income matching with month-clamped due dates and a bounded credit window
+  [due month start, due+grace]; unexpected_debit never suppressed by
+  category alone; rv_window = filing DUE month (court schedule), period
+  model deferred to W3.
+- Materialized signal lifecycle (never authoritative): event-triggered
+  refresh from 17 actions + explicit refresh, per-row writes only on
+  change/version bump, batched freshness touch; dismissed-stays-dismissed,
+  reopen only after clear-then-recur; audited dismissal with reason.
+- Today (/) replaces render-time exceptions: severity-ordered signal card
+  with i18n sentences, mono provenance, deep links.
+- PR #5, three Temujin rounds → APPROVE (round 3 accepted the due+grace
+  bound over his month-end suggestion); 129 tests; production deployed.
+
 ## OS v1 PR-1: Foundation shipped — 2026-08-26
 - Plan docs/plans/os-v1.md approved by Temujin (round 2); four-PR cycle.
 - Auth foundation (PR #4, three review rounds → APPROVE): identity
