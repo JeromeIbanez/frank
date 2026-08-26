@@ -97,7 +97,11 @@ export async function addAccount(
       iban,
       bankName: String(formData.get("bankName") || "") || null,
       openingBalanceCents: Math.round(balance * 100),
-      openingBalanceDate: isoToday(),
+      openingBalanceDate: /^\d{4}-\d{2}-\d{2}$/.test(
+        String(formData.get("openingBalanceDate") || "")
+      )
+        ? String(formData.get("openingBalanceDate"))
+        : isoToday(),
     })
     .returning();
   await writeAudit({

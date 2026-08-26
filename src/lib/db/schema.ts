@@ -83,6 +83,12 @@ export const dossiers = pgTable("dossiers", {
   })
     .notNull()
     .default("aanmelding"),
+  // Intake werkdocumenten (plan os-v1 W2): free-text sections maintained on
+  // the dossier, code-assembled into boedelbeschrijving / plan van aanpak.
+  inboedelNote: text("inboedel_note"),
+  pvaGoals: text("pva_goals"),
+  pvaAgreements: text("pva_agreements"),
+  pvaDebtStrategy: text("pva_debt_strategy"), // schuldenbewind supplement
   leefgeldAmountCents: integer("leefgeld_amount_cents"),
   leefgeldFrequency: text("leefgeld_frequency", {
     enum: ["weekly", "monthly"],
@@ -303,6 +309,65 @@ export const documents = pgTable("documents", {
   proposedAction: text("proposed_action"),
   uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
 });
+
+// ---------- AI intake proposals (plan os-v1 W2) ----------
+//
+// AI NEVER writes to real tables. Extraction lands here as proposals;
+// accepting one materializes the real row through the SAME server actions
+// as manual entry (same validation, same audit), with the audit carrying
+// proposal id + source document hash. Idempotent per
+// (document, kind, payloadHash, extractorVersion) — re-running extraction
+// never duplicates proposals.
+
+export const aiProposals = pgTable(
+  "ai_proposals",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    dossierId: text("dossier_id")
+      .notNull()
+      .references(() => dossiers.id),
+    sourceDocumentId: text("source_document_id")
+      .notNull()
+      .references(() => documents.id),
+    kind: text("kind", {
+      enum: ["budget_line", "debt", "contact", "account_opening_balance"],
+    }).notNull(),
+    payload: jsonb("payload").notNull().$type<Record<string, unknown>>(),
+    /** Per extracted field: the verbatim source snippet it came from. */
+    fieldProvenance: jsonb("field_provenance").$type<Record<string, string>>(),
+    confidence: integer("confidence"), // 0-100
+    extractorVersion: text("extractor_version").notNull(), // model + prompt version
+    payloadHash: text("payload_hash").notNull(),
+    status: text("status", { enum: ["proposed", "accepted", "rejected"] })
+      .notNull()
+      .default("proposed"),
+    decidedBy: text("decided_by"),
+    decidedAt: timestamp("decided_at"),
+    /** Entity created on acceptance (audit cross-reference). */
+    resultEntityId: text("result_entity_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("ai_proposals_idempotent").on(
+      t.sourceDocumentId,
+      t.kind,
+      t.payloadHash,
+      t.extractorVersion
+    ),
+    index("ai_proposals_dossier").on(t.dossierId, t.status),
+  ]
+);
+
+export const aiProposalsRelations = relations(aiProposals, ({ one }) => ({
+  dossier: one(dossiers, {
+    fields: [aiProposals.dossierId],
+    references: [dossiers.id],
+  }),
+  sourceDocument: one(documents, {
+    fields: [aiProposals.sourceDocumentId],
+    references: [documents.id],
+  }),
+}));
 
 // ---------- Letters & filings ----------
 

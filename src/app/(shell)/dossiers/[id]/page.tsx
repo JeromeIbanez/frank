@@ -20,11 +20,13 @@ import { DocumentsTab } from "@/components/dossier/documents-tab";
 import { LettersTab } from "@/components/dossier/letters-tab";
 import { FilingsTab } from "@/components/dossier/filings-tab";
 import { CopilotChat } from "@/components/dossier/copilot-chat";
+import { IntakeTab } from "@/components/dossier/intake-tab";
 
 export const dynamic = "force-dynamic";
 
 const TABS = [
   "overview",
+  "intake",
   "tasks",
   "budget",
   "transactions",
@@ -154,6 +156,7 @@ export default async function DossierPage({
       </nav>
 
       {tab === "overview" && <OverviewTab dossier={dossier} balances={balances} />}
+      {tab === "intake" && <IntakeTab dossier={dossier} />}
       {tab === "tasks" && <TasksTab dossierId={id} tasksPromise={getDossierTasks(id)} />}
       {tab === "budget" && <BudgetTab dossier={dossier} />}
       {tab === "transactions" && (
