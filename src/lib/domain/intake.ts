@@ -208,19 +208,55 @@ export function verifyProvenance(
     return null;
   };
   const amountEvidenced = (cents: number) => evidencePos(euroForms(cents));
+  // IBANs are printed with grouping spaces; compare with ALL whitespace
+  // stripped (Temujin PR-6 r3 #2).
+  const squash = (s: string) => s.replace(/\s+/g, "").toLowerCase();
+  const squashedSnippets = Object.values(verified).map(squash);
+  const ibanEvidenced = (iban: string) =>
+    squashedSnippets.some((s) => s.includes(squash(iban)));
+  // Dutch ordinals ("de 25e") keep the digits adjacent to a letter, so the
+  // boundary is any NON-DIGIT (never another digit: 25 must not match 125).
+  const dayEvidenced = (day: number) =>
+    snippets.some((s) =>
+      new RegExp(`(^|\\D)0?${day}(\\D|$)`).test(s)
+    );
 
   let ok = false;
   let sanitizedPayload: ProposalPayload = payload;
 
   switch (payload.kind) {
-    case "budget_line":
+    case "budget_line": {
       ok = amountEvidenced(payload.amountCents) !== null;
+      if (ok) {
+        // Matching-critical facts must be evidenced or STRIPPED (r3 #2):
+        // an unevidenced counterparty IBAN or expected day would silently
+        // steer income matching and payment generation.
+        const stripped = { ...payload };
+        if (
+          stripped.counterpartyIban != null &&
+          !ibanEvidenced(stripped.counterpartyIban)
+        ) {
+          stripped.counterpartyIban = null;
+        }
+        if (
+          stripped.expectedDay != null &&
+          !dayEvidenced(stripped.expectedDay)
+        ) {
+          stripped.expectedDay = null;
+        }
+        sanitizedPayload = stripped;
+      }
       break;
+    }
     case "contact":
       ok = evidencePos([norm(payload.name)]) !== null;
       break;
     case "account_opening_balance":
-      ok = amountEvidenced(payload.openingBalanceCents) !== null;
+      // An account row with an unevidenced IBAN is a wrong-account risk —
+      // the IBAN itself is material here, alongside the signed balance.
+      ok =
+        amountEvidenced(payload.openingBalanceCents) !== null &&
+        ibanEvidenced(payload.iban);
       break;
     case "debt": {
       const posAmount = amountEvidenced(payload.currentAmountCents);

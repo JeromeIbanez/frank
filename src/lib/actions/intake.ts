@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, lt, or } from "drizzle-orm";
+import { createId } from "@paralleldrive/cuid2";
 import { getDb } from "@/lib/db";
 import {
   aiProposals,
@@ -25,6 +26,10 @@ import {
 import { callStructured, MODEL_STRUCTURED, PROMPT_VERSION } from "@/lib/ai/gateway";
 import { addBudgetLine } from "@/lib/actions/budget";
 import { addAccount } from "@/lib/actions/dossiers";
+
+/** How long an accept claim stays exclusive before a crashed attempt may
+ *  be re-claimed (Temujin PR-6 r3 #1). */
+const ACCEPT_LEASE_MS = 2 * 60_000;
 
 /** Manual debt entry — also the materialization path for accepted debt
  *  proposals (one validation + audit path, plan os-v1 W2). */
@@ -55,6 +60,9 @@ export async function addDebt(
     });
     if (existing) return { ok: true, entityId: existing.id };
   }
+  // DB-boundary race handling (Temujin PR-6 r3 #3): a concurrent retry
+  // that loses the unique-index race resumes on the existing row instead
+  // of throwing.
   const [row] = await db
     .insert(debts)
     .values({
@@ -70,7 +78,17 @@ export async function addDebt(
       viaDeurwaarder:
         String(formData.get("viaDeurwaarder") || "").trim() || null,
     })
+    .onConflictDoNothing()
     .returning();
+  if (!row) {
+    if (sourceProposalId) {
+      const existing = await db.query.debts.findFirst({
+        where: eq(debts.sourceProposalId, sourceProposalId),
+      });
+      if (existing) return { ok: true, entityId: existing.id };
+    }
+    return { ok: false, error: "insert_conflict" };
+  }
   await writeAudit({
     actorId: actor.id,
     actorType: "human",
@@ -100,6 +118,9 @@ export async function addContact(
     });
     if (existing) return { ok: true, entityId: existing.id };
   }
+  // DB-boundary race handling (Temujin PR-6 r3 #3): a concurrent retry
+  // that loses the unique-index race resumes on the existing row instead
+  // of throwing.
   const [row] = await db
     .insert(contacts)
     .values({
@@ -111,7 +132,17 @@ export async function addContact(
       email: String(formData.get("email") || "").trim() || null,
       phone: String(formData.get("phone") || "").trim() || null,
     })
+    .onConflictDoNothing()
     .returning();
+  if (!row) {
+    if (sourceProposalId) {
+      const existing = await db.query.contacts.findFirst({
+        where: eq(contacts.sourceProposalId, sourceProposalId),
+      });
+      if (existing) return { ok: true, entityId: existing.id };
+    }
+    return { ok: false, error: "insert_conflict" };
+  }
   await writeAudit({
     actorId: actor.id,
     actorType: "human",
@@ -273,17 +304,20 @@ export async function decideProposal(
     parsedEdit = parsed.data;
   }
 
-  // Crash-safe claim (Temujin PR-6 #1 + r2 #1). Reject: proposed→rejected,
-  // one winner. Accept: proposed/accepting→accepting — `accepting` is the
-  // durable intermediate, so a crash mid-materialization leaves a
-  // retryable `accepting` row, never a phantom `accepted`. Retries are
-  // safe because materialization itself is idempotent: every created
-  // entity carries a unique sourceProposalId, and the creation actions
-  // return the existing row for a repeated key.
+  // Crash-safe EXCLUSIVE claim (Temujin PR-6 #1 + r2 #1 + r3 #1).
+  // Reject: proposed→rejected, one winner. Accept: the claim writes a
+  // fresh lease token; `accepting` may only be re-claimed after the lease
+  // EXPIRES (a crashed accept), never while another request holds it — so
+  // two tabs can never both drive the same proposal. Every later write
+  // requires the token.
+  const claimToken = createId();
+  const leaseCutoff = new Date(Date.now() - ACCEPT_LEASE_MS);
   const [claimed] = await db
     .update(aiProposals)
     .set({
       status: decision === "accept" ? "accepting" : "rejected",
+      claimToken: decision === "accept" ? claimToken : null,
+      claimedAt: decision === "accept" ? new Date() : null,
       decidedBy: actor.id,
       decidedAt: new Date(),
     })
@@ -291,7 +325,13 @@ export async function decideProposal(
       and(
         eq(aiProposals.id, proposalId),
         decision === "accept"
-          ? inArray(aiProposals.status, ["proposed", "accepting"])
+          ? or(
+              eq(aiProposals.status, "proposed"),
+              and(
+                eq(aiProposals.status, "accepting"),
+                lt(aiProposals.claimedAt, leaseCutoff)
+              )
+            )
           : eq(aiProposals.status, "proposed")
       )
     )
@@ -306,12 +346,24 @@ export async function decideProposal(
       ? { success: true as const, data: parsedEdit }
       : proposalPayload.safeParse(claimed.payload);
     const fail = async (error: string) => {
-      // VALIDATION failure — release the claim so the human can fix and
-      // retry. (A crash instead leaves `accepting`, also retryable.)
+      // VALIDATION failure — release the claim (token-guarded) so the
+      // human can fix and retry. (A crash instead leaves `accepting`,
+      // retryable after lease expiry.)
       await db
         .update(aiProposals)
-        .set({ status: "proposed", decidedBy: null, decidedAt: null })
-        .where(eq(aiProposals.id, proposalId));
+        .set({
+          status: "proposed",
+          claimToken: null,
+          claimedAt: null,
+          decidedBy: null,
+          decidedAt: null,
+        })
+        .where(
+          and(
+            eq(aiProposals.id, proposalId),
+            eq(aiProposals.claimToken, claimToken)
+          )
+        );
       return { ok: false as const, error };
     };
     if (!parsed.success) return fail("invalid_payload");
@@ -324,14 +376,27 @@ export async function decideProposal(
     if (!materialized.ok)
       return fail(materialized.error ?? "materialize_failed");
     resultEntityId = materialized.entityId ?? null;
-    await db
+    // Finalisation requires OUR token: if the lease expired and someone
+    // else re-claimed, this writes nothing and we do not record a second
+    // conflicting decision (the idempotent materialization already made
+    // the two attempts converge on the same entity).
+    const [finalized] = await db
       .update(aiProposals)
       .set({
         status: "accepted",
         resultEntityId,
+        claimToken: null,
+        claimedAt: null,
         ...(parsedEdit ? { payload: parsedEdit } : {}),
       })
-      .where(eq(aiProposals.id, proposalId));
+      .where(
+        and(
+          eq(aiProposals.id, proposalId),
+          eq(aiProposals.claimToken, claimToken)
+        )
+      )
+      .returning({ id: aiProposals.id });
+    if (!finalized) return { ok: false, error: "lease_lost" };
   }
 
   // Human overrides recorded explicitly: field → {before, after} diff of

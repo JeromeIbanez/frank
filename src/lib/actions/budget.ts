@@ -29,6 +29,9 @@ export async function addBudgetLine(
     });
     if (existing) return { ok: true, entityId: existing.id };
   }
+  // DB-boundary race handling (Temujin PR-6 r3 #3): a concurrent retry
+  // that loses the unique-index race resumes on the existing row instead
+  // of throwing.
   const [row] = await db
     .insert(budgetLines)
     .values({
@@ -57,7 +60,17 @@ export async function addBudgetLine(
       // machtiging guard; empty => contractual fixed last (regular_bill).
       purposeTag: String(formData.get("purposeTag") || "").trim() || null,
     })
+    .onConflictDoNothing()
     .returning();
+  if (!row) {
+    if (sourceProposalId) {
+      const existing = await db.query.budgetLines.findFirst({
+        where: eq(budgetLines.sourceProposalId, sourceProposalId),
+      });
+      if (existing) return { ok: true, entityId: existing.id };
+    }
+    return { ok: false, error: "insert_conflict" };
+  }
   await writeAudit({
     actorId: actor.id,
     actorType: "human",

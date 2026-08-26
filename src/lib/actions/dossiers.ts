@@ -98,6 +98,9 @@ export async function addAccount(
     });
     if (existing) return { ok: true, entityId: existing.id };
   }
+  // DB-boundary race handling (Temujin PR-6 r3 #3): a concurrent retry
+  // that loses the unique-index race resumes on the existing row instead
+  // of throwing.
   const [row] = await db
     .insert(accounts)
     .values({
@@ -113,7 +116,17 @@ export async function addAccount(
         ? String(formData.get("openingBalanceDate"))
         : isoToday(),
     })
+    .onConflictDoNothing()
     .returning();
+  if (!row) {
+    if (sourceProposalId) {
+      const existing = await db.query.accounts.findFirst({
+        where: eq(accounts.sourceProposalId, sourceProposalId),
+      });
+      if (existing) return { ok: true, entityId: existing.id };
+    }
+    return { ok: false, error: "insert_conflict" };
+  }
   await writeAudit({
     actorId: actor.id,
     actorType: "human",

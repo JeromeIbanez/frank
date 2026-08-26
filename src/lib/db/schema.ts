@@ -366,6 +366,11 @@ export const aiProposals = pgTable(
     })
       .notNull()
       .default("proposed"),
+    /** Exclusive lease on `accepting` (Temujin PR-6 r3 #1): the claim
+     *  writes a fresh token + timestamp; finalisation requires the same
+     *  token; a stale lease may be re-claimed only after expiry. */
+    claimToken: text("claim_token"),
+    claimedAt: timestamp("claimed_at"),
     decidedBy: text("decided_by"),
     decidedAt: timestamp("decided_at"),
     /** Entity created on acceptance (audit cross-reference). */

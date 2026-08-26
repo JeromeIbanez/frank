@@ -212,22 +212,62 @@ describe("verifyProvenance (Temujin PR-6 #2 + r2 #2)", () => {
   });
 
   it("negative opening balance requires a printed minus (sign enforcement)", () => {
-    const posDoc = "Rekening NL01BANK: saldo 500,00 per 01-08-2026";
     const negPayload = proposalPayload.parse({
       kind: "account_opening_balance", iban: "NL01BANK0000000001",
       accountType: "beheer", openingBalanceCents: -50000,
     });
+    const posDoc = "Rekening NL01 BANK 0000 0000 01: saldo 500,00 per 01-08-2026";
     const negItem = {
-      ...item([{ field: "saldo", snippet: "saldo 500,00 per 01-08-2026" }]),
+      ...item([{ field: "saldo", snippet: "Rekening NL01 BANK 0000 0000 01: saldo 500,00 per 01-08-2026" }]),
       kind: "account_opening_balance" as const,
     };
     expect(verifyProvenance(negItem, negPayload, posDoc).ok).toBe(false);
-    const negDoc = "Rekening NL01BANK: saldo -500,00 per 01-08-2026";
+    const negDoc = "Rekening NL01 BANK 0000 0000 01: saldo -500,00 per 01-08-2026";
     const negItem2 = {
-      ...item([{ field: "saldo", snippet: "saldo -500,00 per 01-08-2026" }]),
+      ...item([{ field: "saldo", snippet: "Rekening NL01 BANK 0000 0000 01: saldo -500,00 per 01-08-2026" }]),
       kind: "account_opening_balance" as const,
     };
     expect(verifyProvenance(negItem2, negPayload, negDoc).ok).toBe(true);
+  });
+
+  it("account with unevidenced IBAN is rejected (r3 #2)", () => {
+    const payload = proposalPayload.parse({
+      kind: "account_opening_balance", iban: "NL99FOUT0000000099",
+      accountType: "beheer", openingBalanceCents: 50000,
+    });
+    const d = "Rekening NL01 BANK 0000 0000 01: saldo 500,00";
+    const it2 = {
+      ...item([{ field: "saldo", snippet: "saldo 500,00" }]),
+      kind: "account_opening_balance" as const,
+    };
+    expect(verifyProvenance(it2, payload, d).ok).toBe(false);
+  });
+
+  it("unevidenced counterpartyIban and expectedDay are stripped from a budget line (r3 #2)", () => {
+    const payload = proposalPayload.parse({
+      kind: "budget_line", lineKind: "income", name: "Nettoloon",
+      categoryKey: "inkomen_loon", amountCents: 184250, frequency: "monthly",
+      expectedDay: 25, counterpartyIban: "NL99FOUT0000000099",
+    });
+    const d = "Nettoloon: EUR 1.842,50 per maand";
+    const it3 = {
+      ...item([{ field: "loon", snippet: "Nettoloon: EUR 1.842,50" }]),
+      kind: "budget_line" as const,
+    };
+    const r = verifyProvenance(it3, payload, d);
+    expect(r.ok).toBe(true);
+    const sp = r.sanitizedPayload as { counterpartyIban?: string | null; expectedDay?: number | null };
+    expect(sp.counterpartyIban).toBeNull();
+    expect(sp.expectedDay).toBeNull();
+    // ...and evidenced ones survive
+    const d2 = "Nettoloon: EUR 1.842,50, uitbetaling de 25e, IBAN NL99 FOUT 0000 0000 99";
+    const it4 = {
+      ...item([{ field: "loon", snippet: "Nettoloon: EUR 1.842,50, uitbetaling de 25e, IBAN NL99 FOUT 0000 0000 99" }]),
+      kind: "budget_line" as const,
+    };
+    const r2 = verifyProvenance(it4, payload, d2);
+    expect((r2.sanitizedPayload as { counterpartyIban?: string | null }).counterpartyIban).toBe("NL99FOUT0000000099");
+    expect((r2.sanitizedPayload as { expectedDay?: number | null }).expectedDay).toBe(25);
   });
 
   it("grouped euro form (1.842,50) is recognized", () => {
