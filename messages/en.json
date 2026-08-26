@@ -167,9 +167,10 @@
       "copilot": "Copilot"
     },
     "urgency": {
+      "summary": "{count} need attention",
       "overdue": "{count} overdue",
-      "unconfirmed": "{count} unconfirmed legal deadline(s)",
-      "dueSoon": "{count} due within 14 days"
+      "unconfirmed": "{count} unconfirmed",
+      "dueSoon": "{count} due soon"
     }
   },
   "overview": {

@@ -71,11 +71,11 @@ export async function BudgetTab({ dossier }: { dossier: DossierFull }) {
               {section.lines.map((line) => (
                 <div
                   key={line.id}
-                  className="group flex items-center justify-between text-sm rounded px-2 py-1.5 hover:bg-neutral-50"
+                  className="group flex items-center justify-between text-sm rounded px-2 py-1.5 hover:bg-muted/50"
                 >
                   <div className="min-w-0">
                     <div className="truncate">{line.name}</div>
-                    <div className="text-xs text-neutral-400">
+                    <div className="text-xs text-muted-foreground/70">
                       {t(`freq.${line.frequency}`)}
                       {line.expectedDay ? ` · ${t("day")} ${line.expectedDay}` : ""}
                     </div>
@@ -87,7 +87,7 @@ export async function BudgetTab({ dossier }: { dossier: DossierFull }) {
                 </div>
               ))}
               {section.lines.length === 0 && (
-                <p className="text-sm text-neutral-400">{t("none")}</p>
+                <p className="text-sm text-muted-foreground/70">{t("none")}</p>
               )}
             </CardContent>
           </Card>
@@ -139,7 +139,7 @@ function SummaryTile({
         >
           <Money cents={cents} />
         </div>
-        <div className="text-sm text-neutral-500 mt-0.5">{label}</div>
+        <div className="text-sm text-muted-foreground mt-0.5">{label}</div>
       </CardContent>
     </Card>
   );

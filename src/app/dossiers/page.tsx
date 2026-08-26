@@ -24,7 +24,7 @@ export default async function DossiersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {t("count", { count: rows.length })}
           </p>
         </div>
@@ -33,7 +33,7 @@ export default async function DossiersPage() {
         </Button>
       </div>
 
-      <div className="rounded-lg border border-neutral-200 bg-white">
+      <div className="rounded-lg border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -51,7 +51,7 @@ export default async function DossiersPage() {
                 <TableCell>
                   <Link
                     href={`/dossiers/${d.id}`}
-                    className="font-medium text-indigo-700 hover:underline"
+                    className="font-medium text-primary hover:underline"
                   >
                     {d.lastName}, {d.firstName}
                   </Link>
@@ -61,26 +61,26 @@ export default async function DossiersPage() {
                     </span>
                   )}
                 </TableCell>
-                <TableCell className="text-neutral-600">
+                <TableCell className="text-muted-foreground">
                   {t(`regime.${d.regime}`)}
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={d.status} label={t(`status.${d.status}`)} />
                 </TableCell>
-                <TableCell className="tabular-nums text-neutral-600">
+                <TableCell className="tabular-nums text-muted-foreground">
                   {d.startDate ?? "—"}
                 </TableCell>
-                <TableCell className="text-neutral-600">
+                <TableCell className="text-muted-foreground">
                   {d.gemeente ?? "—"}
                 </TableCell>
-                <TableCell className="text-neutral-600">
+                <TableCell className="text-muted-foreground">
                   {d.accounts.length}
                 </TableCell>
               </TableRow>
             ))}
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-neutral-500 py-8">
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   {t("empty")}
                 </TableCell>
               </TableRow>

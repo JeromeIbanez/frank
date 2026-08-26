@@ -1,26 +1,78 @@
 @import "tailwindcss";
 
+/*
+ * Frank OS design tokens — light-first, deliberately committed to a single
+ * calm "Dutch fintech" look. Dark mode is intentionally NOT supported yet:
+ * the earlier scaffold's prefers-color-scheme override made the canvas go
+ * black under light components (Jerome's UX gripe). When dark mode lands,
+ * it lands as designed token pairs, not an OS-media accident.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: oklch(0.985 0.002 90);        /* warm off-white canvas */
+  --foreground: oklch(0.235 0.015 260);       /* ink */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.235 0.015 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.235 0.015 260);
+  --primary: oklch(0.51 0.204 277);           /* indigo 600 */
+  --primary-foreground: oklch(0.985 0.005 277);
+  --secondary: oklch(0.955 0.005 90);
+  --secondary-foreground: oklch(0.32 0.015 260);
+  --muted: oklch(0.96 0.004 90);
+  --muted-foreground: oklch(0.53 0.012 260);
+  --accent: oklch(0.94 0.03 277);
+  --accent-foreground: oklch(0.42 0.18 277);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.98 0.01 25);
+  --border: oklch(0.915 0.005 90);
+  --input: oklch(0.915 0.005 90);
+  --ring: oklch(0.6 0.16 277);
+  --radius: 0.625rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+}
+
+@media print {
+  body {
+    background: white;
+  }
+  aside,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
 }

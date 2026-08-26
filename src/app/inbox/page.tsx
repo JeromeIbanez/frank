@@ -18,7 +18,7 @@ export default async function InboxPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-neutral-500 mt-1">{t("subtitle")}</p>
+        <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
       </div>
 
       <Card>
@@ -54,7 +54,7 @@ export default async function InboxPage() {
           />
         ))}
         {docs.length === 0 && (
-          <p className="text-sm text-neutral-500">{t("empty")}</p>
+          <p className="text-sm text-muted-foreground">{t("empty")}</p>
         )}
       </div>
     </div>

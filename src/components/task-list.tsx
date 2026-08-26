@@ -63,7 +63,7 @@ export function TaskList({ tasks, showDossier }: { tasks: TaskForList[]; showDos
   return (
     <div className="space-y-1.5">
       {active.length === 0 && (
-        <p className="text-sm text-neutral-500 py-2">{t("tasksUi.none")}</p>
+        <p className="text-sm text-muted-foreground py-2">{t("tasksUi.none")}</p>
       )}
       {active.map((task) => (
         <TaskRow
@@ -79,7 +79,7 @@ export function TaskList({ tasks, showDossier }: { tasks: TaskForList[]; showDos
       ))}
       {closed.length > 0 && (
         <details className="pt-2">
-          <summary className="text-sm text-neutral-500 cursor-pointer">
+          <summary className="text-sm text-muted-foreground cursor-pointer">
             {t("tasksUi.completed", { count: closed.length })}
           </summary>
           <div className="mt-1.5 space-y-1.5 opacity-60">
@@ -122,24 +122,24 @@ function TaskRow({
   const nexts = NEXT_TRANSITIONS[task.status] ?? [];
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white px-3.5 py-2.5">
+    <div className="rounded-lg border border-border bg-card px-3.5 py-2.5">
       <div className="flex items-center gap-3">
         <SeverityDot severity={sev} />
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium truncate">{title}</div>
-          <div className="text-xs text-neutral-500 flex flex-wrap items-center gap-x-2">
+          <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-2">
             {showDossier && task.dossierName && <span>{task.dossierName}</span>}
             {task.dueDate && (
               <span className="tabular-nums">
                 {t("tasksUi.due")} {task.dueDate}
               </span>
             )}
-            <span className="uppercase text-[10px] tracking-wide text-neutral-400">
+            <span className="uppercase text-[10px] tracking-wide text-muted-foreground/70">
               {task.tier}
             </span>
           </div>
           {task.legalSource && (
-            <div className="text-[11px] text-neutral-400 mt-0.5">
+            <div className="text-xs text-muted-foreground/70 mt-0.5">
               {task.legalSource} · {t("tasksUi.basis")} {task.basisDate} ·{" "}
               {task.calculationVersion}
             </div>
@@ -171,7 +171,7 @@ function TaskRow({
       {task.checklist && task.checklist.length > 0 && (
         <div className="mt-2 ml-5 space-y-1">
           {task.checklist.map((c) => (
-            <label key={c.key} className="flex items-center gap-2 text-sm text-neutral-600">
+            <label key={c.key} className="flex items-center gap-2 text-sm text-muted-foreground">
               <Checkbox
                 checked={c.done}
                 onCheckedChange={() =>
@@ -214,7 +214,7 @@ function TransitionDialog({
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p className="text-sm text-neutral-500">{t("tasksUi.evidenceHint")}</p>
+          <p className="text-sm text-muted-foreground">{t("tasksUi.evidenceHint")}</p>
           <div className="space-y-2">
             <Label>{t("tasksUi.method")}</Label>
             <Select value={method} onValueChange={(v) => setMethod(v ?? "portal")}>

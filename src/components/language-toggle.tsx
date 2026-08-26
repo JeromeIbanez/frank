@@ -17,7 +17,7 @@ export function LanguageToggle() {
   return (
     <div
       className={cn(
-        "flex rounded-lg border border-neutral-200 p-0.5 text-sm",
+        "flex rounded-lg border border-border bg-muted/50 p-0.5 text-sm",
         pending && "opacity-50"
       )}
       role="group"
@@ -30,8 +30,8 @@ export function LanguageToggle() {
           className={cn(
             "flex-1 rounded-md px-2 py-1 font-medium transition-colors",
             locale === l
-              ? "bg-indigo-600 text-white"
-              : "text-neutral-500 hover:text-neutral-900"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
           )}
         >
           {l.toUpperCase()}

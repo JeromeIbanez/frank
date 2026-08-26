@@ -35,7 +35,7 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-neutral-500 mt-1">{t("subtitle")}</p>
+        <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
               >
                 {tile.value}
               </div>
-              <div className="text-sm text-neutral-500 mt-1">{tile.label}</div>
+              <div className="text-sm text-muted-foreground mt-1">{tile.label}</div>
             </CardContent>
           </Card>
         ))}
@@ -63,18 +63,18 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-1.5">
             {exceptions.length === 0 && (
-              <p className="text-sm text-neutral-500">{t("exceptions.none")}</p>
+              <p className="text-sm text-muted-foreground">{t("exceptions.none")}</p>
             )}
             {exceptions.slice(0, 10).map((e, i) => (
               <Link
                 key={i}
                 href={`/dossiers/${e.dossierId}`}
-                className="flex items-start gap-2.5 rounded-md px-2.5 py-2 hover:bg-neutral-50 text-sm"
+                className="flex items-start gap-2.5 rounded-md px-2.5 py-2 hover:bg-muted/50 text-sm"
               >
                 <SeverityDot severity={e.kind === "uncategorized" ? "amber" : "red"} />
                 <div className="min-w-0">
                   <div className="font-medium">{e.dossierName}</div>
-                  <div className="text-neutral-500">
+                  <div className="text-muted-foreground">
                     {t(`exceptions.${e.kind}`)}
                     {e.kind === "missed_income" && (
                       <>
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-1.5">
             {upcoming.length === 0 && (
-              <p className="text-sm text-neutral-500">{t("deadlines.none")}</p>
+              <p className="text-sm text-muted-foreground">{t("deadlines.none")}</p>
             )}
             {upcoming.map((task) => (
               <Link
@@ -111,7 +111,7 @@ export default async function DashboardPage() {
                 href={
                   task.dossier ? `/dossiers/${task.dossier.id}?tab=tasks` : "/my-day"
                 }
-                className="flex items-center gap-2.5 rounded-md px-2.5 py-2 hover:bg-neutral-50 text-sm"
+                className="flex items-center gap-2.5 rounded-md px-2.5 py-2 hover:bg-muted/50 text-sm"
               >
                 <SeverityDot
                   severity={severity(task.dueDate!, today, task.deadlineConfirmed)}
@@ -120,20 +120,20 @@ export default async function DashboardPage() {
                   <div className="font-medium truncate">
                     {task.titleFree ?? tAll(task.titleKey)}
                   </div>
-                  <div className="text-neutral-500">
+                  <div className="text-muted-foreground">
                     {task.dossier
                       ? `${task.dossier.firstName} ${task.dossier.lastName}`
                       : t("deadlines.office")}
                   </div>
                 </div>
-                <div className="text-neutral-500 tabular-nums">{task.dueDate}</div>
+                <div className="text-muted-foreground tabular-nums">{task.dueDate}</div>
               </Link>
             ))}
           </CardContent>
         </Card>
       </div>
 
-      <p className="text-xs text-neutral-400">
+      <p className="text-xs text-muted-foreground/70">
         {t("aiUsage", {
           used: usage.totalTokens.toLocaleString(),
           cap: usage.cap.toLocaleString(),

@@ -80,23 +80,23 @@ export function ApproveBatchButton({
           </DialogHeader>
           <div className="space-y-3">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <dt className="text-neutral-500">{t("approveSummary.total")}</dt>
+              <dt className="text-muted-foreground">{t("approveSummary.total")}</dt>
               <dd className="font-medium tabular-nums">
                 {(summary.totalCents / 100).toLocaleString("nl-NL", {
                   style: "currency",
                   currency: "EUR",
                 })}
               </dd>
-              <dt className="text-neutral-500">{t("approveSummary.items")}</dt>
+              <dt className="text-muted-foreground">{t("approveSummary.items")}</dt>
               <dd>{summary.itemCount}</dd>
-              <dt className="text-neutral-500">{t("approveSummary.dossiers")}</dt>
+              <dt className="text-muted-foreground">{t("approveSummary.dossiers")}</dt>
               <dd>
                 {summary.dossierCount} / {summary.accountCount}{" "}
                 {t("approveSummary.accounts")}
               </dd>
-              <dt className="text-neutral-500">{t("approveSummary.execution")}</dt>
+              <dt className="text-muted-foreground">{t("approveSummary.execution")}</dt>
               <dd className="tabular-nums">{summary.executionDate}</dd>
-              <dt className="text-neutral-500">
+              <dt className="text-muted-foreground">
                 {t("approveSummary.unresolved")}
               </dt>
               <dd className={summary.unresolvedCount > 0 ? "text-red-600" : ""}>
@@ -150,7 +150,7 @@ export function RemoveItemButton({ itemId }: { itemId: string }) {
   const [isPending, startTransition] = useTransition();
   return (
     <button
-      className="text-neutral-300 hover:text-red-600"
+      className="text-muted-foreground/40 hover:text-red-600"
       disabled={isPending}
       onClick={() => startTransition(async () => removePaymentItem(itemId))}
       aria-label="remove"
@@ -190,7 +190,7 @@ export function MachtigingResolver({
       <span className="text-xs text-emerald-700">
         {t(`resolution.${flag.resolution}`)}
         {flag.rationale && (
-          <span className="text-neutral-400 block truncate max-w-40">
+          <span className="text-muted-foreground/70 block truncate max-w-40">
             {flag.rationale}
           </span>
         )}
@@ -218,7 +218,7 @@ export function MachtigingResolver({
                 <div key={r}>• {tm(r)}</div>
               ))}
             </div>
-            <p className="text-xs text-neutral-500">{t("machtigingDisclaimer")}</p>
+            <p className="text-xs text-muted-foreground">{t("machtigingDisclaimer")}</p>
             <div className="space-y-1.5">
               {(
                 [

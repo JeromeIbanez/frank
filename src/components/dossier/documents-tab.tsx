@@ -15,7 +15,7 @@ export async function DocumentsTab({
   return (
     <div className="space-y-3">
       {docs.length === 0 && (
-        <p className="text-sm text-neutral-500">{t("emptyDossier")}</p>
+        <p className="text-sm text-muted-foreground">{t("emptyDossier")}</p>
       )}
       {docs.map((doc) => (
         <DocumentCard

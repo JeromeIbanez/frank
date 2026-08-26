@@ -167,9 +167,10 @@
       "copilot": "Copilot"
     },
     "urgency": {
+      "summary": "{count} vragen aandacht",
       "overdue": "{count} verlopen",
-      "unconfirmed": "{count} onbevestigde wettelijke termijn(en)",
-      "dueSoon": "{count} binnen 14 dagen"
+      "unconfirmed": "{count} onbevestigd",
+      "dueSoon": "{count} binnenkort"
     }
   },
   "overview": {

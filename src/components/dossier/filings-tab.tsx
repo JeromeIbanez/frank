@@ -15,7 +15,7 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
 
   return (
     <div className="space-y-4">
-      <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 text-neutral-600 text-xs px-3 py-1">
+      <div className="inline-flex items-center gap-1.5 rounded-full bg-muted text-muted-foreground text-xs px-3 py-1">
         {t("officialOutput")}
       </div>
       <div className="grid lg:grid-cols-2 gap-6">
@@ -26,17 +26,17 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-neutral-500">{t("rvExplainer")}</p>
+          <p className="text-sm text-muted-foreground">{t("rvExplainer")}</p>
 
           {pack && (
             <>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-md bg-neutral-50 p-3">
-                  <div className="text-neutral-500 text-xs">{t("totalIncome")}</div>
+                <div className="rounded-md bg-muted/40 p-3">
+                  <div className="text-muted-foreground text-xs">{t("totalIncome")}</div>
                   <Money cents={pack.totalIncomeCents} />
                 </div>
-                <div className="rounded-md bg-neutral-50 p-3">
-                  <div className="text-neutral-500 text-xs">{t("totalExpenses")}</div>
+                <div className="rounded-md bg-muted/40 p-3">
+                  <div className="text-muted-foreground text-xs">{t("totalExpenses")}</div>
                   <Money cents={pack.totalExpenseCents} />
                 </div>
               </div>
@@ -85,14 +85,14 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
           <CardTitle className="text-base">{t("boedelTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-sm text-neutral-500">{t("boedelExplainer")}</p>
+          <p className="text-sm text-muted-foreground">{t("boedelExplainer")}</p>
           <div className="text-sm space-y-1.5">
             <div className="flex justify-between">
-              <span className="text-neutral-500">{t("boedelAccounts")}</span>
+              <span className="text-muted-foreground">{t("boedelAccounts")}</span>
               <span>{dossier.accounts.length}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">{t("boedelDebts")}</span>
+              <span className="text-muted-foreground">{t("boedelDebts")}</span>
               <span>
                 {dossier.debts.length} (
                 <Money
@@ -102,14 +102,14 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">{t("boedelIncome")}</span>
+              <span className="text-muted-foreground">{t("boedelIncome")}</span>
               <span>
                 {dossier.budgetLines.filter((b) => b.kind === "income" && b.active).length}{" "}
                 {t("boedelLines")}
               </span>
             </div>
           </div>
-          <p className="text-xs text-neutral-400">{t("boedelHint")}</p>
+          <p className="text-xs text-muted-foreground/70">{t("boedelHint")}</p>
         </CardContent>
       </Card>
       </div>

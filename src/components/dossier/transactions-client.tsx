@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormSelect } from "@/components/form-select";
 import { Input } from "@/components/ui/input";
 import {
   aiCategorizeDossier,
@@ -43,17 +44,15 @@ export function ImportCamtForm({ accounts }: { accounts: AccountOpt[] }) {
         })
       }
     >
-      <select
+      <FormSelect
         value={accountId}
-        onChange={(e) => setAccountId(e.target.value)}
-        className="h-9 rounded-md border border-neutral-200 bg-white px-3 text-sm font-mono"
-      >
-        {accounts.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.iban} ({a.type})
-          </option>
-        ))}
-      </select>
+        onValueChange={setAccountId}
+        className="w-auto"
+        options={accounts.map((a) => ({
+          value: a.id,
+          label: `${a.iban} (${a.type})`,
+        }))}
+      />
       <Input
         ref={fileRef}
         type="file"
@@ -84,27 +83,26 @@ export function ManualTransactionForm({ accounts }: { accounts: AccountOpt[] }) 
         })
       }
     >
-      <select
+      <FormSelect
         value={accountId}
-        onChange={(e) => setAccountId(e.target.value)}
-        className="h-9 rounded-md border border-neutral-200 bg-white px-3 text-sm font-mono col-span-2"
-      >
-        {accounts.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.iban} ({a.type})
-          </option>
-        ))}
-      </select>
+        onValueChange={setAccountId}
+        className="col-span-2"
+        options={accounts.map((a) => ({
+          value: a.id,
+          label: `${a.iban} (${a.type})`,
+        }))}
+      />
       <Input name="bookingDate" type="date" required />
       <div className="flex gap-2">
-        <select
+        <FormSelect
           name="direction"
-          className="h-9 rounded-md border border-neutral-200 bg-white px-3 text-sm"
           defaultValue="out"
-        >
-          <option value="out">{t("out")}</option>
-          <option value="in">{t("in")}</option>
-        </select>
+          className="w-24"
+          options={[
+            { value: "out", label: t("out") },
+            { value: "in", label: t("in") },
+          ]}
+        />
         <Input name="amount" placeholder="12,34" required />
       </div>
       <Input name="counterpartyName" placeholder={t("cols.counterparty")} />
@@ -133,35 +131,32 @@ export function CategorySelect({
 
   return (
     <span className="inline-flex items-center gap-1">
-      <select
-        value={current ?? ""}
+      <FormSelect
+        value={current ?? undefined}
         disabled={isPending}
-        onChange={(e) =>
+        onValueChange={(v) =>
           startTransition(async () => {
-            await setTransactionCategory(transactionId, e.target.value);
+            await setTransactionCategory(transactionId, v);
           })
         }
+        size="sm"
+        placeholder="—"
         className={cn(
-          "h-7 rounded border bg-white px-1.5 text-xs max-w-36",
-          current ? "border-neutral-200 text-neutral-700" : "border-amber-300 text-amber-700",
+          "h-7 min-w-32 max-w-40 text-xs",
+          !current && "border-amber-300 text-amber-700",
           lowConfidence && "border-amber-300"
         )}
-      >
-        <option value="" disabled>
-          —
-        </option>
-        {CATEGORIES.map((c) => (
-          <option key={c.key} value={c.key}>
-            {locale === "nl" ? c.nl : c.en}
-          </option>
-        ))}
-      </select>
+        options={CATEGORIES.map((c) => ({
+          value: c.key,
+          label: locale === "nl" ? c.nl : c.en,
+        }))}
+      />
       {source === "ai" && (
         <span
           title={`AI ${confidence}%`}
           className={cn(
             "text-[10px]",
-            lowConfidence ? "text-amber-600" : "text-neutral-400"
+            lowConfidence ? "text-amber-600" : "text-muted-foreground/70"
           )}
         >
           ✦{confidence}

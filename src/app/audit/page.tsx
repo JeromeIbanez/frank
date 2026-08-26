@@ -20,10 +20,10 @@ export default async function AuditPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-neutral-500 mt-1">{t("subtitle")}</p>
+        <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
       </div>
 
-      <div className="rounded-lg border border-neutral-200 bg-white overflow-x-auto">
+      <div className="rounded-lg border border-border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -37,7 +37,7 @@ export default async function AuditPage() {
           <TableBody>
             {rows.map((e) => (
               <TableRow key={e.id}>
-                <TableCell className="whitespace-nowrap tabular-nums text-neutral-500 text-xs">
+                <TableCell className="whitespace-nowrap tabular-nums text-muted-foreground text-xs">
                   {e.createdAt.toISOString().replace("T", " ").slice(0, 19)}
                 </TableCell>
                 <TableCell>
@@ -47,7 +47,7 @@ export default async function AuditPage() {
                       e.actorType === "agent"
                         ? "bg-violet-50 text-violet-700"
                         : e.actorType === "system"
-                          ? "bg-neutral-100 text-neutral-500"
+                          ? "bg-muted text-muted-foreground"
                           : "bg-blue-50 text-blue-700"
                     }
                   >
@@ -55,13 +55,13 @@ export default async function AuditPage() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-sm">{e.action}</TableCell>
-                <TableCell className="text-sm text-neutral-600 whitespace-nowrap">
+                <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                   {e.entityType}{" "}
-                  <span className="text-neutral-300 font-mono text-xs">
+                  <span className="text-muted-foreground/40 font-mono text-xs">
                     {e.entityId.slice(0, 8)}
                   </span>
                 </TableCell>
-                <TableCell className="text-xs text-neutral-500 max-w-md truncate">
+                <TableCell className="text-xs text-muted-foreground max-w-md truncate">
                   {e.reason ??
                     (e.versionAfter ? JSON.stringify(e.versionAfter) : "")}
                 </TableCell>
@@ -70,7 +70,7 @@ export default async function AuditPage() {
           </TableBody>
         </Table>
       </div>
-      <p className="text-xs text-neutral-400">{t("appendOnlyNote")}</p>
+      <p className="text-xs text-muted-foreground/70">{t("appendOnlyNote")}</p>
     </div>
   );
 }

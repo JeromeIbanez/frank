@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormSelect } from "@/components/form-select";
 import { StatusBadge } from "@/components/format";
 import {
   acceptProposedAction,
@@ -61,43 +62,40 @@ export function DocumentCard({
   const [selectedDossier, setSelectedDossier] = useState("");
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-4">
+    <div className="rounded-lg border border-border bg-card p-4">
       <div className="flex items-start gap-3">
-        <FileText className="h-5 w-5 text-neutral-400 mt-0.5 shrink-0" />
+        <FileText className="h-5 w-5 text-muted-foreground/70 mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium text-sm">{doc.filename}</span>
             <StatusBadge status={doc.status} label={t(`status.${doc.status}`)} />
-            <select
-              value={doc.classification ?? ""}
-              onChange={(e) =>
+            <FormSelect
+              value={doc.classification ?? undefined}
+              onValueChange={(v) =>
                 startTransition(async () => {
-                  await setDocumentClassification(doc.id, e.target.value);
+                  await setDocumentClassification(doc.id, v);
                 })
               }
-              className="h-6 rounded border border-neutral-200 bg-white px-1 text-xs"
-            >
-              <option value="" disabled>
-                {t("classify")}
-              </option>
-              {CLASSIFICATIONS.map((c) => (
-                <option key={c} value={c}>
-                  {t(`class.${c}`)}
-                </option>
-              ))}
-            </select>
+              size="sm"
+              placeholder={t("classify")}
+              className="h-6 w-auto text-xs"
+              options={CLASSIFICATIONS.map((c) => ({
+                value: c,
+                label: t(`class.${c}`),
+              }))}
+            />
             {doc.classificationSource === "ai" && (
-              <span className="text-[10px] text-neutral-400">
+              <span className="text-[10px] text-muted-foreground/70">
                 ✦ {doc.classificationConfidence}%
               </span>
             )}
             {doc.dossierName && (
-              <span className="text-xs text-neutral-500">{doc.dossierName}</span>
+              <span className="text-xs text-muted-foreground">{doc.dossierName}</span>
             )}
           </div>
 
           {doc.extracted && (
-            <div className="text-xs text-neutral-500 flex flex-wrap gap-x-3">
+            <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
               {doc.extracted.sender && <span>{doc.extracted.sender}</span>}
               {doc.extracted.amountCents != null && (
                 <span>{formatEuro(doc.extracted.amountCents)}</span>
@@ -111,13 +109,13 @@ export function DocumentCard({
             </div>
           )}
           {doc.extracted?.summary && (
-            <p className="text-sm text-neutral-600">{doc.extracted.summary}</p>
+            <p className="text-sm text-muted-foreground">{doc.extracted.summary}</p>
           )}
 
           {doc.proposedAction && doc.status !== "linked" && (
-            <div className="flex items-center gap-2 rounded-md bg-indigo-50 px-3 py-2 mt-1">
-              <span className="text-sm text-indigo-900 flex-1">
-                <span className="text-[10px] uppercase tracking-wide text-indigo-400 mr-1.5">
+            <div className="flex items-center gap-2 rounded-md bg-accent/60 px-3 py-2 mt-1">
+              <span className="text-sm text-accent-foreground flex-1">
+                <span className="text-[10px] uppercase tracking-wide text-primary/60 mr-1.5">
                   {t("aiProposal")}
                 </span>
                 {doc.proposedAction}
@@ -156,18 +154,16 @@ export function DocumentCard({
 
           {!doc.dossierId && dossierOptions.length > 0 && (
             <div className="flex items-center gap-2 pt-1">
-              <select
-                value={selectedDossier}
-                onChange={(e) => setSelectedDossier(e.target.value)}
-                className="h-8 rounded-md border border-neutral-200 bg-white px-2 text-sm"
-              >
-                <option value="">{t("chooseDossier")}</option>
-                {dossierOptions.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+              <FormSelect
+                value={selectedDossier || undefined}
+                onValueChange={setSelectedDossier}
+                placeholder={t("chooseDossier")}
+                className="h-8 w-auto"
+                options={dossierOptions.map((d) => ({
+                  value: d.id,
+                  label: d.name,
+                }))}
+              />
               <Button
                 size="sm"
                 variant="outline"

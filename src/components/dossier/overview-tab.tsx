@@ -24,22 +24,22 @@ export async function OverviewTab({
           </CardHeader>
           <CardContent>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <dt className="text-neutral-500">{t("dateOfBirth")}</dt>
+              <dt className="text-muted-foreground">{t("dateOfBirth")}</dt>
               <dd>{dossier.dateOfBirth ?? "—"}</dd>
-              <dt className="text-neutral-500">{t("address")}</dt>
+              <dt className="text-muted-foreground">{t("address")}</dt>
               <dd>
                 {dossier.addressStreet ?? "—"}
                 {dossier.addressPostcode
                   ? `, ${dossier.addressPostcode} ${dossier.addressCity ?? ""}`
                   : ""}
               </dd>
-              <dt className="text-neutral-500">{t("gemeente")}</dt>
+              <dt className="text-muted-foreground">{t("gemeente")}</dt>
               <dd>{dossier.gemeente ?? "—"}</dd>
-              <dt className="text-neutral-500">{t("beschikking")}</dt>
+              <dt className="text-muted-foreground">{t("beschikking")}</dt>
               <dd>{dossier.beschikkingDate ?? "—"}</dd>
-              <dt className="text-neutral-500">{t("start")}</dt>
+              <dt className="text-muted-foreground">{t("start")}</dt>
               <dd>{dossier.startDate ?? "—"}</dd>
-              <dt className="text-neutral-500">{t("leefgeld")}</dt>
+              <dt className="text-muted-foreground">{t("leefgeld")}</dt>
               <dd>
                 {dossier.leefgeldAmountCents ? (
                   <>
@@ -95,11 +95,11 @@ export async function OverviewTab({
             {dossier.accounts.map((acc) => (
               <div
                 key={acc.id}
-                className="flex items-center justify-between rounded-md border border-neutral-100 px-3 py-2 text-sm"
+                className="flex items-center justify-between rounded-md border border-border/60 px-3 py-2 text-sm"
               >
                 <div>
                   <div className="font-medium">{t(`accountType.${acc.type}`)}</div>
-                  <div className="text-neutral-500 font-mono text-xs">
+                  <div className="text-muted-foreground font-mono text-xs">
                     {acc.iban} {acc.bankName ? `· ${acc.bankName}` : ""}
                   </div>
                 </div>
@@ -107,7 +107,7 @@ export async function OverviewTab({
               </div>
             ))}
             {dossier.accounts.length === 0 && (
-              <p className="text-sm text-neutral-500">{t("noAccounts")}</p>
+              <p className="text-sm text-muted-foreground">{t("noAccounts")}</p>
             )}
             <AddAccountForm dossierId={dossier.id} />
           </CardContent>
@@ -129,7 +129,7 @@ export async function OverviewTab({
                     "text-xs rounded-full px-2.5 py-1 " +
                     (c.notified
                       ? "bg-emerald-50 text-emerald-700"
-                      : "bg-neutral-100 text-neutral-600")
+                      : "bg-muted text-muted-foreground")
                   }
                 >
                   {c.name}
@@ -152,14 +152,14 @@ export async function OverviewTab({
                 >
                   <div>
                     <span className="font-medium">{debt.creditor}</span>
-                    <span className="text-neutral-400 ml-2 text-xs uppercase">
+                    <span className="text-muted-foreground/70 ml-2 text-xs uppercase">
                       {debt.status}
                     </span>
                   </div>
                   <Money cents={debt.currentAmountCents} />
                 </div>
               ))}
-              <div className="border-t border-neutral-100 pt-2 flex justify-between text-sm font-medium">
+              <div className="border-t border-border/60 pt-2 flex justify-between text-sm font-medium">
                 <span>{t("debtTotal")}</span>
                 <Money
                   cents={dossier.debts.reduce(

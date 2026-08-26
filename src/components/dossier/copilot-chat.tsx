@@ -29,18 +29,18 @@ export function CopilotChat({ dossierId }: { dossierId: string }) {
 
   return (
     <div className="max-w-3xl space-y-4">
-      <div className="rounded-lg border border-neutral-200 bg-white min-h-96 max-h-[32rem] overflow-y-auto p-4 space-y-4">
+      <div className="rounded-lg border border-border bg-card min-h-96 max-h-[32rem] overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="text-center py-12 space-y-4">
-            <Sparkles className="h-8 w-8 text-indigo-300 mx-auto" />
-            <p className="text-sm text-neutral-500 max-w-md mx-auto">
+            <Sparkles className="h-8 w-8 text-primary/40 mx-auto" />
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
               {t("intro")}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {suggestions.map((s) => (
                 <button
                   key={s}
-                  className="text-xs rounded-full border border-neutral-200 px-3 py-1.5 hover:bg-neutral-50"
+                  className="text-xs rounded-full border border-border px-3 py-1.5 hover:bg-muted/50"
                   onClick={() => sendMessage({ text: s })}
                 >
                   {s}
@@ -55,8 +55,8 @@ export function CopilotChat({ dossierId }: { dossierId: string }) {
             className={cn(
               "text-sm rounded-lg px-3.5 py-2.5 max-w-[85%] whitespace-pre-wrap",
               message.role === "user"
-                ? "bg-indigo-600 text-white ml-auto"
-                : "bg-neutral-100 text-neutral-900"
+                ? "bg-primary text-primary-foreground ml-auto"
+                : "bg-muted text-foreground"
             )}
           >
             {message.parts.map((part, i) => {
@@ -65,7 +65,7 @@ export function CopilotChat({ dossierId }: { dossierId: string }) {
                 return (
                   <span
                     key={i}
-                    className="block text-[11px] text-neutral-400 italic"
+                    className="block text-[11px] text-muted-foreground/70 italic"
                   >
                     ⚙ {part.type.replace("tool-", "")}
                   </span>
@@ -76,7 +76,7 @@ export function CopilotChat({ dossierId }: { dossierId: string }) {
           </div>
         ))}
         {busy && (
-          <div className="text-sm text-neutral-400 italic">{t("thinking")}</div>
+          <div className="text-sm text-muted-foreground/70 italic">{t("thinking")}</div>
         )}
         {error && (
           <div className="text-sm rounded-md bg-amber-50 text-amber-800 px-3 py-2">
@@ -104,7 +104,7 @@ export function CopilotChat({ dossierId }: { dossierId: string }) {
           <Send className="h-4 w-4" />
         </Button>
       </form>
-      <p className="text-xs text-neutral-400">{t("readOnlyNote")}</p>
+      <p className="text-xs text-muted-foreground/70">{t("readOnlyNote")}</p>
     </div>
   );
 }

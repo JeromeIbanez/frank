@@ -15,7 +15,7 @@ export default async function PaymentsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-          <p className="text-sm text-neutral-500 mt-1">{t("subtitle")}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
         </div>
         <CreateProposalsButton />
       </div>
@@ -30,11 +30,11 @@ export default async function PaymentsPage() {
             <Link
               key={batch.id}
               href={`/payments/${batch.id}`}
-              className="flex items-center gap-4 rounded-lg border border-neutral-200 bg-white px-4 py-3 hover:bg-neutral-50"
+              className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3 hover:bg-muted/50"
             >
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm">{batch.name}</div>
-                <div className="text-xs text-neutral-500">
+                <div className="text-xs text-muted-foreground">
                   {t("execution")}: {batch.executionDate} · {batch.items.length}{" "}
                   {t("items")}
                   {flagged > 0 && (
@@ -53,7 +53,7 @@ export default async function PaymentsPage() {
           );
         })}
         {batches.length === 0 && (
-          <p className="text-sm text-neutral-500">{t("empty")}</p>
+          <p className="text-sm text-muted-foreground">{t("empty")}</p>
         )}
       </div>
     </div>
