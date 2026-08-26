@@ -31,7 +31,7 @@ export function LanguageToggle() {
           onClick={() => switchTo(l)}
           aria-pressed={locale === l}
           className={cn(
-            "rounded-[5px] px-2 py-0.5 font-semibold transition-colors",
+            "rounded-[5px] px-2 py-0.5 font-semibold",
             locale === l
               ? "bg-accent text-accent-foreground"
               : "text-ink-400 hover:text-ink-900"

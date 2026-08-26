@@ -130,6 +130,11 @@ export const budgetLines = pgTable("budget_lines", {
   expectedDay: integer("expected_day"), // day-of-month payment/receipt expected
   counterpartyName: text("counterparty_name"),
   counterpartyIban: text("counterparty_iban"),
+  // Identifiable single purpose per LOVT B.D3 (e.g. "inboedel-2026",
+  // "rijlessen"). Set => discretionary purchase semantics: the machtiging
+  // guard aggregates this year's spend on the SAME purpose toward €2,000.
+  // Null => contractual fixed last (regular_bill, never amount-triggered).
+  purposeTag: text("purpose_tag"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

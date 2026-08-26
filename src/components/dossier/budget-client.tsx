@@ -59,6 +59,12 @@ export function AddBudgetLineForm({ dossierId }: { dossierId: string }) {
       <Input name="expectedDay" placeholder={t("expectedDayPlaceholder")} type="number" min={1} max={28} />
       <Input name="counterpartyName" placeholder={t("counterpartyName")} />
       <Input name="counterpartyIban" placeholder="NL00BANK0000000000" className="font-mono" />
+      <Input
+        name="purposeTag"
+        placeholder={t("purposeTagPlaceholder")}
+        title={t("purposeTagHint")}
+        className="col-span-2"
+      />
       <Button type="submit" disabled={isPending} className="col-span-2">
         {t("add")}
       </Button>

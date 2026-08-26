@@ -268,7 +268,9 @@
     "lineAdded": "Budget line added.",
     "leefgeldTitle": "Living allowance (leefgeld)",
     "leefgeldSaved": "Leefgeld updated.",
-    "save": "Save"
+    "save": "Save",
+    "purposeTagPlaceholder": "Purpose tag (optional, e.g. inboedel-2026)",
+    "purposeTagHint": "Only for discretionary spending with one identifiable purpose (LOVT B.D3): triggers the €2,000 legal-review guard with yearly same-purpose aggregation. Leave empty for contractual fixed charges."
   },
   "transactions": {
     "importTitle": "Import bank statement (CAMT.053)",

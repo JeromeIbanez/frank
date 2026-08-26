@@ -42,7 +42,7 @@ export function SidebarNav({
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-2.5 rounded-[7px] px-3 py-[7px] text-[13.5px] transition-colors",
+              "flex items-center gap-2.5 rounded-[7px] px-3 py-[7px] text-[13.5px]",
               active
                 ? "bg-accent text-accent-foreground font-semibold"
                 : "text-ink-600 hover:bg-hairline hover:text-ink-900"

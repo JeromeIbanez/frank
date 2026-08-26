@@ -268,7 +268,9 @@
     "lineAdded": "Budgetregel toegevoegd.",
     "leefgeldTitle": "Leefgeld",
     "leefgeldSaved": "Leefgeld bijgewerkt.",
-    "save": "Opslaan"
+    "save": "Opslaan",
+    "purposeTagPlaceholder": "Bestedingsdoel (optioneel, bijv. inboedel-2026)",
+    "purposeTagHint": "Alleen voor discretionaire uitgaven met één aanwijsbaar doel (LOVT B.D3): activeert de €2.000-beoordelingsvlag met jaarlijkse optelling per doel. Leeg laten voor contractuele vaste lasten."
   },
   "transactions": {
     "importTitle": "Bankafschrift importeren (CAMT.053)",

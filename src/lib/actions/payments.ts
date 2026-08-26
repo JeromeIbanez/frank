@@ -4,10 +4,10 @@ import { revalidatePath } from "next/cache";
 import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
+  budgetLines,
   dossiers,
   paymentBatches,
   paymentItems,
-  transactions,
 } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
@@ -116,33 +116,43 @@ export async function createPaymentProposals(): Promise<{
         b.frequency === "monthly" &&
         b.counterpartyIban
     )) {
-      // Same-purpose aggregation this calendar year (LOVT B.D3)
-      const [spent] = await db
-        .select({
-          total: sql<number>`coalesce(sum(abs(${transactions.amountCents})),0)`,
-        })
-        .from(transactions)
-        .where(
-          and(
-            eq(transactions.dossierId, d.id),
-            eq(transactions.categoryKey, line.categoryKey),
-            gte(transactions.bookingDate, yearStart)
+      // LOVT B.D3 aggregation is per identifiable SINGLE purpose (driving
+      // lessons, a holiday, furnishing) — never a whole category (Temujin
+      // design-PR review #1). A line with a purposeTag is discretionary
+      // spending on that purpose: purchase semantics, aggregated over this
+      // calendar year's prior payment items for the same purpose. Lines
+      // without a purposeTag are contractual fixed lasten: regular_bill,
+      // never amount-triggered.
+      let yearSpentOnPurposeCents = 0;
+      if (line.purposeTag) {
+        const [spent] = await db
+          .select({
+            total: sql<number>`coalesce(sum(${paymentItems.amountCents}),0)`,
+          })
+          .from(paymentItems)
+          .innerJoin(
+            paymentBatches,
+            eq(paymentItems.batchId, paymentBatches.id)
           )
-        );
+          .innerJoin(budgetLines, eq(paymentItems.budgetLineId, budgetLines.id))
+          .where(
+            and(
+              eq(paymentItems.dossierId, d.id),
+              eq(paymentItems.excluded, false),
+              eq(budgetLines.purposeTag, line.purposeTag),
+              inArray(paymentBatches.status, ["approved", "exported"]),
+              gte(paymentBatches.executionDate, yearStart)
+            )
+          );
+        yearSpentOnPurposeCents = Number(spent?.total ?? 0);
+      }
 
-      // Contractual fixed lasten (huur, premies, energie…) are normal
-      // management and never amount-trigger. Discretionary spending
-      // (overige_uitgaven) is a purchase in LOVT terms — B.D3's own examples
-      // (furnishing, holidays) live here and must aggregate toward €2,000.
       const flag = checkMachtiging({
         amountCents: line.amountCents,
         categoryKey: line.categoryKey,
-        purposeTag: line.categoryKey,
-        yearSpentOnPurposeCents:
-          line.categoryKey === "overige_uitgaven"
-            ? Number(spent?.total ?? 0)
-            : 0,
-        kind: line.categoryKey === "overige_uitgaven" ? "purchase" : "regular_bill",
+        purposeTag: line.purposeTag,
+        yearSpentOnPurposeCents,
+        kind: line.purposeTag ? "purchase" : "regular_bill",
       });
       const errors: string[] = [];
       if (!isValidIban(line.counterpartyIban!)) errors.push("invalid_iban");
@@ -199,6 +209,14 @@ export async function resolveMachtigingFlag(
     where: eq(paymentItems.id, itemId),
   });
   if (!item || !item.machtigingFlag?.triggered) return { ok: false, error: "not_found" };
+  // A locked (approved/exported) batch is immutable — including its legal-
+  // resolution records (Temujin design-PR review #2).
+  const parentBatch = await db.query.paymentBatches.findFirst({
+    where: eq(paymentBatches.id, item.batchId),
+  });
+  if (!parentBatch || parentBatch.status !== "draft") {
+    return { ok: false, error: "locked" };
+  }
 
   const next = {
     ...item.machtigingFlag,

@@ -110,7 +110,8 @@ export default async function PaymentBatchPage({
                   key={item.id}
                   className={cn(
                     "border-b border-hairline last:border-0 hover:bg-surface-hover",
-                    legalRow && "bg-[#FEF2F2] shadow-[inset_3px_0_0_#DC2626]",
+                    legalRow &&
+                      "bg-[#FEF2F2] [&>td:first-child]:relative [&>td:first-child]:before:absolute [&>td:first-child]:before:inset-y-0 [&>td:first-child]:before:left-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-[#DC2626] [&>td:first-child]:before:content-['']",
                     item.excluded && "text-ink-300"
                   )}
                 >

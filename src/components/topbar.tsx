@@ -2,6 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { LanguageToggle } from "./language-toggle";
 
 const SECTION_BY_PREFIX: [string, string][] = [
@@ -26,15 +31,23 @@ export function Topbar() {
       <div className="text-base font-semibold text-ink-900">{t(sectionKey)}</div>
       <div className="flex items-center gap-4">
         <LanguageToggle />
-        <span
-          tabIndex={0}
-          role="note"
-          aria-label={ts("demoBanner")}
-          title={ts("demoBanner")}
-          className="font-mono text-[11px] text-ink-400 rounded focus-visible:outline-2 focus-visible:outline-ring"
-        >
-          {ts("demoShort")}
-        </span>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <span
+                tabIndex={0}
+                role="note"
+                aria-label={ts("demoBanner")}
+                className="font-mono text-[11px] text-ink-400 rounded focus-visible:outline-2 focus-visible:outline-ring cursor-default"
+              />
+            }
+          >
+            {ts("demoShort")}
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="max-w-72 text-center">
+            {ts("demoBanner")}
+          </TooltipContent>
+        </Tooltip>
       </div>
     </header>
   );
