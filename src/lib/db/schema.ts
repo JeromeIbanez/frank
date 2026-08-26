@@ -329,6 +329,9 @@ export const aiProposals = pgTable(
     sourceDocumentId: text("source_document_id")
       .notNull()
       .references(() => documents.id),
+    /** Immutable copy of the source document's hash at extraction time —
+     *  provenance must not depend on a mutable relation (Temujin PR-6 #4). */
+    sourceDocumentSha256: text("source_document_sha256").notNull().default(""),
     kind: text("kind", {
       enum: ["budget_line", "debt", "contact", "account_opening_balance"],
     }).notNull(),

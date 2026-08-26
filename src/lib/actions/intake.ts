@@ -19,6 +19,7 @@ import {
   payloadHash,
   proposalPayload,
   toProposalPayload,
+  verifyProvenance,
   type ProposalPayload,
 } from "@/lib/domain/intake";
 import { callStructured, MODEL_STRUCTURED, PROMPT_VERSION } from "@/lib/ai/gateway";
@@ -177,21 +178,32 @@ export async function extractIntakeProposals(documentId: string): Promise<{
 
   const extractorVersion = `${EXTRACTOR_VERSION}/${PROMPT_VERSION}/${MODEL_STRUCTURED}`;
   let created = 0;
+  let droppedUnevidenced = 0;
   for (const item of res.value.proposals) {
     // Strict-contract gate: model output that doesn't survive the real
     // payload schema is dropped, never loosened.
     const payload = toProposalPayload(item);
     if (!payload) continue;
+    // Provenance gate (Temujin PR-6 #2): fabricated snippets are discarded
+    // and an unevidenced material claim never becomes a proposal.
+    const { verified, materialVerified } = verifyProvenance(
+      item,
+      payload,
+      doc.textContent
+    );
+    if (!materialVerified) {
+      droppedUnevidenced++;
+      continue;
+    }
     const inserted = await db
       .insert(aiProposals)
       .values({
         dossierId: doc.dossierId,
         sourceDocumentId: doc.id,
+        sourceDocumentSha256: doc.sha256,
         kind: payload.kind,
         payload,
-        fieldProvenance: Object.fromEntries(
-          item.provenance.map((p) => [p.field, p.snippet.slice(0, 300)])
-        ),
+        fieldProvenance: verified,
         confidence: Math.round(item.confidence),
         extractorVersion,
         payloadHash: payloadHash(payload),
@@ -199,6 +211,11 @@ export async function extractIntakeProposals(documentId: string): Promise<{
       .onConflictDoNothing()
       .returning();
     if (inserted.length > 0) created++;
+  }
+  if (droppedUnevidenced > 0) {
+    console.warn(
+      `intake extraction: dropped ${droppedUnevidenced} unevidenced proposal(s) for document ${doc.id}`
+    );
   }
   if (created > 0) {
     await writeAudit({
@@ -229,40 +246,75 @@ export async function decideProposal(
 ): Promise<{ ok: boolean; error?: string }> {
   const actor = await currentActor();
   const db = getDb();
-  const proposal = await db.query.aiProposals.findFirst({
-    where: and(eq(aiProposals.id, proposalId)),
-    with: { sourceDocument: true },
-  });
-  if (!proposal) return { ok: false, error: "not_found" };
-  if (proposal.status !== "proposed") return { ok: false, error: "decided" };
 
-  let resultEntityId: string | null = null;
-
-  if (decision === "accept") {
-    const parsed = proposalPayload.safeParse(
-      editedPayload ?? proposal.payload
-    );
+  // Validate BEFORE claiming, so a bad edit doesn't consume the claim.
+  let parsedEdit: ProposalPayload | null = null;
+  if (decision === "accept" && editedPayload !== undefined) {
+    const parsed = proposalPayload.safeParse(editedPayload);
     if (!parsed.success) return { ok: false, error: "invalid_payload" };
-    if (parsed.data.kind !== proposal.kind)
-      return { ok: false, error: "kind_mismatch" };
-    const materialized = await materialize(proposal.dossierId, parsed.data);
-    if (!materialized.ok)
-      return { ok: false, error: materialized.error ?? "materialize_failed" };
-    resultEntityId = materialized.entityId ?? null;
+    parsedEdit = parsed.data;
   }
 
-  await db
+  // Atomic claim (Temujin PR-6 #1): exactly ONE request can move the row
+  // out of `proposed`; a concurrent duplicate gets zero rows back and can
+  // never materialize a second real entity.
+  const [claimed] = await db
     .update(aiProposals)
     .set({
       status: decision === "accept" ? "accepted" : "rejected",
       decidedBy: actor.id,
       decidedAt: new Date(),
-      ...(editedPayload && decision === "accept"
-        ? { payload: editedPayload as Record<string, unknown> }
-        : {}),
-      resultEntityId,
     })
-    .where(eq(aiProposals.id, proposalId));
+    .where(
+      and(eq(aiProposals.id, proposalId), eq(aiProposals.status, "proposed"))
+    )
+    .returning();
+  if (!claimed) return { ok: false, error: "decided" };
+
+  let resultEntityId: string | null = null;
+  const originalPayload = claimed.payload as Record<string, unknown>;
+
+  if (decision === "accept") {
+    const parsed = parsedEdit
+      ? { success: true as const, data: parsedEdit }
+      : proposalPayload.safeParse(claimed.payload);
+    const fail = async (error: string) => {
+      // Materialization failed — release the claim so the human can retry.
+      await db
+        .update(aiProposals)
+        .set({ status: "proposed", decidedBy: null, decidedAt: null })
+        .where(eq(aiProposals.id, proposalId));
+      return { ok: false as const, error };
+    };
+    if (!parsed.success) return fail("invalid_payload");
+    if (parsed.data.kind !== claimed.kind) return fail("kind_mismatch");
+    const materialized = await materialize(claimed.dossierId, parsed.data);
+    if (!materialized.ok)
+      return fail(materialized.error ?? "materialize_failed");
+    resultEntityId = materialized.entityId ?? null;
+    await db
+      .update(aiProposals)
+      .set({
+        resultEntityId,
+        ...(parsedEdit ? { payload: parsedEdit } : {}),
+      })
+      .where(eq(aiProposals.id, proposalId));
+  }
+
+  // Human overrides recorded explicitly: field → {before, after} diff of
+  // the AI value vs the accepted value (Temujin PR-6 #2).
+  const overrides: Record<string, { before: unknown; after: unknown }> = {};
+  if (parsedEdit) {
+    const after = parsedEdit as unknown as Record<string, unknown>;
+    for (const key of new Set([
+      ...Object.keys(originalPayload),
+      ...Object.keys(after),
+    ])) {
+      if (JSON.stringify(originalPayload[key]) !== JSON.stringify(after[key])) {
+        overrides[key] = { before: originalPayload[key], after: after[key] };
+      }
+    }
+  }
 
   await writeAudit({
     actorId: actor.id,
@@ -270,19 +322,19 @@ export async function decideProposal(
     action: decision === "accept" ? "approve" : "update",
     entityType: "ai_proposal",
     entityId: proposalId,
-    sourceDocumentHash: proposal.sourceDocument?.sha256,
-    versionBefore: { status: "proposed", kind: proposal.kind },
+    sourceDocumentHash: claimed.sourceDocumentSha256 || undefined,
+    versionBefore: { status: "proposed", kind: claimed.kind },
     versionAfter: {
       status: decision === "accept" ? "accepted" : "rejected",
       resultEntityId,
-      edited: !!editedPayload,
+      humanOverrides: Object.keys(overrides).length > 0 ? overrides : undefined,
     },
     reason:
       decision === "accept"
         ? "intake proposal accepted — materialized via standard entry path"
         : "intake proposal rejected",
   });
-  revalidatePath(`/dossiers/${proposal.dossierId}`);
+  revalidatePath(`/dossiers/${claimed.dossierId}`);
   await refreshSignalsSafe();
   return { ok: true };
 }
@@ -302,8 +354,7 @@ async function materialize(
       if (p.expectedDay) fd.set("expectedDay", String(p.expectedDay));
       if (p.counterpartyName) fd.set("counterpartyName", p.counterpartyName);
       if (p.counterpartyIban) fd.set("counterpartyIban", p.counterpartyIban);
-      await addBudgetLine(dossierId, fd);
-      return { ok: true };
+      return addBudgetLine(dossierId, fd);
     }
     case "debt": {
       fd.set("creditor", p.creditor);

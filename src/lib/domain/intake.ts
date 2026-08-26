@@ -125,6 +125,70 @@ export const extractionResultFlat = z.object({
 });
 export type ExtractionItemFlat = z.infer<typeof extractionItemFlat>;
 
+/** Normalize for snippet matching: collapse whitespace, lowercase. */
+function norm(s: string): string {
+  return s.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+/** The material claim's value rendered the ways a Dutch document would
+ *  print it (cents → "486,30" / "486.30" / "1.842,50" / "1842,50"). */
+function materialNeedles(payload: ProposalPayload): string[] {
+  switch (payload.kind) {
+    case "budget_line":
+      return euroForms(payload.amountCents);
+    case "debt":
+      return euroForms(payload.currentAmountCents);
+    case "account_opening_balance":
+      return euroForms(Math.abs(payload.openingBalanceCents));
+    case "contact":
+      return [norm(payload.name)];
+  }
+}
+
+function euroForms(cents: number): string[] {
+  const abs = Math.abs(cents);
+  const euros = Math.floor(abs / 100);
+  const rest = String(abs % 100).padStart(2, "0");
+  const plain = `${euros},${rest}`;
+  const dotted = `${euros}.${rest}`;
+  const grouped = `${euros.toLocaleString("nl-NL")},${rest}`; // 1.842,50
+  const forms = new Set([plain, dotted, grouped]);
+  if (abs % 100 === 0) {
+    forms.add(String(euros)); // "2.000" style often written without cents
+    forms.add(euros.toLocaleString("nl-NL"));
+  }
+  return [...forms].map(norm);
+}
+
+/**
+ * Provenance enforcement (Temujin PR-6 #2):
+ * 1. keep only snippets that actually occur in the source text
+ *    (whitespace-normalized) — fabricated provenance is discarded;
+ * 2. the MATERIAL claim (the money amount; the name, for contacts) must be
+ *    evidenced: some verified snippet must contain the claimed value in a
+ *    plausible printed form. Unevidenced financial claims never become
+ *    proposals.
+ */
+export function verifyProvenance(
+  item: ExtractionItemFlat,
+  payload: ProposalPayload,
+  sourceText: string
+): { verified: Record<string, string>; materialVerified: boolean } {
+  const haystack = norm(sourceText);
+  const verified: Record<string, string> = {};
+  for (const p of item.provenance) {
+    if (p.snippet.trim() && haystack.includes(norm(p.snippet))) {
+      verified[p.field] = p.snippet.slice(0, 300);
+    }
+  }
+  const needles = materialNeedles(payload);
+  const materialVerified = Object.values(verified).some((snippet) => {
+    const s = norm(snippet);
+    return needles.some((n) => s.includes(n));
+  });
+  return { verified, materialVerified };
+}
+
 /** Map a flat model item into the strict payload contract; null when it
  *  does not survive strict validation. */
 export function toProposalPayload(

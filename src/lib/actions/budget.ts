@@ -11,13 +11,14 @@ import { refreshSignalsSafe } from "@/lib/signals";
 export async function addBudgetLine(
   dossierId: string,
   formData: FormData
-): Promise<void> {
+): Promise<{ ok: boolean; error?: string; entityId?: string }> {
   const actor = await currentActor();
   const db = getDb();
   const amountEuro = Number(
     String(formData.get("amount") || "0").replace(",", ".")
   );
-  if (!Number.isFinite(amountEuro) || amountEuro <= 0) return;
+  if (!Number.isFinite(amountEuro) || amountEuro <= 0)
+    return { ok: false, error: "invalid_amount" };
   const amountCents = Math.round(amountEuro * 100);
   const [row] = await db
     .insert(budgetLines)
@@ -62,6 +63,7 @@ export async function addBudgetLine(
   });
   revalidatePath(`/dossiers/${dossierId}`);
   await refreshSignalsSafe();
+  return { ok: true, entityId: row.id };
 }
 
 export async function deactivateBudgetLine(lineId: string): Promise<void> {

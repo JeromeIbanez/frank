@@ -30,6 +30,15 @@ export default async function BoedelPage({
     (b) => b.kind === "expense" && b.active
   );
 
+  // Opening-evidence integrity (Temujin PR-6 #3): a werkdocument must flag
+  // balances whose recorded date is missing or differs from the start of
+  // the measure — never silently present them as the opening position.
+  const accountIssues = dossier.accounts.filter(
+    (a) =>
+      !a.openingBalanceDate ||
+      (dossier.startDate && a.openingBalanceDate !== dossier.startDate)
+  );
+
   return (
     <div className="max-w-3xl mx-auto space-y-6 print:text-black">
       <div className="flex items-center justify-between print:hidden">
@@ -71,6 +80,23 @@ export default async function BoedelPage({
         )}
       </header>
 
+      {accountIssues.length > 0 && (
+        <div className="rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-2.5 text-[12.5px] text-[#B45309] space-y-0.5">
+          <div className="font-semibold">{t("evidenceIssuesTitle")}</div>
+          {accountIssues.map((a) => (
+            <div key={a.id}>
+              •{" "}
+              {a.openingBalanceDate
+                ? t("evidenceMismatch", {
+                    iban: a.iban,
+                    date: a.openingBalanceDate.split("-").reverse().join("-"),
+                  })
+                : t("evidenceMissing", { iban: a.iban })}
+            </div>
+          ))}
+        </div>
+      )}
+
       <section>
         <h2 className="type-section-label mb-2">{t("accounts")}</h2>
         <table className="w-full text-sm border-collapse">
@@ -87,8 +113,21 @@ export default async function BoedelPage({
                 <td className="py-1.5 text-right">
                   <Money cents={acc.openingBalanceCents} />
                   {acc.openingBalanceDate && (
-                    <span className="ml-2 text-xs text-ink-400">
+                    <span
+                      className={
+                        "ml-2 text-xs " +
+                        (dossier.startDate &&
+                        acc.openingBalanceDate !== dossier.startDate
+                          ? "font-semibold text-[#B45309]"
+                          : "text-ink-400")
+                      }
+                    >
                       {t("perShort")} <DateText iso={acc.openingBalanceDate} />
+                    </span>
+                  )}
+                  {!acc.openingBalanceDate && (
+                    <span className="ml-2 text-xs font-semibold text-[#B45309]">
+                      {t("noDate")}
                     </span>
                   )}
                 </td>
@@ -153,6 +192,7 @@ export default async function BoedelPage({
 
       <section>
         <h2 className="type-section-label mb-2">{t("debts")}</h2>
+        <p className="mb-2 text-xs text-ink-400">{t("debtsAsRecorded")}</p>
         <table className="w-full text-sm">
           <tbody>
             {dossier.debts.map((d) => (

@@ -390,7 +390,9 @@
     "boedelIncome": "Income sources",
     "boedelLines": "lines",
     "boedelHint": "Complete the inventory in Mijn CBM; keep the evidence in the Documents tab.",
-    "officialOutput": "Official output: Nederlands — court filings are prepared in Dutch regardless of UI language."
+    "officialOutput": "Official output: Nederlands — court filings are prepared in Dutch regardless of UI language.",
+    "openBoedelDoc": "Boedelbeschrijving (werkdocument)",
+    "openPvaDoc": "Plan van aanpak (werkdocument)"
   },
   "rvPack": {
     "back": "Back to dossier",
@@ -599,7 +601,9 @@
       "rv_window": "R&V filing is due by {dueDate} (court schedule) — {days} days left.",
       "batch_waiting": "A draft payment batch has been waiting for review for {hours} hours.",
       "uncategorized_tx": "{count} transaction(s) still uncategorized."
-    }
+    },
+    "showAll": "Show all {count} signals",
+    "showLess": "Show fewer"
   },
   "intake": {
     "checklistTitle": "Boedelbeschrijving progress",
@@ -638,15 +642,15 @@
       "lineKind": "Type",
       "name": "Name",
       "categoryKey": "Category",
-      "amountCents": "Amount (cents)",
+      "amountCents": "Amount (€)",
       "frequency": "Frequency",
       "expectedDay": "Expected day",
       "counterpartyName": "Counterparty",
       "counterpartyIban": "IBAN",
       "creditor": "Creditor",
       "reference": "Reference",
-      "currentAmountCents": "Current amount (cents)",
-      "originalAmountCents": "Original amount (cents)",
+      "currentAmountCents": "Current amount (€)",
+      "originalAmountCents": "Original amount (€)",
       "viaDeurwaarder": "Via bailiff",
       "contactKind": "Kind",
       "email": "Email",
@@ -654,7 +658,7 @@
       "iban": "IBAN",
       "bankName": "Bank",
       "accountType": "Account type",
-      "openingBalanceCents": "Opening balance (cents)",
+      "openingBalanceCents": "Opening balance (€)",
       "openingBalanceDate": "Opening date"
     },
     "accept": "Accept",
@@ -713,7 +717,12 @@
       "quarterly": "quarterly",
       "yearly": "yearly",
       "once": "once"
-    }
+    },
+    "evidenceIssuesTitle": "Verify before filing — opening evidence:",
+    "evidenceMismatch": "{iban}: balance recorded per {date}, not per the start of the measure.",
+    "evidenceMissing": "{iban}: no opening balance date recorded.",
+    "noDate": "no date",
+    "debtsAsRecorded": "Amounts as currently recorded — confirm against creditor statements per the start of the measure."
   },
   "pva": {
     "back": "Intake",

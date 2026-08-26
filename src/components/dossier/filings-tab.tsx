@@ -128,6 +128,20 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
             </div>
           </div>
           <p className="text-xs text-ink-400">{t("boedelHint")}</p>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <Link
+              href={`/dossiers/${dossier.id}/boedel`}
+              className="text-[12.5px] font-semibold text-primary hover:underline"
+            >
+              {t("openBoedelDoc")} →
+            </Link>
+            <Link
+              href={`/dossiers/${dossier.id}/pva`}
+              className="text-[12.5px] font-semibold text-primary hover:underline"
+            >
+              {t("openPvaDoc")} →
+            </Link>
+          </div>
         </CardContent>
       </Card>
       </div>

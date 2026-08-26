@@ -390,7 +390,9 @@
     "boedelIncome": "Inkomstenbronnen",
     "boedelLines": "regels",
     "boedelHint": "Vul de boedelbeschrijving aan in Mijn CBM; bewaar het bewijs in het tabblad Documenten.",
-    "officialOutput": "Officiële output: Nederlands — rechtbankstukken worden in het Nederlands voorbereid, ongeacht de taalinstelling."
+    "officialOutput": "Officiële output: Nederlands — rechtbankstukken worden in het Nederlands voorbereid, ongeacht de taalinstelling.",
+    "openBoedelDoc": "Boedelbeschrijving (werkdocument)",
+    "openPvaDoc": "Plan van aanpak (werkdocument)"
   },
   "rvPack": {
     "back": "Terug naar dossier",
@@ -599,7 +601,9 @@
       "rv_window": "R&V-indiening moet uiterlijk {dueDate} (rooster rechtbank) — nog {days} dagen.",
       "batch_waiting": "Een conceptbetaalbatch wacht al {hours} uur op beoordeling.",
       "uncategorized_tx": "{count} transactie(s) nog niet gecategoriseerd."
-    }
+    },
+    "showAll": "Toon alle {count} signalen",
+    "showLess": "Toon minder"
   },
   "intake": {
     "checklistTitle": "Voortgang boedelbeschrijving",
@@ -638,15 +642,15 @@
       "lineKind": "Type",
       "name": "Naam",
       "categoryKey": "Categorie",
-      "amountCents": "Bedrag (centen)",
+      "amountCents": "Bedrag (€)",
       "frequency": "Frequentie",
       "expectedDay": "Verwachte dag",
       "counterpartyName": "Tegenpartij",
       "counterpartyIban": "IBAN",
       "creditor": "Schuldeiser",
       "reference": "Kenmerk",
-      "currentAmountCents": "Actueel bedrag (centen)",
-      "originalAmountCents": "Oorspronkelijk bedrag (centen)",
+      "currentAmountCents": "Actueel bedrag (€)",
+      "originalAmountCents": "Oorspronkelijk bedrag (€)",
       "viaDeurwaarder": "Via deurwaarder",
       "contactKind": "Soort",
       "email": "E-mail",
@@ -654,7 +658,7 @@
       "iban": "IBAN",
       "bankName": "Bank",
       "accountType": "Rekeningtype",
-      "openingBalanceCents": "Beginsaldo (centen)",
+      "openingBalanceCents": "Beginsaldo (€)",
       "openingBalanceDate": "Begindatum"
     },
     "accept": "Accepteren",
@@ -713,7 +717,12 @@
       "quarterly": "per kwartaal",
       "yearly": "jaarlijks",
       "once": "eenmalig"
-    }
+    },
+    "evidenceIssuesTitle": "Controleer vóór indiening — beginsaldo-bewijs:",
+    "evidenceMismatch": "{iban}: saldo vastgelegd per {date}, niet per aanvang bewind.",
+    "evidenceMissing": "{iban}: geen datum beginsaldo vastgelegd.",
+    "noDate": "geen datum",
+    "debtsAsRecorded": "Bedragen zoals nu geregistreerd — bevestig aan de hand van saldo-opgaven per aanvang bewind."
   },
   "pva": {
     "back": "Intake",

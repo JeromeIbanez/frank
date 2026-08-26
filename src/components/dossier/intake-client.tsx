@@ -84,6 +84,16 @@ export function ProposalCard({
     ([k]) => k !== "kind"
   );
 
+  // Cents fields are edited as euro amounts ("486,30") and parsed back to
+  // integer cents; the server contract stays cents (Temujin PR-6 UX).
+  const isCents = (key: string) => key.endsWith("Cents");
+  const centsToEuro = (v: unknown) =>
+    typeof v === "number" ? (v / 100).toFixed(2).replace(".", ",") : "";
+  const euroToCents = (raw: string): number | null => {
+    const n = Number(raw.replace(/\./g, "").replace(",", "."));
+    return Number.isFinite(n) ? Math.round(n * 100) : null;
+  };
+
   return (
     <div className="rounded-[10px] border border-border bg-surface p-3 space-y-2.5">
       <div className="flex items-center gap-2">
@@ -107,13 +117,16 @@ export function ProposalCard({
               {t(`field.${key}`)}
             </span>
             <Input
-              value={String(values[key] ?? "")}
+              defaultValue={
+                isCents(key) ? centsToEuro(values[key]) : String(values[key] ?? "")
+              }
               onChange={(e) => {
                 const raw = e.target.value;
                 setValues((v) => ({
                   ...v,
-                  [key]:
-                    typeof value === "number"
+                  [key]: isCents(key)
+                    ? euroToCents(raw)
+                    : typeof value === "number"
                       ? raw === ""
                         ? null
                         : Number(raw)
@@ -123,7 +136,7 @@ export function ProposalCard({
                 }));
                 setEdited(true);
               }}
-              className="h-7 text-[12.5px] font-mono"
+              className="h-7 text-[12.5px] font-mono tabular-nums"
             />
             {proposal.provenance[key] && (
               <span className="mt-0.5 block truncate font-mono text-[10.5px] text-ink-300">

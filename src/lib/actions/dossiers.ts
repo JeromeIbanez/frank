@@ -74,7 +74,7 @@ export async function createDossier(formData: FormData): Promise<void> {
 export async function addAccount(
   dossierId: string,
   formData: FormData
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; entityId?: string }> {
   const actor = await currentActor();
   const db = getDb();
   // Validate at the boundary (Temujin code review finding 8): invalid data
@@ -113,7 +113,7 @@ export async function addAccount(
     versionAfter: { iban: row.iban, type: row.type },
   });
   revalidatePath(`/dossiers/${dossierId}`);
-  return { ok: true };
+  return { ok: true, entityId: row.id };
 }
 
 /**

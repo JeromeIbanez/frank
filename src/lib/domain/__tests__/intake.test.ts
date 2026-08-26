@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   boedelChecklist,
   toProposalPayload,
+  verifyProvenance,
   completeness,
   extractionResult,
   payloadHash,
@@ -124,6 +125,69 @@ describe("flat model item → strict payload mapping", () => {
     });
     expect(p).not.toBeNull();
     expect(p!.kind).toBe("budget_line");
+  });
+});
+
+describe("verifyProvenance (Temujin PR-6 #2)", () => {
+  const doc = `AANMANING\nSchuldeiser: KPN B.V.\nOpenstaand saldo: EUR 486,30\nNettoloon: EUR 1.842,50 per maand`;
+  const debtPayload = proposalPayload.parse({
+    kind: "debt", creditor: "KPN B.V.", currentAmountCents: 48630,
+  });
+  const item = (prov: { field: string; snippet: string }[]) => ({
+    kind: "debt" as const, lineKind: null, name: null, categoryKey: null,
+    amountCents: null, frequency: null, expectedDay: null,
+    counterpartyName: null, counterpartyIban: null,
+    creditor: "KPN B.V.", reference: null, currentAmountCents: 48630,
+    originalAmountCents: null, viaDeurwaarder: null, contactKind: null,
+    email: null, phone: null, iban: null, bankName: null, accountType: null,
+    openingBalanceCents: null, openingBalanceDate: null,
+    provenance: prov, confidence: 80,
+  });
+
+  it("verified snippet containing the amount → material claim evidenced", () => {
+    const r = verifyProvenance(
+      item([{ field: "saldo", snippet: "Openstaand saldo: EUR 486,30" }]),
+      debtPayload, doc
+    );
+    expect(r.materialVerified).toBe(true);
+    expect(r.verified.saldo).toBeDefined();
+  });
+
+  it("fabricated snippet (not in the document) is discarded", () => {
+    const r = verifyProvenance(
+      item([{ field: "saldo", snippet: "Openstaand saldo: EUR 999,99" }]),
+      debtPayload, doc
+    );
+    expect(Object.keys(r.verified)).toHaveLength(0);
+    expect(r.materialVerified).toBe(false);
+  });
+
+  it("real snippet that does NOT contain the claimed amount → unevidenced", () => {
+    const r = verifyProvenance(
+      item([{ field: "x", snippet: "Schuldeiser: KPN B.V." }]),
+      debtPayload, doc
+    );
+    expect(r.materialVerified).toBe(false);
+  });
+
+  it("whitespace differences do not break matching", () => {
+    const r = verifyProvenance(
+      item([{ field: "saldo", snippet: "Openstaand   saldo:  EUR 486,30" }]),
+      debtPayload, doc
+    );
+    expect(r.materialVerified).toBe(true);
+  });
+
+  it("grouped euro form (1.842,50) is recognized", () => {
+    const linePayload = proposalPayload.parse({
+      kind: "budget_line", lineKind: "income", name: "Nettoloon",
+      categoryKey: "inkomen_loon", amountCents: 184250, frequency: "monthly",
+    });
+    const r = verifyProvenance(
+      { ...item([{ field: "loon", snippet: "Nettoloon: EUR 1.842,50" }]), kind: "budget_line" as const },
+      linePayload, doc
+    );
+    expect(r.materialVerified).toBe(true);
   });
 });
 
