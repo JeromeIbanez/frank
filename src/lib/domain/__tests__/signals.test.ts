@@ -148,6 +148,34 @@ describe("income_missed (conservative matching)", () => {
     expect(detectIncomeMissed(s2)).toHaveLength(0);
   });
 
+  it("a next-month credit outside the grace window never clears the prior month (Temujin PR-5 r2)", () => {
+    const s = emptySnapshot("2026-10-03"); // due 15-09 long past
+    s.budgetLines = [incomeLine({ expectedDay: 15 })];
+    s.recentCredits = [
+      // October's own (early) payment — must NOT clear September
+      { dossierId: "D1", bookingDate: "2026-10-01", amountCents: 150_000, counterpartyIban: "NL01WERK0000000001", categoryKey: null },
+    ];
+    const out = detectIncomeMissed(s);
+    expect(out).toHaveLength(1);
+    expect(out[0].dedupeKey).toBe("income_missed:L1:2026-09");
+  });
+
+  it("a month-end salary landing within due+grace in the next month DOES clear (late payment)", () => {
+    const s = emptySnapshot("2026-10-05"); // due 30-09, grace ends 03-10
+    s.budgetLines = [incomeLine({ expectedDay: 30 })];
+    s.recentCredits = [
+      { dossierId: "D1", bookingDate: "2026-10-01", amountCents: 150_000, counterpartyIban: "NL01WERK0000000001", categoryKey: null },
+    ];
+    expect(detectIncomeMissed(s)).toHaveLength(0);
+    // ...but one landing after the grace window does not
+    const s2 = emptySnapshot("2026-10-06");
+    s2.budgetLines = [incomeLine({ expectedDay: 30 })];
+    s2.recentCredits = [
+      { dossierId: "D1", bookingDate: "2026-10-05", amountCents: 150_000, counterpartyIban: "NL01WERK0000000001", categoryKey: null },
+    ];
+    expect(detectIncomeMissed(s2)).toHaveLength(1);
+  });
+
   it("mid-month check looks at the PREVIOUS month's due date, not a future one", () => {
     const s = emptySnapshot("2026-08-10"); // day 15 not reached; July due 15-07 unmatched
     s.budgetLines = [incomeLine()];

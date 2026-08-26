@@ -162,11 +162,20 @@ export function detectIncomeMissed(s: Snapshot): SignalCondition[] {
     if (daysBetween(due, s.today) < INCOME_GRACE_DAYS) continue;
     const dueMonthKey = due.slice(0, 7);
     const monthStart = `${dueMonthKey}-01`;
+    // Credit window is BOUNDED (Temujin PR-5 round-2): [due month start,
+    // due date + grace]. A month-end salary landing a day or two into the
+    // next month still counts as THIS month's late payment, but a credit
+    // after the grace window belongs to the next expectation and must
+    // never clear this one.
+    const windowEnd = new Date(Date.parse(due) + INCOME_GRACE_DAYS * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
     const credits = s.recentCredits.filter(
       (c) =>
         c.dossierId === line.dossierId &&
         c.amountCents > 0 &&
-        c.bookingDate >= monthStart
+        c.bookingDate >= monthStart &&
+        c.bookingDate <= windowEnd
     );
     const ibanMatch =
       line.counterpartyIban !== null &&
