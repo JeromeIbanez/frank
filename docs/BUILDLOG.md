@@ -1,5 +1,23 @@
 # Frank OS — Build Log
 
+## OS v1 PR-3: Intake pipeline shipped — 2026-08-26
+- AI proposals under human decision (PR #6, four Temujin rounds → APPROVE):
+  typed contracts, field provenance verified against the source (signed
+  amounts, creditor↔amount locality binding, IBAN/day evidence or strip),
+  idempotent per (doc, kind, payloadHash, extractorVersion); flat model
+  schema mapped into the strict union (strict structured-output modes
+  reject oneOf/record).
+- Accept = exclusive token lease (accepting state, 2-min expiry) +
+  idempotent materialization via source_proposal_id unique keys through
+  the SAME actions as manual entry; decision audit carries doc sha256 +
+  human before/after overrides. Verified live end-to-end with real model
+  extraction (loonstrook → budget line; aanmaning → debt).
+- Intake tab (completeness checklist, proposal cards, werkdocument
+  sections) collapses when done; boedelbeschrijving + plan van aanpak
+  printables (opening-evidence mismatch flags; schuldenbewind supplement).
+- UX: Today per-severity caps, euro-facing proposal editing (parseEuro).
+- 159 tests; production deployed.
+
 ## OS v1 PR-2: Signals + Today shipped — 2026-08-26
 - 11 pure detectors (signals-v2) over an office-TZ snapshot; conservative
   income matching with month-clamped due dates and a bounded credit window
