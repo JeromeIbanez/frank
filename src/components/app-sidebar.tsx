@@ -28,12 +28,15 @@ export async function AppSidebar() {
       <SidebarNav items={items} />
       <div className="mt-auto p-4 border-t border-border/60 space-y-2.5">
         <LanguageToggle />
-        <div
-          className="text-center text-[10px] uppercase tracking-widest text-muted-foreground/70"
+        <p
+          tabIndex={0}
+          role="note"
+          aria-label={ts("demoBanner")}
           title={ts("demoBanner")}
+          className="text-center text-[10px] uppercase tracking-widest text-muted-foreground/70 rounded focus-visible:outline-2 focus-visible:outline-ring"
         >
           {ts("demoShort")}
-        </div>
+        </p>
       </div>
     </aside>
   );
