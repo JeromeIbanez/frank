@@ -4,9 +4,10 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Download, ShieldAlert, X } from "lucide-react";
+import { Download, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -16,8 +17,8 @@ import {
 import {
   approveBatch,
   createPaymentProposals,
-  removePaymentItem,
   resolveMachtigingFlag,
+  setItemExcluded,
 } from "@/lib/actions/payments";
 
 export function CreateProposalsButton() {
@@ -44,7 +45,12 @@ export function CreateProposalsButton() {
   );
 }
 
-export function ApproveBatchButton({
+/**
+ * Deliberate approve flow (design handoff §3): summary + warning + explicit
+ * acknowledgment checkbox gating the confirm. The server re-checks the same
+ * invariants; the checkbox state is passed and recorded in the audit log.
+ */
+export function ApproveBatchFooterButton({
   batchId,
   blocked,
   summary,
@@ -54,8 +60,8 @@ export function ApproveBatchButton({
   summary: {
     totalCents: number;
     itemCount: number;
+    excludedCount: number;
     dossierCount: number;
-    accountCount: number;
     executionDate: string;
     unresolvedCount: number;
   };
@@ -63,58 +69,66 @@ export function ApproveBatchButton({
   const t = useTranslations("payments");
   const tm = useTranslations();
   const [open, setOpen] = useState(false);
+  const [ack, setAck] = useState(false);
   const [isPending, startTransition] = useTransition();
+
   return (
     <>
       <Button
         disabled={blocked || isPending}
         title={blocked ? t("approveBlocked") : undefined}
-        onClick={() => setOpen(true)}
+        className="disabled:bg-indigo-disabled disabled:opacity-100 disabled:cursor-not-allowed"
+        onClick={() => {
+          setAck(false);
+          setOpen(true);
+        }}
       >
-        {t("approve")}
+        {t("approveEllipsis")}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("approveSummaryTitle")}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <dt className="text-muted-foreground">{t("approveSummary.total")}</dt>
-              <dd className="font-medium tabular-nums">
+          <div className="space-y-4">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px]">
+              <dt className="text-ink-400">{t("approveSummary.items")}</dt>
+              <dd className="font-mono tabular-nums">{summary.itemCount}</dd>
+              <dt className="text-ink-400">{t("approveSummary.total")}</dt>
+              <dd className="font-mono tabular-nums font-semibold">
                 {(summary.totalCents / 100).toLocaleString("nl-NL", {
                   style: "currency",
                   currency: "EUR",
                 })}
               </dd>
-              <dt className="text-muted-foreground">{t("approveSummary.items")}</dt>
-              <dd>{summary.itemCount}</dd>
-              <dt className="text-muted-foreground">{t("approveSummary.dossiers")}</dt>
-              <dd>
-                {summary.dossierCount} / {summary.accountCount}{" "}
-                {t("approveSummary.accounts")}
+              <dt className="text-ink-400">{t("approveSummary.execution")}</dt>
+              <dd className="font-mono tabular-nums">
+                {summary.executionDate.split("-").reverse().join("-")}
               </dd>
-              <dt className="text-muted-foreground">{t("approveSummary.execution")}</dt>
-              <dd className="tabular-nums">{summary.executionDate}</dd>
-              <dt className="text-muted-foreground">
-                {t("approveSummary.unresolved")}
-              </dt>
-              <dd className={summary.unresolvedCount > 0 ? "text-red-600" : ""}>
-                {summary.unresolvedCount}
-              </dd>
+              <dt className="text-ink-400">{t("approveSummary.excluded")}</dt>
+              <dd className="font-mono tabular-nums">{summary.excludedCount}</dd>
             </dl>
-            <p className="text-xs rounded-md bg-amber-50 text-amber-800 px-3 py-2">
-              {t("approveSummary.demoWarning")}
+            <p className="text-[12.5px] text-ink-600 rounded-[8px] bg-surface-subtle border border-hairline px-3 py-2.5">
+              {t("approveSummary.lockWarning")}
             </p>
+            <label className="flex items-start gap-2.5 text-[13px] cursor-pointer">
+              <Checkbox
+                checked={ack}
+                onCheckedChange={(v) => setAck(v === true)}
+                className="mt-0.5"
+              />
+              {t("approveSummary.ack")}
+            </label>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setOpen(false)}>
                 {tm("common.cancel")}
               </Button>
               <Button
-                disabled={isPending || summary.unresolvedCount > 0}
+                disabled={isPending || !ack}
+                className="disabled:bg-indigo-disabled disabled:opacity-100"
                 onClick={() =>
                   startTransition(async () => {
-                    const res = await approveBatch(batchId);
+                    const res = await approveBatch(batchId, ack);
                     if (res.ok) {
                       toast.success(t("approved"));
                       setOpen(false);
@@ -132,7 +146,6 @@ export function ApproveBatchButton({
   );
 }
 
-
 export function ExportBatchButton({ batchId }: { batchId: string }) {
   const t = useTranslations("payments");
   return (
@@ -146,16 +159,32 @@ export function ExportBatchButton({ batchId }: { batchId: string }) {
   );
 }
 
-export function RemoveItemButton({ itemId }: { itemId: string }) {
+/** Exclude / undo (soft, audited, draft-only — "held for court authorisation"). */
+export function ExcludeItemButton({
+  itemId,
+  excluded,
+}: {
+  itemId: string;
+  excluded: boolean;
+}) {
+  const t = useTranslations("payments");
   const [isPending, startTransition] = useTransition();
   return (
     <button
-      className="text-muted-foreground/40 hover:text-red-600"
       disabled={isPending}
-      onClick={() => startTransition(async () => removePaymentItem(itemId))}
-      aria-label="remove"
+      onClick={() =>
+        startTransition(async () => {
+          const res = await setItemExcluded(itemId, !excluded);
+          if (!res.ok) toast.error(t("excludeLocked"));
+        })
+      }
+      className={
+        excluded
+          ? "text-[12px] font-semibold text-primary hover:text-accent-foreground"
+          : "text-[12px] font-semibold text-[#B91C1C] border border-[#FECACA] rounded-[7px] px-2 py-1 hover:bg-[#FEF2F2]"
+      }
     >
-      <X className="h-4 w-4" />
+      {excluded ? t("undo") : t("excludeFromBatch")}
     </button>
   );
 }
@@ -187,13 +216,8 @@ export function MachtigingResolver({
 
   if (flag.resolution) {
     return (
-      <span className="text-xs text-emerald-700">
-        {t(`resolution.${flag.resolution}`)}
-        {flag.rationale && (
-          <span className="text-muted-foreground/70 block truncate max-w-40">
-            {flag.rationale}
-          </span>
-        )}
+      <span className="text-[11px] font-semibold text-[#15803D]">
+        ✓ {t(`resolution.${flag.resolution}`)}
       </span>
     );
   }
@@ -201,10 +225,10 @@ export function MachtigingResolver({
   return (
     <>
       <button
-        className="inline-flex items-center gap-1 text-xs text-red-600 hover:underline"
+        className="inline-flex items-center gap-1 rounded-full bg-[#DC2626] text-white text-[11px] font-semibold px-2 py-0.5 hover:bg-[#B91C1C]"
         onClick={() => editable && setOpen(true)}
       >
-        <ShieldAlert className="h-3.5 w-3.5" />
+        <ShieldAlert className="h-3 w-3" />
         {t("machtigingReview")}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -213,12 +237,12 @@ export function MachtigingResolver({
             <DialogTitle>{t("machtigingTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 space-y-0.5">
+            <div className="rounded-[8px] bg-[#FEF2F2] border border-[#FECACA] px-3 py-2 text-[12.5px] text-[#B91C1C] space-y-0.5">
               {flag.reasons.map((r) => (
                 <div key={r}>• {tm(r)}</div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground">{t("machtigingDisclaimer")}</p>
+            <p className="text-xs text-ink-400">{t("machtigingDisclaimer")}</p>
             <div className="space-y-1.5">
               {(
                 [
@@ -227,10 +251,11 @@ export function MachtigingResolver({
                   "not_applicable",
                 ] as const
               ).map((r) => (
-                <label key={r} className="flex items-center gap-2 text-sm">
+                <label key={r} className="flex items-center gap-2 text-[13px]">
                   <input
                     type="radio"
                     name="resolution"
+                    className="accent-[#4F46E5]"
                     checked={resolution === r}
                     onChange={() => setResolution(r)}
                   />

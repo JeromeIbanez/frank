@@ -37,18 +37,21 @@ export function RvScheduleForm({ dossierId }: { dossierId: string }) {
   const [month, setMonth] = useState("3");
   const [isPending, startTransition] = useTransition();
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <FormSelect
         value={month}
         onValueChange={setMonth}
+        size="sm"
+        className="w-40"
         options={Array.from({ length: 12 }, (_, i) => ({
           value: String(i + 1),
           label: t(`months.${i + 1}`),
         }))}
       />
-      <Button
-        variant="outline"
+      <button
+        type="button"
         disabled={isPending}
+        className="whitespace-nowrap text-[12.5px] font-medium text-[#4F46E5] hover:text-[#4338CA] disabled:opacity-50"
         onClick={() =>
           startTransition(async () => {
             await setRvSchedule(dossierId, Number(month));
@@ -57,7 +60,7 @@ export function RvScheduleForm({ dossierId }: { dossierId: string }) {
         }
       >
         {t("rvSave")}
-      </Button>
+      </button>
     </div>
   );
 }
@@ -69,15 +72,19 @@ export function AddAccountForm({ dossierId }: { dossierId: string }) {
 
   if (!open) {
     return (
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-        {t("addAccount")}
-      </Button>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="text-[13px] font-medium text-[#4F46E5] hover:text-[#4338CA]"
+      >
+        + {t("addAccount")}
+      </button>
     );
   }
 
   return (
     <form
-      className="space-y-2 border-t border-border/60 pt-3"
+      className="space-y-2 border-t border-hairline pt-3"
       action={(fd) =>
         startTransition(async () => {
           const res = await addAccount(dossierId, fd);

@@ -288,6 +288,27 @@ export async function accountBalance(accountId: string): Promise<number> {
   return acc.openingBalanceCents + Number(s?.total ?? 0);
 }
 
+export async function getNavCounts() {
+  const db = getDb();
+  const [dossierCount] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(dossiers)
+    .where(ne(dossiers.status, "afgesloten"));
+  const [openTaskCount] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(tasks)
+    .where(inArray(tasks.status, ["open", "prepared", "submitted"]));
+  const [inboxNew] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(documents)
+    .where(eq(documents.status, "new"));
+  return {
+    dossiers: Number(dossierCount?.n ?? 0),
+    openTasks: Number(openTaskCount?.n ?? 0),
+    inboxNew: Number(inboxNew?.n ?? 0),
+  };
+}
+
 export async function dashboardStats() {
   const db = getDb();
   const [dossierCount] = await db

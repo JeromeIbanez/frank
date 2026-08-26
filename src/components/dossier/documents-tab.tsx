@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { getDossierDocuments } from "@/lib/queries";
 import { DocumentCard } from "@/components/document-card";
+import { EmptyState } from "@/components/format";
 
 export async function DocumentsTab({
   dossierId,
@@ -15,7 +16,7 @@ export async function DocumentsTab({
   return (
     <div className="space-y-3">
       {docs.length === 0 && (
-        <p className="text-sm text-muted-foreground">{t("emptyDossier")}</p>
+        <EmptyState title={t("emptyTitle")} sentence={t("emptyDossier")} />
       )}
       {docs.map((doc) => (
         <DocumentCard

@@ -24,12 +24,12 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 export function SidebarNav({
   items,
 }: {
-  items: { href: string; key: string; label: string }[];
+  items: { href: string; key: string; label: string; count?: number }[];
 }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex-1 px-3 py-4 space-y-0.5">
+    <nav className="flex-1 px-3 space-y-px">
       {items.map((item) => {
         const Icon = ICONS[item.key];
         const active =
@@ -42,29 +42,26 @@ export function SidebarNav({
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+              "flex items-center gap-2.5 rounded-[7px] px-3 py-[7px] text-[13.5px] transition-colors",
               active
-                ? "bg-accent text-accent-foreground font-medium"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                ? "bg-accent text-accent-foreground font-semibold"
+                : "text-ink-600 hover:bg-hairline hover:text-ink-900"
             )}
           >
-            <span
-              className={cn(
-                "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary transition-opacity",
-                active ? "opacity-100" : "opacity-0"
-              )}
-            />
             {Icon && (
               <Icon
                 className={cn(
                   "h-4 w-4",
-                  active
-                    ? "text-primary"
-                    : "text-muted-foreground group-hover:text-foreground"
+                  active ? "text-primary" : "text-ink-400"
                 )}
               />
             )}
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {item.count != null && item.count > 0 && (
+              <span className="font-mono text-[11px] text-ink-400 tabular-nums">
+                {item.count}
+              </span>
+            )}
           </Link>
         );
       })}

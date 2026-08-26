@@ -5,6 +5,8 @@ import { useTransition } from "react";
 import { setLocale } from "@/lib/actions/locale";
 import { cn } from "@/lib/utils";
 
+/** Segmented NL/EN toggle per handoff: white, 1px border, radius 7px,
+ *  active segment indigo-50 bg + indigo-700 text. */
 export function LanguageToggle() {
   const locale = useLocale();
   const [pending, startTransition] = useTransition();
@@ -17,7 +19,7 @@ export function LanguageToggle() {
   return (
     <div
       className={cn(
-        "flex rounded-lg border border-border bg-muted/50 p-0.5 text-sm",
+        "flex rounded-[7px] border border-border bg-surface p-0.5 text-xs",
         pending && "opacity-50"
       )}
       role="group"
@@ -27,11 +29,12 @@ export function LanguageToggle() {
         <button
           key={l}
           onClick={() => switchTo(l)}
+          aria-pressed={locale === l}
           className={cn(
-            "flex-1 rounded-md px-2 py-1 font-medium transition-colors",
+            "rounded-[5px] px-2 py-0.5 font-semibold transition-colors",
             locale === l
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-accent text-accent-foreground"
+              : "text-ink-400 hover:text-ink-900"
           )}
         >
           {l.toUpperCase()}

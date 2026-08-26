@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/form-select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { StatusBadge } from "@/components/format";
+import { DateText, StatusBadge } from "@/components/format";
 import {
   approveLetter,
   generateAanschrijfPack,
@@ -109,25 +109,25 @@ export function LetterCard({
   const [isPending, startTransition] = useTransition();
 
   return (
-    <div className="rounded-lg border border-border bg-card">
+    <div className="rounded-[10px] border border-border bg-card overflow-hidden">
       <button
-        className="w-full text-left px-4 py-3 flex items-center gap-3"
+        className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-surface-hover"
         onClick={() => setExpanded((e) => !e)}
       >
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium truncate">{letter.subject}</div>
-          <div className="text-xs text-muted-foreground">
-            {letter.recipientName ?? "—"} · {letter.createdAt}
+          <div className="text-[13.5px] font-[550] truncate">{letter.subject}</div>
+          <div className="text-xs text-ink-400">
+            {letter.recipientName ?? "—"} · <DateText iso={letter.createdAt} />
           </div>
         </div>
         <StatusBadge status={letter.status} label={t(`status.${letter.status}`)} />
       </button>
       {expanded && (
-        <div className="border-t border-border/60 px-4 py-3 space-y-3">
-          <pre className="whitespace-pre-wrap text-sm font-sans bg-muted/40 rounded-md p-4 max-h-96 overflow-y-auto">
+        <div className="border-t border-hairline px-4 py-3 space-y-3">
+          <pre className="whitespace-pre-wrap text-[13px] font-sans bg-surface-subtle rounded-md p-4 max-h-96 overflow-y-auto">
             {letter.body}
           </pre>
-          <p className="text-xs text-muted-foreground/70">{t("dutchNote")}</p>
+          <p className="text-xs text-ink-400">{t("dutchNote")}</p>
           <div className="flex gap-2">
             {letter.status === "draft" && (
               <Button

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getDossier } from "@/lib/queries";
 import { buildRvPack } from "@/lib/rv";
-import { Money } from "@/components/format";
+import { DateText, Money, SeverityDot } from "@/components/format";
 import { PrintButton } from "@/components/print-button";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,7 @@ export default async function RvPackPage({
         <PrintButton label={t("print")} />
       </div>
 
-      <div className="border-2 border-amber-400 bg-amber-50 text-amber-900 text-center text-sm font-semibold py-2 px-4 rounded">
+      <div className="rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-2 text-center text-[12px] font-semibold text-[#B45309]">
         {t("watermark")}
       </div>
 
@@ -47,34 +47,40 @@ export default async function RvPackPage({
         <h1 className="text-xl font-semibold">
           {t("title", { year })}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[13px] text-ink-600">
           {dossier.firstName} {dossier.lastName}
-          {dossier.zaaknummer ? ` · ${dossier.zaaknummer}` : ""}
+          {dossier.zaaknummer ? (
+            <>
+              {" · "}
+              <span className="font-mono">{dossier.zaaknummer}</span>
+            </>
+          ) : null}
           {dossier.rechtbank ? ` · ${dossier.rechtbank}` : ""}
         </p>
-        <p className="text-sm text-muted-foreground">
-          {t("period")}: {pack.periodStart} — {pack.periodEnd}
+        <p className="text-[13px] text-ink-600">
+          {t("period")}: <DateText iso={pack.periodStart} /> —{" "}
+          <DateText iso={pack.periodEnd} />
         </p>
       </header>
 
       <section>
-        <h2 className="font-medium mb-2">{t("balances")}</h2>
+        <h2 className="type-section-label mb-2">{t("balances")}</h2>
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-border text-left text-muted-foreground">
-              <th className="py-1.5">{t("account")}</th>
-              <th className="py-1.5 text-right">{t("opening")}</th>
-              <th className="py-1.5 text-right">{t("closing")}</th>
+            <tr className="border-b border-hairline text-left">
+              <th className="py-1.5 type-section-label text-left">{t("account")}</th>
+              <th className="py-1.5 type-section-label text-right">{t("opening")}</th>
+              <th className="py-1.5 type-section-label text-right">{t("closing")}</th>
             </tr>
           </thead>
           <tbody>
             {pack.accounts.map((acc) => (
-              <tr key={acc.iban} className="border-b border-border/60">
+              <tr key={acc.iban} className="border-b border-hairline">
                 <td className="py-1.5">
                   <span className="font-mono">{acc.iban}</span>{" "}
-                  <span className="text-muted-foreground/70">({acc.type})</span>
+                  <span className="text-ink-400">({acc.type})</span>
                   {acc.leefgeldOnly && (
-                    <span className="text-xs text-muted-foreground/70 block">
+                    <span className="text-xs text-ink-400 block">
                       {t("leefgeldNote")}
                     </span>
                   )}
@@ -93,11 +99,11 @@ export default async function RvPackPage({
 
       <div className="grid grid-cols-2 gap-8">
         <section>
-          <h2 className="font-medium mb-2">{t("income")}</h2>
+          <h2 className="type-section-label mb-2">{t("income")}</h2>
           <table className="w-full text-sm">
             <tbody>
               {pack.incomeByCategory.map((c) => (
-                <tr key={c.key} className="border-b border-border/60">
+                <tr key={c.key} className="border-b border-hairline">
                   <td className="py-1">{c.nl}</td>
                   <td className="py-1 text-right">
                     <Money cents={c.cents} />
@@ -114,11 +120,11 @@ export default async function RvPackPage({
           </table>
         </section>
         <section>
-          <h2 className="font-medium mb-2">{t("expenses")}</h2>
+          <h2 className="type-section-label mb-2">{t("expenses")}</h2>
           <table className="w-full text-sm">
             <tbody>
               {pack.expenseByCategory.map((c) => (
-                <tr key={c.key} className="border-b border-border/60">
+                <tr key={c.key} className="border-b border-hairline">
                   <td className="py-1">{c.nl}</td>
                   <td className="py-1 text-right">
                     <Money cents={c.cents} />
@@ -138,13 +144,15 @@ export default async function RvPackPage({
 
       {pack.largeExpenses.length > 0 && (
         <section>
-          <h2 className="font-medium mb-2">{t("largeExpenses")}</h2>
-          <p className="text-xs text-muted-foreground mb-2">{t("largeExpensesHint")}</p>
+          <h2 className="type-section-label mb-2">{t("largeExpenses")}</h2>
+          <p className="text-xs text-ink-400 mb-2">{t("largeExpensesHint")}</p>
           <table className="w-full text-sm">
             <tbody>
               {pack.largeExpenses.map((e, i) => (
-                <tr key={i} className="border-b border-border/60">
-                  <td className="py-1 tabular-nums">{e.date}</td>
+                <tr key={i} className="border-b border-hairline">
+                  <td className="py-1">
+                    <DateText iso={e.date} />
+                  </td>
                   <td className="py-1">{e.counterparty ?? "—"}</td>
                   <td className="py-1 text-right">
                     <Money cents={e.cents} />
@@ -157,24 +165,34 @@ export default async function RvPackPage({
       )}
 
       <section>
-        <h2 className="font-medium mb-2">{t("validations")}</h2>
-        <ul className="space-y-1 text-sm">
+        <h2 className="type-section-label mb-2">{t("validations")}</h2>
+        <ul className="space-y-1 text-[12.5px]">
           {pack.validations.length === 0 && (
-            <li className="text-emerald-700">{t("clean")}</li>
+            <li className="flex items-start gap-2">
+              <SeverityDot severity="green" className="mt-[5px]" />
+              <span className="text-ink-600">{t("clean")}</span>
+            </li>
           )}
           {pack.validations.map((v) => (
-            <li
-              key={v.key}
-              className={v.level === "error" ? "text-red-700" : "text-amber-700"}
-            >
-              • {t(`validation.${v.key}`, { detail: v.detail ?? "" })}
+            <li key={v.key} className="flex items-start gap-2">
+              <SeverityDot
+                severity={v.level === "error" ? "red" : "amber"}
+                className="mt-[5px]"
+              />
+              <span
+                className={
+                  v.level === "error" ? "text-[#B91C1C]" : "text-[#B45309]"
+                }
+              >
+                {t(`validation.${v.key}`, { detail: v.detail ?? "" })}
+              </span>
             </li>
           ))}
         </ul>
       </section>
 
       <section>
-        <h2 className="font-medium mb-2">{t("attachments")}</h2>
+        <h2 className="type-section-label mb-2">{t("attachments")}</h2>
         <ul className="space-y-1 text-sm">
           {pack.attachments.map((a) => (
             <li key={a.key} className="flex items-center gap-2">
@@ -182,7 +200,7 @@ export default async function RvPackPage({
                 className={
                   "inline-block h-3.5 w-3.5 rounded border " +
                   (a.done
-                    ? "bg-emerald-500 border-emerald-500"
+                    ? "bg-[#22C55E] border-[#22C55E]"
                     : "border-border")
                 }
               />
@@ -190,7 +208,7 @@ export default async function RvPackPage({
             </li>
           ))}
         </ul>
-        <p className="text-xs text-muted-foreground mt-3">{t("mijnCbmNote")}</p>
+        <p className="text-xs text-ink-400 mt-3">{t("mijnCbmNote")}</p>
       </section>
     </div>
   );

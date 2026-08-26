@@ -130,6 +130,10 @@ export async function createPaymentProposals(): Promise<{
           )
         );
 
+      // Contractual fixed lasten (huur, premies, energie…) are normal
+      // management and never amount-trigger. Discretionary spending
+      // (overige_uitgaven) is a purchase in LOVT terms — B.D3's own examples
+      // (furnishing, holidays) live here and must aggregate toward €2,000.
       const flag = checkMachtiging({
         amountCents: line.amountCents,
         categoryKey: line.categoryKey,
@@ -138,7 +142,7 @@ export async function createPaymentProposals(): Promise<{
           line.categoryKey === "overige_uitgaven"
             ? Number(spent?.total ?? 0)
             : 0,
-        kind: "regular_bill",
+        kind: line.categoryKey === "overige_uitgaven" ? "purchase" : "regular_bill",
       });
       const errors: string[] = [];
       if (!isValidIban(line.counterpartyIban!)) errors.push("invalid_iban");
@@ -230,17 +234,24 @@ export async function resolveMachtigingFlag(
  * unresolved machtiging flag (PRD money invariants).
  */
 export async function approveBatch(
-  batchId: string
+  batchId: string,
+  acknowledged?: boolean
 ): Promise<{ ok: boolean; error?: string }> {
   const actor = await currentActor();
   const db = getDb();
+  // The acknowledgment checkbox is UI, but the invariant is server-side
+  // (Temujin guardrail 3): no approval without an explicit acknowledgment.
+  if (!acknowledged) return { ok: false, error: "not_acknowledged" };
   const batch = await db.query.paymentBatches.findFirst({
     where: eq(paymentBatches.id, batchId),
     with: { items: true },
   });
   if (!batch || batch.status !== "draft") return { ok: false, error: "invalid_state" };
 
-  const blocking = batch.items.filter(
+  // Server-side re-check (Temujin guardrail 2): excluded items neither block
+  // nor count; everything else must be clean.
+  const included = batch.items.filter((i) => !i.excluded);
+  const blocking = included.filter(
     (i) =>
       (i.validationErrors && i.validationErrors.length > 0) ||
       (i.machtigingFlag?.triggered && !i.machtigingFlag.resolution)
@@ -248,6 +259,7 @@ export async function approveBatch(
   if (blocking.length > 0) {
     return { ok: false, error: `blocked:${blocking.length}` };
   }
+  if (included.length === 0) return { ok: false, error: "empty_batch" };
 
   await db
     .update(paymentBatches)
@@ -262,8 +274,15 @@ export async function approveBatch(
     entityId: batchId,
     approvalId: batchId,
     versionBefore: { status: "draft" },
-    versionAfter: { status: "approved", items: batch.items.length },
-    reason: "payment batch approved for export",
+    versionAfter: {
+      status: "approved",
+      items: included.length,
+      excludedItems: batch.items.length - included.length,
+      totalCents: included.reduce((s, i) => s + i.amountCents, 0),
+      acknowledged: true,
+    },
+    reason:
+      "payment batch approved for export — acknowledgment recorded; batch locked",
   });
 
   revalidatePath("/payments");
@@ -297,4 +316,50 @@ export async function removePaymentItem(itemId: string): Promise<void> {
   });
   revalidatePath(`/payments/${item.batchId}`);
   revalidatePath("/payments");
+}
+
+/**
+ * Soft-exclude / re-include an item ("held for court authorisation" in the
+ * deliberate-approve flow). Only while the batch is a draft; audited with
+ * the fixed reason (Temujin guardrail 3). Excluded items are skipped by
+ * approval gates and by the pain.001 export.
+ */
+export async function setItemExcluded(
+  itemId: string,
+  excluded: boolean
+): Promise<{ ok: boolean; error?: string }> {
+  const actor = await currentActor();
+  const db = getDb();
+  const item = await db.query.paymentItems.findFirst({
+    where: eq(paymentItems.id, itemId),
+  });
+  if (!item) return { ok: false, error: "not_found" };
+  const batch = await db.query.paymentBatches.findFirst({
+    where: eq(paymentBatches.id, item.batchId),
+  });
+  // Locked after approval (Temujin guardrail 2)
+  if (!batch || batch.status !== "draft") return { ok: false, error: "locked" };
+  if (item.excluded === excluded) return { ok: true };
+
+  await db
+    .update(paymentItems)
+    .set({ excluded })
+    .where(eq(paymentItems.id, itemId));
+
+  await writeAudit({
+    actorId: actor.id,
+    actorType: "human",
+    action: "update",
+    entityType: "payment_item",
+    entityId: itemId,
+    versionBefore: { excluded: item.excluded },
+    versionAfter: { excluded },
+    reason: excluded
+      ? "excluded from batch — held for court authorisation (machtiging)"
+      : "re-included in batch (exclusion undone)",
+  });
+
+  revalidatePath(`/payments/${item.batchId}`);
+  revalidatePath("/payments");
+  return { ok: true };
 }

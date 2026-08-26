@@ -7,10 +7,15 @@ import {
   getOpenTasks,
 } from "@/lib/queries";
 import { severity } from "@/lib/domain/deadlines";
-import { Money, SeverityDot } from "@/components/format";
+import { DateText, EmptyState, Money, SeverityDot } from "@/components/format";
 import { aiUsage } from "@/lib/ai/gateway";
 
 export const dynamic = "force-dynamic";
+
+/** Whole days from `today` to `iso` (both ISO YYYY-MM-DD, parsed as UTC). */
+function daysUntil(iso: string, today: string): number {
+  return Math.round((Date.parse(iso) - Date.parse(today)) / 86_400_000);
+}
 
 export default async function DashboardPage() {
   const t = await getTranslations("dashboard");
@@ -25,115 +30,151 @@ export default async function DashboardPage() {
   const upcoming = tasks.filter((x) => x.dueDate).slice(0, 8);
 
   const tiles = [
-    { label: t("tiles.dossiers"), value: stats.dossiers },
-    { label: t("tiles.openTasks"), value: stats.openTasks },
-    { label: t("tiles.overdue"), value: stats.overdueTasks, alert: stats.overdueTasks > 0 },
-    { label: t("tiles.newDocuments"), value: stats.newDocuments },
+    { label: t("tiles.dossiers"), sub: t("tiles.dossiersSub"), value: stats.dossiers },
+    { label: t("tiles.openTasks"), sub: t("tiles.openTasksSub"), value: stats.openTasks },
+    {
+      label: t("tiles.overdue"),
+      sub: t("tiles.overdueSub"),
+      value: stats.overdueTasks,
+      alert: stats.overdueTasks > 0,
+    },
+    { label: t("tiles.newDocuments"), sub: t("tiles.newDocumentsSub"), value: stats.newDocuments },
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {tiles.map((tile) => (
-          <Card key={tile.label} className="py-4">
-            <CardContent className="px-5">
-              <div
-                className={
-                  "text-3xl font-semibold tabular-nums " +
-                  (tile.alert ? "text-red-600" : "")
-                }
-              >
-                {tile.value}
+          <Card key={tile.label}>
+            <CardContent>
+              <div className="type-section-label">{tile.label}</div>
+              <div className="mt-1 flex items-center gap-2">
+                <span className={"type-kpi " + (tile.alert ? "text-[#DC2626]" : "text-ink-900")}>
+                  {tile.value}
+                </span>
+                {tile.alert && <SeverityDot severity="red" />}
               </div>
-              <div className="text-sm text-muted-foreground mt-1">{tile.label}</div>
+              <div className="mt-0.5 text-xs text-ink-400">{tile.sub}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-[7fr_5fr] gap-3.5 items-start">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("exceptions.title")}</CardTitle>
+          <CardHeader className="flex flex-row items-baseline justify-between">
+            <CardTitle className="text-sm font-semibold text-ink-900">
+              {t("exceptions.title")}
+            </CardTitle>
+            <span className="font-mono text-xs tabular-nums text-ink-400">
+              {exceptions.length}
+            </span>
           </CardHeader>
-          <CardContent className="space-y-1.5">
+          <CardContent className="space-y-0.5">
             {exceptions.length === 0 && (
-              <p className="text-sm text-muted-foreground">{t("exceptions.none")}</p>
+              <EmptyState
+                title={t("exceptions.emptyTitle")}
+                sentence={t("exceptions.none")}
+              />
             )}
             {exceptions.slice(0, 10).map((e, i) => (
               <Link
                 key={i}
                 href={`/dossiers/${e.dossierId}`}
-                className="flex items-start gap-2.5 rounded-md px-2.5 py-2 hover:bg-muted/50 text-sm"
+                className="flex items-start gap-2.5 rounded-md px-2.5 py-2 hover:bg-surface-hover"
               >
-                <SeverityDot severity={e.kind === "uncategorized" ? "amber" : "red"} />
-                <div className="min-w-0">
-                  <div className="font-medium">{e.dossierName}</div>
-                  <div className="text-muted-foreground">
+                <SeverityDot
+                  severity={e.kind === "uncategorized" ? "amber" : "red"}
+                  className="mt-1.5"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13.5px] font-[550] text-ink-900 truncate">
+                    {e.dossierName}
+                  </div>
+                  <div className="text-[12.5px] text-ink-600">
                     {t(`exceptions.${e.kind}`)}
-                    {e.kind === "missed_income" && (
-                      <>
-                        {" — "}
-                        {String(e.detail.line)} (
-                        <Money cents={Number(e.detail.amountCents)} />)
-                      </>
-                    )}
-                    {e.kind === "balance_floor" && (
-                      <>
-                        {" — "}
-                        <Money cents={Number(e.detail.balanceCents)} />
-                      </>
-                    )}
-                    {e.kind === "uncategorized" && <> — {e.detail.count}×</>}
+                    {e.kind === "missed_income" && <> — {String(e.detail.line)}</>}
                   </div>
                 </div>
+                {e.kind === "missed_income" && (
+                  <span className="text-right text-[#DC2626]">
+                    <Money cents={Number(e.detail.amountCents)} />
+                  </span>
+                )}
+                {e.kind === "balance_floor" && (
+                  <span className="text-right text-ink-900">
+                    <Money cents={Number(e.detail.balanceCents)} />
+                  </span>
+                )}
+                {e.kind === "uncategorized" && (
+                  <span className="font-mono text-xs tabular-nums text-ink-600">
+                    {e.detail.count}×
+                  </span>
+                )}
               </Link>
             ))}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("deadlines.title")}</CardTitle>
+          <CardHeader className="flex flex-row items-baseline justify-between">
+            <CardTitle className="text-sm font-semibold text-ink-900">
+              {t("deadlines.title")}
+            </CardTitle>
+            <span className="font-mono text-xs tabular-nums text-ink-400">
+              {upcoming.length}
+            </span>
           </CardHeader>
-          <CardContent className="space-y-1.5">
+          <CardContent className="space-y-0.5">
             {upcoming.length === 0 && (
-              <p className="text-sm text-muted-foreground">{t("deadlines.none")}</p>
+              <EmptyState
+                title={t("deadlines.emptyTitle")}
+                sentence={t("deadlines.none")}
+              />
             )}
-            {upcoming.map((task) => (
-              <Link
-                key={task.id}
-                href={
-                  task.dossier ? `/dossiers/${task.dossier.id}?tab=tasks` : "/my-day"
-                }
-                className="flex items-center gap-2.5 rounded-md px-2.5 py-2 hover:bg-muted/50 text-sm"
-              >
-                <SeverityDot
-                  severity={severity(task.dueDate!, today, task.deadlineConfirmed)}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">
-                    {task.titleFree ?? tAll(task.titleKey)}
+            {upcoming.map((task) => {
+              const sev = severity(task.dueDate!, today, task.deadlineConfirmed);
+              const days = daysUntil(task.dueDate!, today);
+              return (
+                <Link
+                  key={task.id}
+                  href={
+                    task.dossier ? `/dossiers/${task.dossier.id}?tab=tasks` : "/my-day"
+                  }
+                  className="flex items-start gap-2.5 rounded-md px-2.5 py-2 hover:bg-surface-hover"
+                >
+                  <SeverityDot severity={sev} className="mt-1.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-[550] text-ink-900 truncate">
+                      {task.titleFree ?? tAll(task.titleKey)}
+                    </div>
+                    <div className="text-xs text-ink-400">
+                      {task.dossier
+                        ? `${task.dossier.firstName} ${task.dossier.lastName}`
+                        : t("deadlines.office")}
+                    </div>
                   </div>
-                  <div className="text-muted-foreground">
-                    {task.dossier
-                      ? `${task.dossier.firstName} ${task.dossier.lastName}`
-                      : t("deadlines.office")}
+                  <div className="flex flex-col items-end gap-0.5">
+                    <DateText iso={task.dueDate!} className="text-ink-600" />
+                    {sev === "red" && (
+                      <span className="text-[11px] font-semibold text-[#B91C1C]">
+                        {t("deadlines.overdueTag")}
+                      </span>
+                    )}
+                    {sev === "amber" && (
+                      <span className="text-[11px] font-semibold text-[#B45309]">
+                        {t("deadlines.daysTag", { count: days })}
+                      </span>
+                    )}
                   </div>
-                </div>
-                <div className="text-muted-foreground tabular-nums">{task.dueDate}</div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </CardContent>
         </Card>
       </div>
 
-      <p className="text-xs text-muted-foreground/70">
+      <p className="font-mono text-[11px] text-ink-400">
         {t("aiUsage", {
           used: usage.totalTokens.toLocaleString(),
           cap: usage.cap.toLocaleString(),

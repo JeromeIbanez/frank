@@ -13,8 +13,8 @@ export default async function NewDossierPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
+        <h1 className="type-page-title text-ink-900">{t("title")}</h1>
+        <p className="text-[13px] text-ink-600 mt-1">{t("subtitle")}</p>
       </div>
 
       <Card>
@@ -81,7 +81,7 @@ export default async function NewDossierPage() {
               </Field>
             </div>
 
-            <p className="text-xs text-muted-foreground">{t("syntheticNote")}</p>
+            <p className="text-xs text-ink-400">{t("syntheticNote")}</p>
 
             <Button type="submit">{t("create")}</Button>
           </form>
@@ -102,7 +102,9 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-[12.5px] font-medium text-ink-600">
+        {label}
+      </Label>
       {children}
     </div>
   );

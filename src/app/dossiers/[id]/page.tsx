@@ -59,83 +59,93 @@ export default async function DossierPage({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-sm text-muted-foreground">
-            <Link href="/dossiers" className="hover:underline">
-              {td("title")}
-            </Link>{" "}
-            /
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-3">
+      <div>
+        <div className="text-xs text-ink-400">
+          <Link href="/dossiers" className="hover:underline">
+            {td("title")}
+          </Link>{" "}
+          /
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-3">
+          <h1 className="type-page-title text-ink-900">
             {dossier.firstName} {dossier.lastName}
+          </h1>
+          <div className="flex flex-wrap items-center gap-1.5">
             <StatusBadge
               status={dossier.status}
               label={td(`status.${dossier.status}`)}
             />
+            <span className="inline-flex items-center rounded-full border border-border bg-surface px-2 py-0.5 text-[11px] font-semibold text-ink-600 whitespace-nowrap">
+              {td(`regime.${dossier.regime}`)}
+            </span>
             {dossier.schuldenbewind && (
-              <span className="text-[10px] uppercase tracking-wide bg-amber-50 text-amber-700 rounded px-1.5 py-0.5">
+              <span className="inline-flex items-center rounded-full bg-[#FFFBEB] px-2 py-0.5 text-[11px] font-semibold text-[#B45309] whitespace-nowrap">
                 {td("schulden")}
               </span>
             )}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {td(`regime.${dossier.regime}`)}
-            {dossier.rechtbank ? ` · ${dossier.rechtbank}` : ""}
-            {dossier.zaaknummer ? ` · ${dossier.zaaknummer}` : ""}
-          </p>
+            {(urgency.overdue > 0 ||
+              urgency.unconfirmed > 0 ||
+              urgency.dueSoon > 0) && (
+              <Link
+                href={`/dossiers/${id}?tab=tasks`}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap",
+                  urgency.overdue > 0 || urgency.unconfirmed > 0
+                    ? "bg-[#FEF2F2] text-[#B91C1C]"
+                    : "bg-[#FFFBEB] text-[#B45309]"
+                )}
+              >
+                <span
+                  className={cn(
+                    "h-2 w-2 rounded-full",
+                    urgency.overdue > 0 || urgency.unconfirmed > 0
+                      ? "bg-[#DC2626]"
+                      : "bg-[#F59E0B]"
+                  )}
+                />
+                {t("urgency.summary", {
+                  count: urgency.overdue + urgency.unconfirmed + urgency.dueSoon,
+                })}
+                <span className="font-normal text-current/80">
+                  {[
+                    urgency.overdue > 0
+                      ? t("urgency.overdue", { count: urgency.overdue })
+                      : null,
+                    urgency.unconfirmed > 0
+                      ? t("urgency.unconfirmed", { count: urgency.unconfirmed })
+                      : null,
+                    urgency.dueSoon > 0
+                      ? t("urgency.dueSoon", { count: urgency.dueSoon })
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+              </Link>
+            )}
+          </div>
         </div>
+        {(dossier.rechtbank || dossier.zaaknummer) && (
+          <p className="mt-1 text-[13px] text-ink-600">
+            {dossier.rechtbank}
+            {dossier.rechtbank && dossier.zaaknummer && " · "}
+            {dossier.zaaknummer && (
+              <span className="font-mono">{dossier.zaaknummer}</span>
+            )}
+          </p>
+        )}
       </div>
 
-      {(urgency.overdue > 0 || urgency.unconfirmed > 0 || urgency.dueSoon > 0) && (
-        <Link
-          href={`/dossiers/${id}?tab=tasks`}
-          className={cn(
-            "inline-flex items-center gap-2 rounded-full text-xs px-3 py-1 transition-colors",
-            urgency.overdue > 0 || urgency.unconfirmed > 0
-              ? "bg-red-50 text-red-700 hover:bg-red-100"
-              : "bg-amber-50 text-amber-700 hover:bg-amber-100"
-          )}
-        >
-          <span
-            className={cn(
-              "h-1.5 w-1.5 rounded-full",
-              urgency.overdue > 0 || urgency.unconfirmed > 0
-                ? "bg-red-500"
-                : "bg-amber-500"
-            )}
-          />
-          {t("urgency.summary", {
-            count: urgency.overdue + urgency.unconfirmed + urgency.dueSoon,
-          })}
-          <span className="text-current/70">
-            {[
-              urgency.overdue > 0
-                ? t("urgency.overdue", { count: urgency.overdue })
-                : null,
-              urgency.unconfirmed > 0
-                ? t("urgency.unconfirmed", { count: urgency.unconfirmed })
-                : null,
-              urgency.dueSoon > 0
-                ? t("urgency.dueSoon", { count: urgency.dueSoon })
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </span>
-        </Link>
-      )}
-
-      <nav className="flex gap-1 border-b border-border overflow-x-auto">
+      <nav className="flex gap-1 border-b border-hairline overflow-x-auto">
         {TABS.map((tabKey) => (
           <Link
             key={tabKey}
             href={`/dossiers/${id}?tab=${tabKey}`}
             className={cn(
-              "px-3.5 py-2 text-sm whitespace-nowrap border-b-2 -mb-px transition-colors",
+              "px-[13px] py-[9px] text-[13.5px] whitespace-nowrap border-b-2 -mb-px",
               tab === tabKey
-                ? "border-primary text-primary font-medium"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? "border-[#4F46E5] text-[#4338CA] font-semibold"
+                : "border-transparent text-ink-600 hover:text-ink-900"
             )}
           >
             {t(`tabs.${tabKey}`)}

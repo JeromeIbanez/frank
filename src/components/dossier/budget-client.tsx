@@ -70,7 +70,7 @@ export function DeactivateLineButton({ lineId }: { lineId: string }) {
   const [isPending, startTransition] = useTransition();
   return (
     <button
-      className="opacity-0 group-hover:opacity-100 text-muted-foreground/70 hover:text-red-600 transition-opacity"
+      className="opacity-0 group-hover:opacity-100 text-ink-400 hover:text-[#DC2626]"
       disabled={isPending}
       onClick={() => startTransition(async () => deactivateBudgetLine(lineId))}
       aria-label="remove"

@@ -8,9 +8,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
+
+/** Actor chips: agent → indigo tint, system → neutral outline, human → subtle. */
+function actorChipClass(actorType: string): string {
+  if (actorType === "agent") return "bg-indigo-50 text-[#4338CA]";
+  if (actorType === "system") return "border border-border bg-surface text-ink-600";
+  return "bg-surface-subtle text-ink-600";
+}
 
 export default async function AuditPage() {
   const t = await getTranslations("audit");
@@ -18,50 +24,54 @@ export default async function AuditPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
-      </div>
-
-      <div className="rounded-lg border border-border bg-card overflow-x-auto">
+      <div className="rounded-[10px] border border-border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>{t("cols.time")}</TableHead>
-              <TableHead>{t("cols.actor")}</TableHead>
-              <TableHead>{t("cols.action")}</TableHead>
-              <TableHead>{t("cols.entity")}</TableHead>
-              <TableHead>{t("cols.detail")}</TableHead>
+            <TableRow className="border-hairline hover:bg-transparent">
+              <TableHead className="type-section-label h-9 px-3">
+                {t("cols.time")}
+              </TableHead>
+              <TableHead className="type-section-label h-9 px-3">
+                {t("cols.actor")}
+              </TableHead>
+              <TableHead className="type-section-label h-9 px-3">
+                {t("cols.action")}
+              </TableHead>
+              <TableHead className="type-section-label h-9 px-3">
+                {t("cols.entity")}
+              </TableHead>
+              <TableHead className="type-section-label h-9 px-3">
+                {t("cols.detail")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((e) => (
-              <TableRow key={e.id}>
-                <TableCell className="whitespace-nowrap tabular-nums text-muted-foreground text-xs">
+              <TableRow
+                key={e.id}
+                className="border-hairline hover:bg-surface-hover"
+              >
+                <TableCell className="whitespace-nowrap px-3 font-mono text-[11.5px] tabular-nums text-ink-600">
                   {e.createdAt.toISOString().replace("T", " ").slice(0, 19)}
                 </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="secondary"
+                <TableCell className="px-3">
+                  <span
                     className={
-                      e.actorType === "agent"
-                        ? "bg-violet-50 text-violet-700"
-                        : e.actorType === "system"
-                          ? "bg-muted text-muted-foreground"
-                          : "bg-blue-50 text-blue-700"
+                      "inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap " +
+                      actorChipClass(e.actorType)
                     }
                   >
                     {e.actorId}
-                  </Badge>
+                  </span>
                 </TableCell>
-                <TableCell className="text-sm">{e.action}</TableCell>
-                <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                <TableCell className="px-3 text-[13px]">{e.action}</TableCell>
+                <TableCell className="whitespace-nowrap px-3 text-[13px] text-ink-600">
                   {e.entityType}{" "}
-                  <span className="text-muted-foreground/40 font-mono text-xs">
+                  <span className="font-mono text-xs text-ink-400">
                     {e.entityId.slice(0, 8)}
                   </span>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground max-w-md truncate">
+                <TableCell className="max-w-md truncate px-3 text-xs text-ink-400">
                   {e.reason ??
                     (e.versionAfter ? JSON.stringify(e.versionAfter) : "")}
                 </TableCell>
@@ -70,7 +80,7 @@ export default async function AuditPage() {
           </TableBody>
         </Table>
       </div>
-      <p className="text-xs text-muted-foreground/70">{t("appendOnlyNote")}</p>
+      <p className="text-xs text-ink-400">{t("appendOnlyNote")}</p>
     </div>
   );
 }

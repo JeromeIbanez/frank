@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Topbar } from "@/components/topbar";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
@@ -35,10 +36,11 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextIntlClientProvider>
-          <div className="flex min-h-screen">
+          <div className="flex min-h-screen min-w-[1280px]">
             <AppSidebar />
             <div className="flex-1 flex flex-col min-w-0">
-              <main className="flex-1 px-8 py-6 max-w-7xl w-full mx-auto">
+              <Topbar />
+              <main className="flex-1 px-8 py-6 max-w-[1180px] w-full mx-auto">
                 {children}
               </main>
             </div>

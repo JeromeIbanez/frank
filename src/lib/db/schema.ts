@@ -339,6 +339,9 @@ export const paymentItems = pgTable("payment_items", {
     resolvedAt?: string;
   }>(),
   validationErrors: jsonb("validation_errors").$type<string[]>(),
+  // Deliberate-approve flow (design handoff): soft-exclude, held for court
+  // authorisation. Server-side invariant, not UI state (Temujin guardrail 2).
+  excluded: boolean("excluded").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
