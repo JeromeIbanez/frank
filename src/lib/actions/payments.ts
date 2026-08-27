@@ -12,6 +12,7 @@ import {
 import { countActiveBewindvoerders, currentActor } from "@/lib/identity";
 import { canApproveBatch, canPerform } from "@/lib/domain/authz";
 import { writeAudit } from "@/lib/audit";
+import { activateProcessesFor } from "@/lib/actions/processes";
 import { checkMachtiging } from "@/lib/domain/machtiging";
 import { isValidIban } from "@/lib/domain/pain001";
 import { shiftToBusinessDay } from "@/lib/domain/holidays";
@@ -175,6 +176,18 @@ export async function createPaymentProposals(): Promise<{
       });
       itemCount++;
     }
+  }
+
+  // A payment item that breached the machtiging threshold starts that
+  // dossier's machtiging process, dated from the item itself.
+  const triggered = await db
+    .select({ dossierId: paymentItems.dossierId, flag: paymentItems.machtigingFlag })
+    .from(paymentItems)
+    .where(eq(paymentItems.batchId, batch.id));
+  for (const dossierId of new Set(
+    triggered.filter((t) => t.flag?.triggered === true).map((t) => t.dossierId)
+  )) {
+    await activateProcessesFor(dossierId, actor.id);
   }
 
   await writeAudit({

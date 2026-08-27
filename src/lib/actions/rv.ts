@@ -6,6 +6,7 @@ import { rvPeriods } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
 import { canPerform } from "@/lib/domain/authz";
 import { writeAudit } from "@/lib/audit";
+import { activateProcessesFor } from "@/lib/actions/processes";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -65,6 +66,8 @@ export async function recordRvPeriod(
     versionAfter: values,
     reason: "court R&V period / bespreking recorded",
   });
+  // The court set the period; the R&V process starts from it.
+  await activateProcessesFor(dossierId, actor.id);
   revalidatePath(`/dossiers/${dossierId}`);
   return { ok: true };
 }

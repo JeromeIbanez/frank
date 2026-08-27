@@ -7,6 +7,7 @@ import { getDb } from "@/lib/db";
 import { accounts, contacts, dossiers, tasks } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
+import { activateProcessesFor } from "@/lib/actions/processes";
 import { computeStatutoryTasks, CALC_VERSION } from "@/lib/domain/deadlines";
 import { isValidIban } from "@/lib/domain/pain001";
 import { NIEUW_DOSSIER_PLAYBOOK, DEFAULT_INSTANTIES } from "@/lib/playbooks";
@@ -67,6 +68,8 @@ export async function createDossier(formData: FormData): Promise<void> {
     versionAfter: { name: `${row.firstName} ${row.lastName}`, regime },
   });
 
+  // A new dossier with a recorded start date begins its intake process.
+  await activateProcessesFor(row.id, actor.id);
   revalidatePath("/dossiers");
   redirect(`/dossiers/${row.id}`);
 }

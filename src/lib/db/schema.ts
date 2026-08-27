@@ -1077,8 +1077,16 @@ export const processInstances = pgTable(
     startedOn: date("started_on").notNull(),
     /** What made it start — named, so a deadline can be traced to a fact. */
     startSource: text("start_source").notNull(),
-    /** The row that source refers to (an rv_period, a payment_item, …). */
-    sourceEntityId: text("source_entity_id"),
+    /**
+     * The row that source refers to (an rv_period, a payment_item, …), or
+     * the dossier itself for dossier-wide sources.
+     *
+     * NOT NULL on purpose (Temujin PR-11 r2 #1): PostgreSQL treats NULLs as
+     * DISTINCT in a unique index, so a nullable column here made
+     * `onConflictDoNothing` a no-op for intake and schuldtraject — every
+     * activation pass inserted duplicates while claiming to be idempotent.
+     */
+    sourceEntityId: text("source_entity_id").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [

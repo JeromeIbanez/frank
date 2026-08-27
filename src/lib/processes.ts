@@ -211,12 +211,19 @@ async function observeRvFacts(periodIds: string[]): Promise<Map<string, ProcessF
  * Immutable on insert: an instance records the date and the source that made
  * the process begin, and is never updated afterwards.
  */
-export async function activateProcesses(): Promise<{
-  ok: boolean;
-  created: number;
-}> {
+export type ActivatedInstance = {
+  id: string;
+  dossierId: string;
+  definitionKey: string;
+  startedOn: string;
+  startSource: string;
+};
+
+export async function activateProcesses(
+  /** Limit to one dossier — used by the event-triggered call sites. */
+  onlyDossierId?: string
+): Promise<{ ok: boolean; created: ActivatedInstance[] }> {
   const db = getDb();
-  const today = officeToday();
 
   const ds = await db
     .select({
@@ -226,8 +233,11 @@ export async function activateProcesses(): Promise<{
       status: dossiers.status,
     })
     .from(dossiers);
-  const live = ds.filter((d) => d.status !== "afgesloten");
-  if (live.length === 0) return { ok: true, created: 0 };
+  const live = ds.filter(
+    (d) =>
+      d.status !== "afgesloten" && (!onlyDossierId || d.id === onlyDossierId)
+  );
+  if (live.length === 0) return { ok: true, created: [] };
 
   const ids = live.map((d) => d.id);
   const [periods, machtiging] = await Promise.all([
@@ -236,6 +246,7 @@ export async function activateProcesses(): Promise<{
       .select({
         dossierId: paymentItems.dossierId,
         id: paymentItems.id,
+        createdAt: paymentItems.createdAt,
         flag: paymentItems.machtigingFlag,
       })
       .from(paymentItems)
@@ -247,7 +258,7 @@ export async function activateProcesses(): Promise<{
     definitionKey: ProcessDefinitionKey;
     startedOn: string;
     startSource: string;
-    sourceEntityId: string | null;
+    sourceEntityId: string;
   }[] = [];
 
   for (const d of live) {
@@ -260,7 +271,9 @@ export async function activateProcesses(): Promise<{
         definitionKey: "intake",
         startedOn: d.startDate,
         startSource: "dossier_start_date",
-        sourceEntityId: null,
+        // The dossier IS the source for dossier-wide processes. Never null:
+        // see the schema note on NULLs in a unique index.
+        sourceEntityId: d.id,
       });
       if (d.schuldenbewind) {
         pending.push({
@@ -268,7 +281,7 @@ export async function activateProcesses(): Promise<{
           definitionKey: "schuldtraject",
           startedOn: d.startDate,
           startSource: "dossier_start_date",
-          sourceEntityId: null,
+          sourceEntityId: d.id,
         });
       }
     }
@@ -292,14 +305,18 @@ export async function activateProcesses(): Promise<{
       pending.push({
         dossierId: d.id,
         definitionKey: "machtiging",
-        startedOn: today,
+        // The date the triggering item was RECORDED, not the day someone
+        // pressed a button (Temujin PR-11 r2 #3). An activation date that
+        // depends on when a human happened to visit a page is not a fact
+        // about the case.
+        startedOn: trigger.createdAt.toISOString().slice(0, 10),
         startSource: "machtiging_threshold",
         sourceEntityId: trigger.id,
       });
     }
   }
 
-  if (pending.length === 0) return { ok: true, created: 0 };
+  if (pending.length === 0) return { ok: true, created: [] };
   const inserted = await db
     .insert(processInstances)
     .values(
@@ -307,7 +324,16 @@ export async function activateProcesses(): Promise<{
     )
     .onConflictDoNothing()
     .returning();
-  return { ok: true, created: inserted.length };
+  return {
+    ok: true,
+    created: inserted.map((r) => ({
+      id: r.id,
+      dossierId: r.dossierId,
+      definitionKey: r.definitionKey,
+      startedOn: r.startedOn,
+      startSource: r.startSource,
+    })),
+  };
 }
 
 async function buildRows(dossierId?: string): Promise<DossierProcesses[]> {
