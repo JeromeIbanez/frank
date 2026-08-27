@@ -69,6 +69,35 @@ export function isAgentContext(v: unknown): v is AgentContext {
   return typeof v === "object" && v !== null && REAL_CONTEXTS.has(v as object);
 }
 
+/**
+ * Proof that the ceiling was actually checked for a SPECIFIC action
+ * (Temujin PR-8 r2 #1).
+ *
+ * An authentic `AgentContext` proves only who is acting — not that anyone
+ * asked permission. Without this, a future entry point could write
+ * agent-attributed rows with a genuine context it never gated:
+ *
+ *     const ctx = agentContext("postbode");
+ *     await callStructured({ agent: ctx, … });   // authentic, ungated
+ *
+ * So `assertAgentMay` MINTS one of these, and only on success. Downstream
+ * writers demand the grant rather than the context, which makes "the gate
+ * ran for this action" a value you must hold, not a convention you must
+ * remember. Same WeakSet trick: unforgeable, and it cannot survive
+ * serialisation, so it can never arrive from outside the process.
+ */
+const REAL_GRANTS = new WeakSet<object>();
+
+export type AgentGrant = {
+  readonly agentKey: AgentKey;
+  readonly action: AgentActionClass;
+  readonly correlationId: string;
+};
+
+export function isAgentGrant(v: unknown): v is AgentGrant {
+  return typeof v === "object" && v !== null && REAL_GRANTS.has(v as object);
+}
+
 export type CeilingDenial =
   | "forged_context"
   | "unknown_agent"
@@ -99,7 +128,7 @@ export async function assertAgentMay(
   ctx: AgentContext,
   action: AgentActionClass,
   entity?: { type: string; id: string }
-): Promise<void> {
+): Promise<AgentGrant> {
   if (!isAgentContext(ctx)) {
     await auditDenial("unknown", action, "forged_context", entity);
     throw new AgentCeilingError(
@@ -115,6 +144,15 @@ export async function assertAgentMay(
       verdict.reason
     );
   }
+  // Minted ONLY here, only after the ceiling passed, and scoped to this
+  // exact action. Downstream writers require it as evidence.
+  const grant: AgentGrant = Object.freeze({
+    agentKey: ctx.agentKey,
+    action,
+    correlationId: ctx.correlationId,
+  });
+  REAL_GRANTS.add(grant);
+  return grant;
 }
 
 async function auditDenial(
@@ -157,14 +195,13 @@ async function auditDenial(
  * Audit attribution is the one thing that must never be forgeable, since
  * it is what a rechtbank auditor would rely on.
  */
-export function agentActorId(ctx: AgentContext): string {
-  if (!isAgentContext(ctx)) {
-    throw new AgentCeilingError(
-      "refusing to attribute an audit row to an unverified agent context",
-      "forged_context"
-    );
-  }
-  return `agent:${ctx.agentKey}`;
+export function agentActorId(proof: AgentContext | AgentGrant): string {
+  if (isAgentGrant(proof)) return `agent:${proof.agentKey}`;
+  if (isAgentContext(proof)) return `agent:${proof.agentKey}`;
+  throw new AgentCeilingError(
+    "refusing to attribute an audit row to an unverified agent context",
+    "forged_context"
+  );
 }
 
 /** Charter text for the UI, in the requested language. */

@@ -222,7 +222,7 @@ export async function extractIntakeProposals(documentId: string): Promise<{
   // "First statement" has to mean before any write at all, including one
   // that belongs to a different subsystem.
   const ctx = agentContext("postbode");
-  await assertAgentMay(ctx, "proposal_create", {
+  const grant = await assertAgentMay(ctx, "proposal_create", {
     type: "document",
     id: documentId,
   });
@@ -237,7 +237,7 @@ export async function extractIntakeProposals(documentId: string): Promise<{
   if (!doc.textContent) return { ok: false, error: "no_text" };
 
   const res = await callStructured({
-    agent: ctx,
+    grant,
     purpose: "extract",
     schema: extractionResultFlat,
     keepIban: true,
@@ -270,7 +270,7 @@ export async function extractIntakeProposals(documentId: string): Promise<{
         dossierId: doc.dossierId,
         sourceDocumentId: doc.id,
         sourceDocumentSha256: doc.sha256,
-        agentKey: ctx.agentKey,
+        agentKey: grant.agentKey,
         kind: verdict.sanitizedPayload.kind,
         payload: verdict.sanitizedPayload,
         fieldProvenance: verdict.verified,
@@ -289,13 +289,13 @@ export async function extractIntakeProposals(documentId: string): Promise<{
   }
   if (created > 0) {
     await writeAudit({
-      actorId: agentActorId(ctx),
+      actorId: agentActorId(grant),
       actorType: "agent",
       action: "ai_call",
       entityType: "document",
       entityId: doc.id,
       sourceDocumentHash: doc.sha256,
-      correlationId: ctx.correlationId,
+      correlationId: grant.correlationId,
       versionAfter: { proposals: created, extractorVersion },
       reason: "intake extraction proposals (human decision pending)",
     });

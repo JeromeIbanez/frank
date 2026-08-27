@@ -5,6 +5,7 @@ import {
   assertAgentMay,
   agentActorId,
   agentCharter,
+  isAgentGrant,
   AgentCeilingError,
   type AgentContext,
 } from "@/lib/agent-context";
@@ -102,10 +103,9 @@ describe("AgentContext is a real runtime boundary, not a shape", () => {
 });
 
 describe("assertAgentMay — the gate", () => {
-  it("passes a granted action", async () => {
-    await expect(
-      assertAgentMay(agentContext("postbode"), "letter_draft")
-    ).resolves.toBeUndefined();
+  it("passes a granted action and returns a grant for it", async () => {
+    const grant = await assertAgentMay(agentContext("postbode"), "letter_draft");
+    expect(isAgentGrant(grant)).toBe(true);
   });
 
   it("THROWS on an action outside the grant — never a silent no-op", async () => {
@@ -146,6 +146,69 @@ describe("assertAgentMay — the gate", () => {
     await expect(
       assertAgentMay(forged, "safeguarding_case_open")
     ).rejects.toMatchObject({ denial: "forged_context" });
+  });
+});
+
+describe("AgentGrant — proof the gate actually ran", () => {
+  it("is minted by assertAgentMay, scoped to the action", async () => {
+    const ctx = agentContext("postbode");
+    const grant = await assertAgentMay(ctx, "letter_draft");
+    expect(isAgentGrant(grant)).toBe(true);
+    expect(grant.agentKey).toBe("postbode");
+    expect(grant.action).toBe("letter_draft");
+    expect(grant.correlationId).toBe(ctx.correlationId);
+  });
+
+  it("cannot be forged from an authentic context alone", async () => {
+    // The bypass Temujin found in r2: a genuine context proves WHO is
+    // acting, not that anyone asked permission. Building one and skipping
+    // the gate must not produce something a downstream writer accepts.
+    const ctx = agentContext("postbode");
+    expect(isAgentGrant(ctx)).toBe(false);
+    expect(
+      isAgentGrant({
+        agentKey: "postbode",
+        action: "letter_draft",
+        correlationId: ctx.correlationId,
+      })
+    ).toBe(false);
+  });
+
+  it("does not survive cloning or serialisation", async () => {
+    const grant = await assertAgentMay(agentContext("postbode"), "letter_draft");
+    expect(isAgentGrant({ ...grant })).toBe(false);
+    expect(isAgentGrant(structuredClone(grant))).toBe(false);
+    expect(isAgentGrant(JSON.parse(JSON.stringify(grant)))).toBe(false);
+  });
+
+  it("is never minted when the ceiling denies", async () => {
+    const ctx = agentContext("postbode");
+    await expect(
+      assertAgentMay(ctx, "safeguarding_case_open")
+    ).rejects.toThrow(AgentCeilingError);
+  });
+
+  it("is frozen, so its action scope cannot be widened after minting", async () => {
+    const grant = await assertAgentMay(agentContext("postbode"), "letter_draft");
+    expect(Object.isFrozen(grant)).toBe(true);
+    try {
+      (grant as { action: string }).action = "safeguarding_case_open";
+    } catch {
+      /* strict mode */
+    }
+    expect(grant.action).toBe("letter_draft");
+  });
+
+  it("is accepted as audit attribution; a bare forged grant is not", async () => {
+    const grant = await assertAgentMay(agentContext("waakhond"), "escalation_draft");
+    expect(agentActorId(grant)).toBe("agent:waakhond");
+    expect(() =>
+      agentActorId({
+        agentKey: "waakhond",
+        action: "escalation_draft",
+        correlationId: "x",
+      } as unknown as AgentContext)
+    ).toThrow(AgentCeilingError);
   });
 });
 
