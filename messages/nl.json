@@ -19,7 +19,8 @@
       "assistent": "Assistent"
     },
     "team": "Team",
-    "office": "Kantoor"
+    "office": "Kantoor",
+    "safeguarding": "Signalering"
   },
   "common": {
     "cancel": "Annuleren",
@@ -1043,5 +1044,111 @@
     "hideDraft": "Verberg het concept",
     "proposedDossier": "Frank stelt voor",
     "actionedWithLetter": "Antwoord goedgekeurd — niet verzonden, en er is geen geld verplaatst"
+  },
+  "safeguarding": {
+    "intro": "Frank kijkt op elke rekening naar patronen waar hij geen verklaring voor heeft. Meestal is alles gewoon goed. Een signaal is een vraag, nooit een conclusie.",
+    "neverFraudNote": "Dit is een onverklaard patroon, geen beschuldiging. Alleen een mens bepaalt wat het betekent.",
+    "officeNote": "Deze betreffen dit kantoor. Een zaak is onwijzigbaar voor degene die het betreft, en als er geen onafhankelijke beoordelaar is blijft de zaak open in plaats van stilletjes te worden gesloten. Bij een eenmanskantoor is de vaste externe bestemming de benoemende kantonrechter.",
+    "concernsYou": "Deze zaak betreft u, dus u kunt hem niet afhandelen of escaleren. Dat moet een onafhankelijke beoordelaar doen — bij een eenmanskantoor de benoemende kantonrechter.",
+    "group": {
+      "office": "Dit kantoor",
+      "client": "Cliënten"
+    },
+    "scope": {
+      "office": "kantoor",
+      "client": "cliënt"
+    },
+    "status": {
+      "open": "open",
+      "clarifying": "gevraagd",
+      "explained": "toegelicht",
+      "resolved": "afgehandeld",
+      "escalated": "geëscaleerd"
+    },
+    "refresh": "Controles uitvoeren",
+    "refreshing": "Bezig…",
+    "refreshDone": "{count} nieuw(e) aandachtspunt(en)",
+    "refreshNothingNew": "Niets nieuws — alles klopt",
+    "refreshFailed": "De controles konden niet worden uitgevoerd",
+    "emptyTitle": "Niets onverklaards",
+    "emptySentence": "Geen enkele rekening laat een patroon zien waar Frank geen verklaring voor heeft.",
+    "clientSaid": "Wat de cliënt zei",
+    "questionReady": "Vraag opgesteld",
+    "questionSent": "verzonden",
+    "questionNotSent": "nog niet verzonden",
+    "showQuestion": "Toon de vraag",
+    "hideQuestion": "Verberg de vraag",
+    "prepareQuestion": "Vraag opstellen",
+    "questionPrepared": "Vraag opgesteld",
+    "approveAndSend": "Goedkeuren en versturen",
+    "questionApproved": "Vraag verzonden",
+    "recordResponse": "Antwoord vastleggen",
+    "resolve": "Afhandelen",
+    "escalate": "Escaleren",
+    "cancel": "Annuleren",
+    "escalatedTo": "Geëscaleerd naar {destination}",
+    "placeholder": {
+      "resolve": "Waarom is dit afgehandeld? (wordt vastgelegd)",
+      "escalate": "Grond voor escalatie (wordt vastgelegd)",
+      "respond": "Wat zei de cliënt?"
+    },
+    "confirm": {
+      "resolve": "Afhandelen",
+      "escalate": "Escaleren",
+      "respond": "Opslaan"
+    },
+    "done": {
+      "resolve": "Afgehandeld",
+      "escalate": "Geëscaleerd",
+      "respond": "Antwoord vastgelegd"
+    },
+    "destination": {
+      "kantonrechter": "Kantonrechter",
+      "bank": "De bank",
+      "veilig_thuis": "Veilig Thuis",
+      "politie_aangifte": "Aangifte politie",
+      "extern_reviewer": "Onafhankelijke beoordelaar"
+    },
+    "title": {
+      "cash_withdrawal_spike": "Meer contant opgenomen dan gebruikelijk",
+      "structuring": "Herhaald opgenomen net onder een rond bedrag",
+      "rapid_in_out": "Geld erin, en bijna hetzelfde bedrag er meteen weer uit",
+      "new_payee_high_value": "Eerste betaling aan een onbekende rekening",
+      "high_risk_merchant": "Betaling om even bij stil te staan",
+      "leefgeld_diversion": "Leefgeld vrijwel meteen weg",
+      "direct_debit_without_recorded_mandate": "Incasso zonder vastgelegde machtiging",
+      "beneficiary_name_mismatch": "Tenaamstelling wijkt af van de schuldeiser in het dossier",
+      "office_linked_beneficiary_outside_fee_basis": "Betaling aan een kantoorrekening buiten de beloningsgrondslag",
+      "fee_above_schedule": "Beloning boven het tarief in rekening gebracht",
+      "four_eyes_violation": "Vier-ogenregel geschonden"
+    },
+    "detail": {
+      "cash_withdrawal_spike": "{recent} opgenomen in de afgelopen {days} dagen, tegen een maandelijks gemiddelde van {baseline} voor deze cliënt.",
+      "structuring": "{count} opnames net onder {threshold}.",
+      "rapid_in_out": "{credit} kwam binnen en {debit} ging er {days} dag(en) later weer uit.",
+      "new_payee_high_value": "{amount} naar {counterparty} — de eerste keer dat deze rekening voorkomt.",
+      "high_risk_merchant": "{amount} aan {merchant}.",
+      "leefgeld_diversion": "{credit} kwam binnen en {outflow} ging er vrijwel meteen weer af.",
+      "direct_debit_without_recorded_mandate": "{counterparty} incasseerde {amount}. Er is hier geen machtiging vastgelegd — dat betekent niet dat die er niet is.",
+      "beneficiary_name_mismatch": "In het dossier: {onFile}. Op de transactie: {onTransaction}. Verificatie vóór betaling is verstandig.",
+      "office_linked_beneficiary_outside_fee_basis": "{amount} naar {beneficiary}, buiten de vastgelegde beloningsgrondslag.",
+      "fee_above_schedule": "{charged} in rekening gebracht waar het tarief {permitted} toestaat — {excess} meer.",
+      "four_eyes_violation": "Dezelfde persoon maakte en keurde batch {batch} goed terwijl er meer dan één bewindvoerder actief was."
+    },
+    "error": {
+      "concerns_self": "Deze zaak betreft u",
+      "role_required": "Alleen een bewindvoerder kan dit",
+      "inactive_actor": "Uw account is inactief",
+      "not_found": "Niet gevonden",
+      "already_disposed": "Al beslist",
+      "no_draft": "Stel eerst de vraag op",
+      "not_open": "Al in behandeling",
+      "not_clarifying": "Er is nog geen vraag verzonden",
+      "no_client_question": "Deze zaak heeft geen vraag voor de cliënt",
+      "reason_required": "Een reden is verplicht",
+      "ground_required": "Een grond is verplicht",
+      "response_required": "Vul het antwoord in",
+      "invalid_destination": "Onbekende bestemming"
+    }
   }
 }

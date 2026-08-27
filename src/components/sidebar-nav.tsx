@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Inbox,
   Banknote,
+  ShieldAlert,
   Building2,
   Users,
   ScrollText,
@@ -22,6 +23,7 @@ export type NavKey =
   | "dossiers"
   | "inbox"
   | "payments"
+  | "safeguarding"
   | "office"
   | "audit"
   | "team";
@@ -32,6 +34,7 @@ const ICONS: Record<NavKey, React.ComponentType<{ className?: string }>> = {
   dossiers: FolderOpen,
   inbox: Inbox,
   payments: Banknote,
+  safeguarding: ShieldAlert,
   office: Building2,
   audit: ScrollText,
   team: Users,

@@ -19,7 +19,8 @@
       "assistent": "Assistent"
     },
     "team": "Team",
-    "office": "Office"
+    "office": "Office",
+    "safeguarding": "Safeguarding"
   },
   "common": {
     "cancel": "Cancel",
@@ -1043,5 +1044,111 @@
     "hideDraft": "Hide the draft",
     "proposedDossier": "Frank proposes",
     "actionedWithLetter": "Reply approved — not sent, and no money moved"
+  },
+  "safeguarding": {
+    "intro": "Frank checks each account for patterns it does not have an explanation for. Most of the time everything is fine. A flag is a question, never a conclusion.",
+    "neverFraudNote": "This is an unexplained pattern, not an allegation. Only a person decides what it means.",
+    "officeNote": "These concern this office. A case is immutable to the person it concerns, and where no independent reviewer exists it stays open rather than being quietly closed. For a solo office the standing external destination is the appointing kantonrechter.",
+    "concernsYou": "This case concerns you, so you cannot resolve or escalate it. An independent reviewer must — for a solo office, the appointing kantonrechter.",
+    "group": {
+      "office": "This office",
+      "client": "Clients"
+    },
+    "scope": {
+      "office": "office",
+      "client": "client"
+    },
+    "status": {
+      "open": "open",
+      "clarifying": "asked",
+      "explained": "explained",
+      "resolved": "resolved",
+      "escalated": "escalated"
+    },
+    "refresh": "Run checks",
+    "refreshing": "Checking…",
+    "refreshDone": "{count} new point(s) of attention",
+    "refreshNothingNew": "Nothing new — everything checks out",
+    "refreshFailed": "Could not run the checks",
+    "emptyTitle": "Nothing unexplained",
+    "emptySentence": "No account shows a pattern Frank cannot account for.",
+    "clientSaid": "What the client said",
+    "questionReady": "Question drafted",
+    "questionSent": "sent",
+    "questionNotSent": "not sent yet",
+    "showQuestion": "Show the question",
+    "hideQuestion": "Hide the question",
+    "prepareQuestion": "Draft a question",
+    "questionPrepared": "Question drafted",
+    "approveAndSend": "Approve and send",
+    "questionApproved": "Question sent",
+    "recordResponse": "Record the answer",
+    "resolve": "Resolve",
+    "escalate": "Escalate",
+    "cancel": "Cancel",
+    "escalatedTo": "Escalated to {destination}",
+    "placeholder": {
+      "resolve": "Why is this resolved? (recorded)",
+      "escalate": "Ground for escalation (recorded)",
+      "respond": "What did the client say?"
+    },
+    "confirm": {
+      "resolve": "Resolve",
+      "escalate": "Escalate",
+      "respond": "Save"
+    },
+    "done": {
+      "resolve": "Resolved",
+      "escalate": "Escalated",
+      "respond": "Answer recorded"
+    },
+    "destination": {
+      "kantonrechter": "Kantonrechter",
+      "bank": "The bank",
+      "veilig_thuis": "Veilig Thuis",
+      "politie_aangifte": "Police report",
+      "extern_reviewer": "Independent reviewer"
+    },
+    "title": {
+      "cash_withdrawal_spike": "More cash withdrawn than usual",
+      "structuring": "Repeated withdrawals just under a round amount",
+      "rapid_in_out": "Money in, then almost the same amount straight out",
+      "new_payee_high_value": "First payment to an unknown account",
+      "high_risk_merchant": "Payment worth a check-in",
+      "leefgeld_diversion": "Leefgeld gone almost immediately",
+      "direct_debit_without_recorded_mandate": "Direct debit with no mandate on file",
+      "beneficiary_name_mismatch": "Account name differs from the creditor on file",
+      "office_linked_beneficiary_outside_fee_basis": "Payment to an office-linked account outside the fee basis",
+      "fee_above_schedule": "Fee charged above the schedule",
+      "four_eyes_violation": "Four-eyes rule breached"
+    },
+    "detail": {
+      "cash_withdrawal_spike": "{recent} withdrawn in the last {days} days, against a monthly baseline of {baseline} for this client.",
+      "structuring": "{count} withdrawals just under {threshold}.",
+      "rapid_in_out": "{credit} came in and {debit} went out {days} day(s) later.",
+      "new_payee_high_value": "{amount} to {counterparty} — the first time this account appears.",
+      "high_risk_merchant": "{amount} to {merchant}.",
+      "leefgeld_diversion": "{credit} arrived and {outflow} left almost immediately.",
+      "direct_debit_without_recorded_mandate": "{counterparty} collected {amount}. No mandate is recorded here — which does not mean none exists.",
+      "beneficiary_name_mismatch": "On file: {onFile}. On the transaction: {onTransaction}. Worth verifying before paying.",
+      "office_linked_beneficiary_outside_fee_basis": "{amount} to {beneficiary}, outside the recorded fee basis.",
+      "fee_above_schedule": "{charged} charged where the schedule permits {permitted} — {excess} more.",
+      "four_eyes_violation": "The same person created and approved batch {batch} while more than one bewindvoerder was active."
+    },
+    "error": {
+      "concerns_self": "This case concerns you",
+      "role_required": "Only a bewindvoerder can do this",
+      "inactive_actor": "Your account is inactive",
+      "not_found": "Not found",
+      "already_disposed": "Already decided",
+      "no_draft": "Draft the question first",
+      "not_open": "Already in progress",
+      "not_clarifying": "No question has been sent",
+      "no_client_question": "This case has no question for the client",
+      "reason_required": "A reason is required",
+      "ground_required": "A ground is required",
+      "response_required": "Please enter the answer",
+      "invalid_destination": "Unknown destination"
+    }
   }
 }

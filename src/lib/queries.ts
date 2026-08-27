@@ -197,10 +197,21 @@ export async function getNavCounts() {
   } catch {
     // Table may not exist yet on an un-migrated environment.
   }
+  let safeguarding = 0;
+  try {
+    const r = await db.execute<{ n: number }>(
+      sql`SELECT COUNT(*)::int AS n FROM safeguarding_cases
+           WHERE status IN ('open','clarifying','explained')`
+    );
+    safeguarding = Number(r.rows?.[0]?.n ?? 0);
+  } catch {
+    // Table may not exist yet on an un-migrated environment.
+  }
   return {
     dossiers: Number(dossierCount?.n ?? 0),
     openTasks: Number(openTaskCount?.n ?? 0),
     inboxNew: Number(inboxNew?.n ?? 0) + openObligations,
+    safeguarding,
   };
 }
 
