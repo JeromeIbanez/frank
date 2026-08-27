@@ -57,6 +57,13 @@ describe("AgentContext is a real runtime boundary, not a shape", () => {
     expect(isAgentContext(forged)).toBe(false);
   });
 
+  it("rejects structuredClone — the structural-clone boundary", () => {
+    // Temujin PR-8 r1: structuredClone is the one serialisation path that
+    // preserves more than JSON does, so it is worth proving explicitly.
+    const real = agentContext("postbode");
+    expect(isAgentContext(structuredClone(real))).toBe(false);
+  });
+
   it("rejects non-objects", () => {
     for (const v of [null, undefined, "postbode", 42, true, Symbol("x")]) {
       expect(isAgentContext(v)).toBe(false);
@@ -145,6 +152,19 @@ describe("assertAgentMay — the gate", () => {
 describe("helpers", () => {
   it("namespaces the audit actor id", () => {
     expect(agentActorId(agentContext("waakhond"))).toBe("agent:waakhond");
+  });
+
+  it("refuses to attribute an audit row to a forged context", () => {
+    // Audit attribution must never be forgeable: it is the provenance a
+    // rechtbank auditor would rely on. Temujin PR-8 r1 #2.
+    const forged = {
+      agentKey: "postbode",
+      correlationId: "abc",
+    } as unknown as AgentContext;
+    expect(() => agentActorId(forged)).toThrow(AgentCeilingError);
+    expect(() => agentActorId(structuredClone(agentContext("postbode")))).toThrow(
+      AgentCeilingError
+    );
   });
 
   it("returns the charter in the requested language", () => {

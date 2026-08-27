@@ -135,13 +135,35 @@ async function auditDenial(
       correlationId: ctx?.correlationId,
       reason: denial,
     });
-  } catch {
-    // Never let logging failure mask the refusal.
+  } catch (e) {
+    // Never let logging failure mask the refusal — the throw stands either
+    // way, because a refusal must not depend on database availability
+    // (Temujin PR-8 r1, answer to (b)). But an unlogged denial is itself a
+    // security-relevant event, so it must not vanish silently.
+    console.error(
+      "[frank:security] FAILED TO AUDIT a refused agent action",
+      JSON.stringify({ agentKey, action, denial }),
+      e instanceof Error ? e.message : String(e)
+    );
   }
 }
 
-/** Audit actor id for a permitted agent write. */
+/**
+ * Audit actor id for a permitted agent write.
+ *
+ * Verifies membership rather than trusting the object's shape (Temujin PR-8
+ * r1 #2): without this, a cast object could mint `agent:postbode` audit
+ * attribution and the log would carry a provenance claim nothing backs.
+ * Audit attribution is the one thing that must never be forgeable, since
+ * it is what a rechtbank auditor would rely on.
+ */
 export function agentActorId(ctx: AgentContext): string {
+  if (!isAgentContext(ctx)) {
+    throw new AgentCeilingError(
+      "refusing to attribute an audit row to an unverified agent context",
+      "forged_context"
+    );
+  }
   return `agent:${ctx.agentKey}`;
 }
 

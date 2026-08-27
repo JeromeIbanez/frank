@@ -213,6 +213,20 @@ export async function extractIntakeProposals(documentId: string): Promise<{
   unavailable?: boolean;
   error?: string;
 }> {
+  // Extraction runs as a NAMED agent with a capability ceiling (plan os-v2
+  // N1). The context is built here, in code, from a registry key — never
+  // from a request field or model output (N1b).
+  //
+  // The gate is genuinely FIRST — ahead of currentActor(), which can itself
+  // write actor rows on a dev or first-Clerk session (Temujin PR-8 r1 #3).
+  // "First statement" has to mean before any write at all, including one
+  // that belongs to a different subsystem.
+  const ctx = agentContext("postbode");
+  await assertAgentMay(ctx, "proposal_create", {
+    type: "document",
+    id: documentId,
+  });
+
   await currentActor(); // a human session must be present to trigger this
   const db = getDb();
   const doc = await db.query.documents.findFirst({
@@ -222,18 +236,8 @@ export async function extractIntakeProposals(documentId: string): Promise<{
   if (!doc.dossierId) return { ok: false, error: "not_linked" };
   if (!doc.textContent) return { ok: false, error: "no_text" };
 
-  // Extraction runs as a NAMED agent with a capability ceiling (plan os-v2
-  // N1). The context is built here, in code, from a registry key — never
-  // from a request field or model output (N1b). The gate is the first thing
-  // that happens before any write, and it throws rather than no-ops.
-  const ctx = agentContext("postbode");
-  await assertAgentMay(ctx, "proposal_create", {
-    type: "document",
-    id: doc.id,
-  });
-
   const res = await callStructured({
-    agentKey: ctx.agentKey,
+    agent: ctx,
     purpose: "extract",
     schema: extractionResultFlat,
     keepIban: true,

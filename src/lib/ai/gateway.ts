@@ -22,7 +22,10 @@ import { z } from "zod";
 import { count, sum } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { aiCalls } from "@/lib/db/schema";
-import type { AgentKey } from "@/lib/domain/agents";
+import {
+  isAgentContext,
+  type AgentContext,
+} from "@/lib/agent-context";
 
 export const PROMPT_VERSION = "2026-08.1";
 export const DATA_CLASS = "synthetic_demo"; // only value until auth exists
@@ -75,12 +78,33 @@ async function capExceeded(): Promise<boolean> {
   }
 }
 
+/**
+ * Attribution is EARNED, not asserted (Temujin PR-8 r1 #1).
+ *
+ * The public call signatures used to take a raw `agentKey`, which meant any
+ * future server call could write agent-attributed rows into `ai_calls`
+ * without ever passing the ceiling. Now they take an `AgentContext`, it is
+ * verified against the WeakSet here, and the key is derived internally. A
+ * forged object produces an UNATTRIBUTED call rather than a fraudulent one.
+ */
+function attributedAgent(agent?: AgentContext): string | undefined {
+  if (agent === undefined) return undefined;
+  if (!isAgentContext(agent)) {
+    console.error(
+      "[frank:security] AI call supplied a forged AgentContext; " +
+        "logging the call as unattributed"
+    );
+    return undefined;
+  }
+  return agent.agentKey;
+}
+
 async function logCall(input: {
   purpose: string;
   model: string;
-  /** Set when the call was made by a named agent (plan os-v2 PR-8);
-   *  null for human-invoked calls such as the copilot. */
-  agentKey?: AgentKey;
+  /** Derived INTERNALLY from a verified AgentContext — never accepted from
+   *  a caller (Temujin PR-8 r1 #1). Null for human-invoked calls. */
+  agentKey?: string;
   inputTokens?: number;
   outputTokens?: number;
   ok: boolean;
@@ -118,7 +142,9 @@ export async function callStructured<T>(input: {
   system: string;
   prompt: string;
   keepIban?: boolean;
-  agentKey?: AgentKey;
+  /** Pass the calling agent's context to attribute this call to it. It is
+   *  verified here; a forged object is refused, not silently attributed. */
+  agent?: AgentContext;
 }): Promise<AiResult<T>> {
   if (await capExceeded()) {
     return { ok: false, unavailable: true, reason: "token_cap" };
@@ -133,7 +159,7 @@ export async function callStructured<T>(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_STRUCTURED,
-      agentKey: input.agentKey,
+      agentKey: attributedAgent(input.agent),
       inputTokens: res.usage?.inputTokens,
       outputTokens: res.usage?.outputTokens,
       ok: true,
@@ -149,7 +175,7 @@ export async function callStructured<T>(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_STRUCTURED,
-      agentKey: input.agentKey,
+      agentKey: attributedAgent(input.agent),
       ok: false,
       error: e instanceof Error ? e.message : String(e),
     });
@@ -228,7 +254,8 @@ export async function callDraft(input: {
   system: string;
   prompt: string;
   keepIban?: boolean;
-  agentKey?: AgentKey;
+  /** See callStructured. */
+  agent?: AgentContext;
 }): Promise<AiResult<string>> {
   if (await capExceeded()) {
     return { ok: false, unavailable: true, reason: "token_cap" };
@@ -242,7 +269,7 @@ export async function callDraft(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_DRAFTING,
-      agentKey: input.agentKey,
+      agentKey: attributedAgent(input.agent),
       inputTokens: res.usage?.inputTokens,
       outputTokens: res.usage?.outputTokens,
       ok: true,
@@ -252,7 +279,7 @@ export async function callDraft(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_DRAFTING,
-      agentKey: input.agentKey,
+      agentKey: attributedAgent(input.agent),
       ok: false,
       error: e instanceof Error ? e.message : String(e),
     });
