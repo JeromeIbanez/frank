@@ -106,6 +106,11 @@ export function ManualTransactionForm({ accounts }: { accounts: AccountOpt[] }) 
         <Input name="amount" placeholder="12,34" required />
       </div>
       <Input name="counterpartyName" placeholder={t("cols.counterparty")} />
+      <Input
+        name="counterpartyIban"
+        placeholder={t("counterpartyIban")}
+        className="font-mono"
+      />
       <Input name="description" placeholder={t("cols.description")} />
       <Button type="submit" disabled={isPending || !accountId} className="col-span-2">
         {t("add")}

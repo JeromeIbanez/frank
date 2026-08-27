@@ -12,6 +12,7 @@ import { parseCamt053, dedupeHash } from "@/lib/domain/camt";
 import { ruleCategorize, CATEGORIES } from "@/lib/domain/categories";
 import { callStructured } from "@/lib/ai/gateway";
 import { refreshSignalsSafe } from "@/lib/signals";
+import { reconcileDebtPayments } from "@/lib/actions/debts";
 
 /**
  * CAMT.053 import with the PRD §6.3 money invariants:
@@ -132,6 +133,13 @@ export async function importCamtFile(
   });
 
   revalidatePath(`/dossiers/${account.dossierId}`);
+  // Debt reconciliation runs on IMPORTED transactions only (plan os-v1 W4:
+  // an export proves nothing; a bank statement does).
+  try {
+    await reconcileDebtPayments();
+  } catch (e) {
+    console.error("debt reconciliation failed:", e);
+  }
   await refreshSignalsSafe();
   return { ok: true, imported, duplicates, errors: parsed.errors };
 }
@@ -156,6 +164,10 @@ export async function addManualTransaction(
   const bookingDate = String(formData.get("bookingDate") || new Date().toISOString().slice(0, 10));
   const description = String(formData.get("description") || "") || null;
   const counterpartyName = String(formData.get("counterpartyName") || "") || null;
+  // Counterparty IBAN is what debt reconciliation matches on — without it
+  // a hand-entered regeling payment could never reduce a debt.
+  const counterpartyIban =
+    String(formData.get("counterpartyIban") || "").trim().toUpperCase() || null;
 
   const hash = createHash("sha256")
     .update(
@@ -173,6 +185,7 @@ export async function addManualTransaction(
       bookingDate,
       amountCents,
       counterpartyName,
+      counterpartyIban,
       description,
       categoryKey: cat?.categoryKey ?? null,
       categorySource: cat ? "rule" : null,
@@ -191,6 +204,12 @@ export async function addManualTransaction(
   });
 
   revalidatePath(`/dossiers/${account.dossierId}`);
+  // Manual transactions are human-entered bank facts — reconcile them too.
+  try {
+    await reconcileDebtPayments();
+  } catch (e) {
+    console.error("debt reconciliation failed:", e);
+  }
   await refreshSignalsSafe();
 }
 

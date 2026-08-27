@@ -175,7 +175,8 @@
       "letters": "Brieven",
       "filings": "Rechtbank",
       "copilot": "Copilot",
-      "intake": "Intake"
+      "intake": "Intake",
+      "debts": "Schulden"
     },
     "urgency": {
       "summary": "{count} vragen aandacht",
@@ -296,7 +297,8 @@
     "aiDone": "AI heeft {count} transacties gecategoriseerd (gemarkeerd ✦, beoordeel waar nodig).",
     "aiUnavailable": "AI niet beschikbaar — categoriseer handmatig of probeer later opnieuw.",
     "aiRunning": "Categoriseren…",
-    "aiCategorize": "AI-categoriseren"
+    "aiCategorize": "AI-categoriseren",
+    "counterpartyIban": "IBAN tegenpartij (optioneel)"
   },
   "documents": {
     "emptyDossier": "Geen documenten in dit dossier.",
@@ -392,7 +394,8 @@
     "boedelHint": "Vul de boedelbeschrijving aan in Mijn CBM; bewaar het bewijs in het tabblad Documenten.",
     "officialOutput": "Officiële output: Nederlands — rechtbankstukken worden in het Nederlands voorbereid, ongeacht de taalinstelling.",
     "openBoedelDoc": "Boedelbeschrijving (werkdocument)",
-    "openPvaDoc": "Plan van aanpak (werkdocument)"
+    "openPvaDoc": "Plan van aanpak (werkdocument)",
+    "rvPeriodTitle": "R&V-periode rechtbank & bespreking"
   },
   "rvPack": {
     "back": "Terug naar dossier",
@@ -417,7 +420,9 @@
       "uncategorized": "{detail} ongecategoriseerde transacties.",
       "largeExpenses": "{detail} uitgave(n) ≥ € 2.000 zonder vastgelegd bewijs.",
       "noTransactions": "Geen transacties in deze periode.",
-      "reconciliation": "Saldoverloop en categorietotalen verschillen € {detail} — controleer categorisering/imports vóór indiening."
+      "reconciliation": "Saldoverloop en categorietotalen verschillen € {detail} — controleer categorisering/imports vóór indiening.",
+      "periodNotCourtRecorded": "Verslagperiode niet vastgelegd volgens rechtbankinstructie — kalenderjaar aangenomen (alleen werkdocument).",
+      "debtNoHistory": "{detail} schuld(en) zonder verloophistorie — begin-/eindsaldi niet onderbouwd."
     },
     "attachments": "Bijlagenchecklist",
     "attachment": {
@@ -426,7 +431,29 @@
       "consentEvidence": "Toestemming/machtiging bij uitgaven ≥ € 2.000",
       "debtOverview": "Actueel schuldenoverzicht"
     },
-    "mijnCbmNote": "Indienen gebeurt in Mijn CBM (Rechtspraak). Markeer de R&V-taak als ingediend met het Mijn CBM-kenmerk als bewijs."
+    "mijnCbmNote": "Indienen gebeurt in Mijn CBM (Rechtspraak). Markeer de R&V-taak als ingediend met het Mijn CBM-kenmerk als bewijs.",
+    "schuldenverloop": "Schuldenverloop",
+    "noDebts": "Geen schulden vastgelegd.",
+    "creditor": "Schuldeiser",
+    "begin": "Begin",
+    "paid": "Betaald",
+    "end": "Eind",
+    "noHistory": "geen verloophistorie",
+    "bespreking": "Bespreking met betrokkene & ondertekening",
+    "besprekingDate": "Besproken op",
+    "notRecorded": "niet vastgelegd",
+    "besprekingOutcome": {
+      "understood": "betrokkene heeft de rekening begrepen",
+      "not_understood": "betrokkene heeft het niet (volledig) begrepen",
+      "not_possible": "bespreking niet mogelijk"
+    },
+    "signedStatus": "Ondertekening",
+    "signed": {
+      "signed": "ondertekend door betrokkene",
+      "declined": "betrokkene weigert te ondertekenen (reden in notitie)",
+      "pending": "nog niet ondertekend"
+    },
+    "periodNotRecorded": "Rechtbankperiode en besprekingsgegevens niet vastgelegd — leg ze vast op het tabblad Verslaglegging vóór indiening."
   },
   "copilot": {
     "intro": "Vraag alles over dit dossier. Antwoorden zijn gebaseerd op de eigen dossiergegevens; de copilot is alleen-lezen en kan niets wijzigen.",
@@ -757,5 +784,87 @@
       "weekly": "per week",
       "monthly": "per maand"
     }
+  },
+  "debtsTab": {
+    "kpiCount": "Schulden",
+    "kpiCurrent": "Openstaand",
+    "kpiOriginal": "Oorspronkelijk",
+    "kpiRegelingen": "Regelingen",
+    "register": "Schuldenregister",
+    "invariantNote": "Saldi wijzigen alleen met bewijs: een gereconcilieerde bankbetaling of een saldo-opgave van de schuldeiser (document verplicht). Een betaalexport wijzigt nooit een schuld.",
+    "emptyTitle": "Geen schulden vastgelegd",
+    "emptySentence": "Leg schulden hieronder vast of accepteer ze uit documentvoorstellen op het intaketabblad.",
+    "status": {
+      "open": "Open",
+      "regeling": "Regeling",
+      "betwist": "Betwist",
+      "afgelost": "Afgelost",
+      "msnp": "MSNP",
+      "wsnp": "WSNP"
+    },
+    "via": "via",
+    "regelingLine": "Regeling: {amount}/maand naar",
+    "events": "Verloop",
+    "eventKind": {
+      "payment_reconciled": "Betaling (bank-gereconcilieerd)",
+      "creditor_statement": "Saldo-opgave schuldeiser",
+      "correction": "Correctie"
+    },
+    "startRegeling": "Regeling starten",
+    "recordStatement": "Saldo-opgave vastleggen",
+    "regelingTitle": "Betalingsregeling",
+    "regelingHint": "Maakt een maandelijkse budgetregel gekoppeld aan deze schuld. Betalingen worden automatisch teruggekoppeld uit geïmporteerde bankafschriften (exact IBAN + bedrag).",
+    "regelingCreated": "Regeling aangemaakt.",
+    "statementTitle": "Saldo-opgave schuldeiser",
+    "statementHint": "Zet het saldo op het door de schuldeiser opgegeven bedrag. Het opgave-document is verplicht als bewijs — dit is de route voor deelbetalingen of gecombineerde betalingen.",
+    "statementRecorded": "Opgave vastgelegd, saldo bijgewerkt.",
+    "added": "Schuld vastgelegd.",
+    "addTitle": "Schuld toevoegen",
+    "form": {
+      "creditor": "Schuldeiser",
+      "reference": "Kenmerk",
+      "amount": "Bedrag (€)",
+      "deurwaarder": "Via deurwaarder (optioneel)",
+      "add": "Toevoegen",
+      "monthlyAmount": "Maandbedrag (€)",
+      "iban": "IBAN schuldeiser",
+      "expectedDay": "Betaaldag (1-31, optioneel)",
+      "statedAmount": "Opgegeven saldo (€)",
+      "document": "Opgave-document…",
+      "note": "Notitie (optioneel)"
+    },
+    "error": {
+      "role_required": "Alleen een bewindvoerder kan dit.",
+      "invalid_amount": "Bedrag is ongeldig.",
+      "invalid_iban": "IBAN is ongeldig.",
+      "invalid_creditor": "Schuldeiser is ongeldig.",
+      "regeling_exists": "Er is al een actieve regeling.",
+      "document_required": "Selecteer het opgave-document.",
+      "not_found": "Schuld niet gevonden.",
+      "duplicate_transaction": "Deze betaling is al verwerkt.",
+      "unknown": "Actie mislukt."
+    }
+  },
+  "rvPeriod": {
+    "hint": "Zoals vastgesteld door de rechtbank (brief / Mijn CBM). De verslagperiode wordt vastgelegd, nooit afgeleid.",
+    "periodStart": "Periode van",
+    "periodEnd": "Periode tot en met",
+    "besprekingDate": "Besproken met betrokkene op",
+    "besprekingOutcome": "Uitkomst",
+    "choose": "Kies…",
+    "outcome": {
+      "understood": "Begrepen",
+      "not_understood": "Niet (volledig) begrepen",
+      "not_possible": "Niet mogelijk"
+    },
+    "signedStatus": "Ondertekening",
+    "signed": {
+      "pending": "Nog niet",
+      "signed": "Ondertekend",
+      "declined": "Geweigerd"
+    },
+    "save": "Periode opslaan",
+    "saved": "R&V-periode vastgelegd.",
+    "invalid": "Ongeldige periode."
   }
 }

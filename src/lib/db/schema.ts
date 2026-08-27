@@ -160,6 +160,88 @@ export const debts = pgTable("debts", {
   notes: text("notes"),
 });
 
+// ---------- Debt events (plan os-v1 W4, Temujin round-2 note) ----------
+//
+// Debt balances change ONLY through these audited, provenance-bearing
+// events — never on pain.001 export (an export file proves nothing was
+// executed). debts.currentAmountCents is an EXPLICITLY AUDITED CACHE:
+// every event insert transactionally updates it through ONE chokepoint
+// (lib/actions/debts.ts applyDebtEvent) and writes an audit event.
+//
+// deltaCents is SIGNED: a payment or waiver REDUCES the debt (negative
+// delta); added costs/interest increase it (positive delta).
+
+export const debtEvents = pgTable(
+  "debt_events",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    debtId: text("debt_id")
+      .notNull()
+      .references(() => debts.id),
+    kind: text("kind", {
+      enum: ["payment_reconciled", "creditor_statement", "correction"],
+    }).notNull(),
+    deltaCents: integer("delta_cents").notNull(),
+    /** payment_reconciled: the imported CAMT transaction that proves the
+     *  payment. UNIQUE — one transaction can settle a debt at most once. */
+    sourceTransactionId: text("source_transaction_id").references(
+      () => transactions.id
+    ),
+    /** creditor_statement: the saldo-opgave document that proves the new
+     *  balance (required for that kind, enforced in the action). */
+    sourceDocumentId: text("source_document_id").references(() => documents.id),
+    note: text("note"),
+    actorId: text("actor_id").notNull(), // human, or "system" for reconciliation
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("debt_events_tx_unique").on(t.sourceTransactionId),
+    index("debt_events_debt").on(t.debtId, t.createdAt),
+  ]
+);
+
+export const debtEventsRelations = relations(debtEvents, ({ one }) => ({
+  debt: one(debts, { fields: [debtEvents.debtId], references: [debts.id] }),
+}));
+
+// ---------- R&V periods (plan os-v1 W3) ----------
+//
+// The court sets the reporting period; Frank records it, never infers it
+// (Temujin PR-5 #4). Bespreking/signature facts per the official LOV R&V
+// form are human-entered here.
+
+export const rvPeriods = pgTable(
+  "rv_periods",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    dossierId: text("dossier_id")
+      .notNull()
+      .references(() => dossiers.id),
+    periodStart: date("period_start").notNull(),
+    periodEnd: date("period_end").notNull(),
+    /** bespreking met betrokkene (official form): date + outcome */
+    besprekingDate: date("bespreking_date"),
+    besprekingOutcome: text("bespreking_outcome", {
+      enum: ["understood", "not_understood", "not_possible"],
+    }),
+    signedStatus: text("signed_status", {
+      enum: ["signed", "declined", "pending"],
+    })
+      .notNull()
+      .default("pending"),
+    note: text("note"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("rv_periods_unique").on(t.dossierId, t.periodEnd)]
+);
+
+export const rvPeriodsRelations = relations(rvPeriods, ({ one }) => ({
+  dossier: one(dossiers, {
+    fields: [rvPeriods.dossierId],
+    references: [dossiers.id],
+  }),
+}));
+
 // ---------- Budget ----------
 
 export const budgetLines = pgTable("budget_lines", {
@@ -187,6 +269,9 @@ export const budgetLines = pgTable("budget_lines", {
   // guard aggregates this year's spend on the SAME purpose toward €2,000.
   // Null => contractual fixed last (regular_bill, never amount-triggered).
   purposeTag: text("purpose_tag"),
+  // Betalingsregeling link (plan os-v1 W4): payments on this line service
+  // this debt; reconciliation matches imported transactions to it.
+  debtId: text("debt_id").references(() => debts.id),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

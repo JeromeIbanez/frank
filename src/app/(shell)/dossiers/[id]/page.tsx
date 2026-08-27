@@ -21,6 +21,7 @@ import { LettersTab } from "@/components/dossier/letters-tab";
 import { FilingsTab } from "@/components/dossier/filings-tab";
 import { CopilotChat } from "@/components/dossier/copilot-chat";
 import { IntakeTab } from "@/components/dossier/intake-tab";
+import { DebtsTab } from "@/components/dossier/debts-tab";
 import { getDb } from "@/lib/db";
 import { aiProposals } from "@/lib/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
@@ -33,6 +34,7 @@ const TABS = [
   "intake",
   "tasks",
   "budget",
+  "debts",
   "transactions",
   "documents",
   "letters",
@@ -206,6 +208,7 @@ export default async function DossierPage({
       {effectiveTab === "intake" && <IntakeTab dossier={dossier} />}
       {effectiveTab === "tasks" && <TasksTab dossierId={id} tasksPromise={getDossierTasks(id)} />}
       {effectiveTab === "budget" && <BudgetTab dossier={dossier} />}
+      {effectiveTab === "debts" && <DebtsTab dossier={dossier} />}
       {effectiveTab === "transactions" && (
         <TransactionsTab
           dossier={dossier}

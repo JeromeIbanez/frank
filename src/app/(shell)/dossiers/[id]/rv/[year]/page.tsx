@@ -142,6 +142,91 @@ export default async function RvPackPage({
         </section>
       </div>
 
+      <section>
+        <h2 className="type-section-label mb-2">{t("schuldenverloop")}</h2>
+        {pack.schuldenverloop.length === 0 && (
+          <p className="text-sm text-ink-400">{t("noDebts")}</p>
+        )}
+        {pack.schuldenverloop.length > 0 && (
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-hairline text-left">
+                <th className="py-1.5 type-section-label text-left">
+                  {t("creditor")}
+                </th>
+                <th className="py-1.5 type-section-label text-right">
+                  {t("begin")}
+                </th>
+                <th className="py-1.5 type-section-label text-right">
+                  {t("paid")}
+                </th>
+                <th className="py-1.5 type-section-label text-right">
+                  {t("end")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {pack.schuldenverloop.map((d, i) => (
+                <tr key={i} className="border-b border-hairline">
+                  <td className="py-1.5">
+                    {d.creditor}
+                    {!d.hasHistory && (
+                      <span className="ml-2 text-[11px] font-semibold text-[#B45309]">
+                        {t("noHistory")}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-1.5 text-right">
+                    <Money cents={d.beginCents} />
+                  </td>
+                  <td className="py-1.5 text-right text-[#15803D]">
+                    <Money cents={d.paidCents} />
+                  </td>
+                  <td className="py-1.5 text-right">
+                    <Money cents={d.endCents} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      <section>
+        <h2 className="type-section-label mb-2">{t("bespreking")}</h2>
+        {pack.courtPeriod ? (
+          <div className="text-sm space-y-1">
+            <p>
+              {t("besprekingDate")}:{" "}
+              {pack.courtPeriod.besprekingDate ? (
+                <DateText iso={pack.courtPeriod.besprekingDate} />
+              ) : (
+                <span className="text-[#B45309] font-semibold">
+                  {t("notRecorded")}
+                </span>
+              )}
+              {pack.courtPeriod.besprekingOutcome && (
+                <>
+                  {" · "}
+                  {t(`besprekingOutcome.${pack.courtPeriod.besprekingOutcome}`)}
+                </>
+              )}
+            </p>
+            <p>
+              {t("signedStatus")}:{" "}
+              {t(`signed.${pack.courtPeriod.signedStatus}`)}
+            </p>
+            {pack.courtPeriod.note && (
+              <p className="text-ink-600">{pack.courtPeriod.note}</p>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm font-semibold text-[#B45309]">
+            {t("periodNotRecorded")}
+          </p>
+        )}
+      </section>
+
       {pack.largeExpenses.length > 0 && (
         <section>
           <h2 className="type-section-label mb-2">{t("largeExpenses")}</h2>

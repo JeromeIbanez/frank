@@ -175,7 +175,8 @@
       "letters": "Letters",
       "filings": "Court filings",
       "copilot": "Copilot",
-      "intake": "Intake"
+      "intake": "Intake",
+      "debts": "Debts"
     },
     "urgency": {
       "summary": "{count} need attention",
@@ -296,7 +297,8 @@
     "aiDone": "AI categorized {count} transactions (marked ✦, review as needed).",
     "aiUnavailable": "AI unavailable — categorize manually or try again later.",
     "aiRunning": "Categorizing…",
-    "aiCategorize": "AI categorize"
+    "aiCategorize": "AI categorize",
+    "counterpartyIban": "Counterparty IBAN (optional)"
   },
   "documents": {
     "emptyDossier": "No documents in this dossier.",
@@ -392,7 +394,8 @@
     "boedelHint": "Complete the inventory in Mijn CBM; keep the evidence in the Documents tab.",
     "officialOutput": "Official output: Nederlands — court filings are prepared in Dutch regardless of UI language.",
     "openBoedelDoc": "Boedelbeschrijving (werkdocument)",
-    "openPvaDoc": "Plan van aanpak (werkdocument)"
+    "openPvaDoc": "Plan van aanpak (werkdocument)",
+    "rvPeriodTitle": "Court R&V period & discussion"
   },
   "rvPack": {
     "back": "Back to dossier",
@@ -417,7 +420,9 @@
       "uncategorized": "{detail} uncategorized transactions.",
       "largeExpenses": "{detail} expense(s) ≥ €2,000 need consent evidence.",
       "noTransactions": "No transactions in this period.",
-      "reconciliation": "Balance movement and category totals differ by € {detail} — investigate categorization/imports before filing."
+      "reconciliation": "Balance movement and category totals differ by € {detail} — investigate categorization/imports before filing.",
+      "periodNotCourtRecorded": "Reporting period not recorded from the court instruction — calendar year assumed (werkdocument only).",
+      "debtNoHistory": "{detail} debt(s) without event history — begin/end balances not evidenced."
     },
     "attachments": "Attachment checklist",
     "attachment": {
@@ -426,7 +431,29 @@
       "consentEvidence": "Consent / machtiging evidence for €2,000+ expenditures",
       "debtOverview": "Current debt overview"
     },
-    "mijnCbmNote": "Filing happens in Mijn CBM (Rechtspraak). Mark the R&V task as submitted with the Mijn CBM reference as evidence."
+    "mijnCbmNote": "Filing happens in Mijn CBM (Rechtspraak). Mark the R&V task as submitted with the Mijn CBM reference as evidence.",
+    "schuldenverloop": "Debt development (schuldenverloop)",
+    "noDebts": "No debts recorded.",
+    "creditor": "Creditor",
+    "begin": "Begin",
+    "paid": "Paid",
+    "end": "End",
+    "noHistory": "no event history",
+    "bespreking": "Discussion with client & signature",
+    "besprekingDate": "Discussed on",
+    "notRecorded": "not recorded",
+    "besprekingOutcome": {
+      "understood": "client understood the account",
+      "not_understood": "client did not (fully) understand",
+      "not_possible": "discussion not possible"
+    },
+    "signedStatus": "Signature",
+    "signed": {
+      "signed": "signed by client",
+      "declined": "client declined to sign (reason in note)",
+      "pending": "pending"
+    },
+    "periodNotRecorded": "Court period and discussion facts not recorded — record them on the Filings tab before preparing the filing."
   },
   "copilot": {
     "intro": "Ask anything about this dossier. Answers are grounded in the dossier's own data; the copilot is read-only and cannot change anything.",
@@ -757,5 +784,87 @@
       "weekly": "per week",
       "monthly": "per month"
     }
+  },
+  "debtsTab": {
+    "kpiCount": "Debts",
+    "kpiCurrent": "Outstanding",
+    "kpiOriginal": "Original",
+    "kpiRegelingen": "Arrangements",
+    "register": "Debt register",
+    "invariantNote": "Balances change only through evidence: a reconciled bank payment or a creditor statement (document required). A payment export never changes a debt.",
+    "emptyTitle": "No debts recorded",
+    "emptySentence": "Record debts below or accept them from document proposals on the intake tab.",
+    "status": {
+      "open": "Open",
+      "regeling": "Arrangement",
+      "betwist": "Disputed",
+      "afgelost": "Settled",
+      "msnp": "MSNP",
+      "wsnp": "WSNP"
+    },
+    "via": "via",
+    "regelingLine": "Arrangement: {amount}/month to",
+    "events": "History",
+    "eventKind": {
+      "payment_reconciled": "Payment (bank-reconciled)",
+      "creditor_statement": "Creditor statement",
+      "correction": "Correction"
+    },
+    "startRegeling": "Start arrangement",
+    "recordStatement": "Record creditor statement",
+    "regelingTitle": "Payment arrangement",
+    "regelingHint": "Creates a monthly budget line linked to this debt. Payments are matched back automatically from imported bank statements (exact IBAN + amount).",
+    "regelingCreated": "Arrangement created.",
+    "statementTitle": "Creditor statement (saldo-opgave)",
+    "statementHint": "Sets the balance to the creditor's stated amount. The statement document is required as evidence — this is the path for partial or combined payments.",
+    "statementRecorded": "Statement recorded, balance updated.",
+    "added": "Debt recorded.",
+    "addTitle": "Add debt",
+    "form": {
+      "creditor": "Creditor",
+      "reference": "Reference",
+      "amount": "Amount (€)",
+      "deurwaarder": "Via bailiff (optional)",
+      "add": "Add",
+      "monthlyAmount": "Monthly amount (€)",
+      "iban": "Creditor IBAN",
+      "expectedDay": "Payment day (1-31, optional)",
+      "statedAmount": "Stated balance (€)",
+      "document": "Statement document…",
+      "note": "Note (optional)"
+    },
+    "error": {
+      "role_required": "Only a bewindvoerder can do this.",
+      "invalid_amount": "Amount is invalid.",
+      "invalid_iban": "IBAN is invalid.",
+      "invalid_creditor": "Creditor is invalid.",
+      "regeling_exists": "An active arrangement already exists.",
+      "document_required": "Select the statement document.",
+      "not_found": "Debt not found.",
+      "duplicate_transaction": "This payment was already applied.",
+      "unknown": "Action failed."
+    }
+  },
+  "rvPeriod": {
+    "hint": "As set by the rechtbank (court letter / Mijn CBM). The reporting period is recorded, never inferred.",
+    "periodStart": "Period start",
+    "periodEnd": "Period end",
+    "besprekingDate": "Discussed with client on",
+    "besprekingOutcome": "Outcome",
+    "choose": "Choose…",
+    "outcome": {
+      "understood": "Understood",
+      "not_understood": "Not (fully) understood",
+      "not_possible": "Not possible"
+    },
+    "signedStatus": "Signature",
+    "signed": {
+      "pending": "Pending",
+      "signed": "Signed",
+      "declined": "Declined"
+    },
+    "save": "Save period",
+    "saved": "R&V period recorded.",
+    "invalid": "Invalid period."
   }
 }

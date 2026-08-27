@@ -26,6 +26,7 @@ describe("canPerform", () => {
       "machtiging_resolve",
       "letter_approve",
       "letter_mark_sent",
+      "debt_adjust",
       "actor_manage",
     ] as const) {
       expect(canPerform(bw("a"), action)).toEqual({ allowed: true });
