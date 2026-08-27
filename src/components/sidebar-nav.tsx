@@ -8,28 +8,44 @@ import {
   FolderOpen,
   Inbox,
   Banknote,
+  Building2,
+  Users,
   ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+/** Every nav destination. Adding one here forces an icon below, so a new
+ *  section can never ship icon-less (which silently breaks row alignment). */
+export type NavKey =
+  | "dashboard"
+  | "myDay"
+  | "dossiers"
+  | "inbox"
+  | "payments"
+  | "office"
+  | "audit"
+  | "team";
+
+const ICONS: Record<NavKey, React.ComponentType<{ className?: string }>> = {
   dashboard: LayoutDashboard,
   myDay: CalendarCheck,
   dossiers: FolderOpen,
   inbox: Inbox,
   payments: Banknote,
+  office: Building2,
   audit: ScrollText,
+  team: Users,
 };
 
 export function SidebarNav({
   items,
 }: {
-  items: { href: string; key: string; label: string; count?: number }[];
+  items: { href: string; key: NavKey; label: string; count?: number }[];
 }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex-1 px-3 space-y-px">
+    <nav className="flex-1 min-h-0 overflow-y-auto px-3 space-y-px">
       {items.map((item) => {
         const Icon = ICONS[item.key];
         const active =
@@ -48,14 +64,13 @@ export function SidebarNav({
                 : "text-ink-600 hover:bg-hairline hover:text-ink-900"
             )}
           >
-            {Icon && (
-              <Icon
-                className={cn(
-                  "h-4 w-4",
-                  active ? "text-primary" : "text-ink-400"
-                )}
-              />
-            )}
+            <Icon
+              className={cn(
+                "h-4 w-4 shrink-0",
+                active ? "text-primary" : "text-ink-400"
+              )}
+            />
+
             <span className="flex-1">{item.label}</span>
             {item.count != null && item.count > 0 && (
               <span className="font-mono text-[11px] text-ink-400 tabular-nums">

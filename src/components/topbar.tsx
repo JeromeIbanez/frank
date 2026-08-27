@@ -29,7 +29,7 @@ export function Topbar({ identitySlot }: { identitySlot?: React.ReactNode }) {
     "dashboard";
 
   return (
-    <header className="h-[54px] shrink-0 border-b border-hairline flex items-center justify-between px-8 print:hidden">
+    <header className="h-[54px] shrink-0 sticky top-0 z-10 bg-canvas border-b border-hairline flex items-center justify-between px-8 print:hidden">
       <div className="text-base font-semibold text-ink-900">{t(sectionKey)}</div>
       <div className="flex items-center gap-4">
         {identitySlot}

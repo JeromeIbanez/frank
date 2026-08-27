@@ -2,13 +2,13 @@ import { getTranslations } from "next-intl/server";
 import { getNavCounts } from "@/lib/queries";
 import { currentActor } from "@/lib/identity";
 import { LogoWordmark } from "./logo";
-import { SidebarNav } from "./sidebar-nav";
+import { SidebarNav, type NavKey } from "./sidebar-nav";
 
 export async function AppSidebar() {
   const t = await getTranslations("nav");
   const [counts, actor] = await Promise.all([getNavCounts(), currentActor()]);
 
-  const items = [
+  const items: { href: string; key: NavKey; label: string; count?: number }[] = [
     { href: "/", key: "dashboard", label: t("dashboard") },
     { href: "/my-day", key: "myDay", label: t("myDay"), count: counts.openTasks },
     { href: "/dossiers", key: "dossiers", label: t("dossiers"), count: counts.dossiers },
@@ -27,7 +27,9 @@ export async function AppSidebar() {
     .toUpperCase();
 
   return (
-    <aside className="w-[216px] shrink-0 flex flex-col print:hidden">
+    // Sticky, viewport-height: on a long page the nav and the identity row
+    // must stay reachable instead of scrolling away with the content.
+    <aside className="w-[216px] shrink-0 flex flex-col sticky top-0 h-screen print:hidden print:static print:h-auto">
       <div className="px-5 pt-5 pb-4">
         <LogoWordmark size={20} />
       </div>
