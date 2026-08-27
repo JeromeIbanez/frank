@@ -18,6 +18,7 @@ const ALL_ACTIONS: AgentActionClass[] = [
   "dossier_link",
   "proposal_create",
   "letter_draft",
+  "obligation_create",
   "safeguarding_case_open",
   "clarification_draft",
   "escalation_draft",
@@ -39,7 +40,9 @@ describe("agent action vocabulary", () => {
     const protective = ALL_ACTIONS.filter(
       (a) => ACTION_CATEGORY[a] === "protective"
     );
-    expect(protective).toEqual(["safeguarding_case_open"]);
+    expect(protective.sort()).toEqual(
+      ["obligation_create", "safeguarding_case_open"].sort()
+    );
   });
 
   it("contains no consequential act (os-v2 N3 / §2.1)", () => {

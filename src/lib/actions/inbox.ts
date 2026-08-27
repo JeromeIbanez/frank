@@ -12,6 +12,7 @@ import {
   accounts,
   contacts,
   debts,
+  letters,
 } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
@@ -26,7 +27,15 @@ import {
   resolveDossier,
   type DossierCandidate,
 } from "@/lib/domain/resolve-dossier";
-import { readInboundFacts, classifyObligationKind } from "@/lib/domain/inbound";
+import {
+  readInboundFacts,
+  readConsumerBasis,
+  classifyObligationKind,
+} from "@/lib/domain/inbound";
+import {
+  draftWikDispute,
+  draftInfoRequestAck,
+} from "@/lib/domain/reply-drafts";
 import { checkWikAmount } from "@/lib/domain/wik";
 import { INBOX_FIXTURES } from "@/lib/inbox-fixtures";
 
@@ -42,7 +51,17 @@ function officeToday(): string {
   }).format(new Date());
 }
 
-async function simulatedChannelId(): Promise<string> {
+/**
+ * Provisioning the simulated channel is HUMAN CONFIGURATION, not agent work
+ * (Temujin PR-9 r1 #2).
+ *
+ * Creating a channel and stamping its sync time are office-configuration
+ * writes. Doing them inside the agent pass meant writes happening before any
+ * gate — the same ordering failure found in PR-8. So they are attributed to
+ * the human who pressed the button, audited as such, and completed BEFORE the
+ * agent context is built.
+ */
+async function provisionSimulatedChannel(actorId: string): Promise<string> {
   const db = getDb();
   const existing = await db.query.channels.findFirst({
     where: and(eq(channels.kind, "email"), eq(channels.adapter, "simulated")),
@@ -52,6 +71,15 @@ async function simulatedChannelId(): Promise<string> {
     .insert(channels)
     .values({ kind: "email", label: SIMULATED_CHANNEL_LABEL, adapter: "simulated" })
     .returning();
+  await writeAudit({
+    actorId,
+    actorType: "human",
+    action: "create",
+    entityType: "channel",
+    entityId: row.id,
+    versionAfter: { kind: "email", adapter: "simulated" },
+    reason: "provisioned the simulated mailbox (office configuration)",
+  });
   return row.id;
 }
 
@@ -195,17 +223,31 @@ async function ingestOne(
       .where(eq(messages.id, msg.id));
   }
 
+  const clientName = resolution.dossierId
+    ? candidates.find((c) => c.id === resolution.dossierId)
+      ? `${candidates.find((c) => c.id === resolution.dossierId)!.firstName ?? ""} ${
+          candidates.find((c) => c.id === resolution.dossierId)!.lastName ?? ""
+        }`.trim()
+      : null
+    : null;
+
   // --- Read the labelled facts, then run the checks. ---
   const facts = readInboundFacts(raw);
   const kind = classifyObligationKind(fixture.subject, fixture.body);
   const findings: Record<string, unknown>[] = [];
 
-  // The consumer basis is EVIDENCED, not assumed: these dossiers are
-  // natural persons under bewind, which is what the regime turns on.
+  // The consumer basis must be EVIDENCED BY THE DOCUMENT (Temujin PR-9 r1
+  // #3). Frank used to infer it from the dossier existing — "everyone under
+  // bewind is a natural person" — but a natural person can also incur a debt
+  // from business activity, to which this staffel does not apply the same
+  // way. An inference dressed as evidence is exactly what N4b forbids, so we
+  // now require the creditor's own invocation of the regime, and abstain
+  // when it is absent.
+  const consumerBasis = readConsumerBasis(raw);
   const wik = checkWikAmount({
     principalCents: facts.principalCents?.value,
     chargedCostsCents: facts.collectionCostsCents?.value,
-    consumerBasis: resolution.dossierId ? "dossier_natural_person" : undefined,
+    consumerBasis: consumerBasis?.value,
     onDate: officeToday(),
   });
   if (wik.finding !== "none") {
@@ -214,6 +256,7 @@ async function ingestOne(
       evidence: {
         principal: facts.principalCents?.snippet,
         collectionCosts: facts.collectionCostsCents?.snippet,
+        consumerBasis: consumerBasis?.snippet,
       },
     });
   }
@@ -221,7 +264,82 @@ async function ingestOne(
   const summaryNl = buildSummary(fixture, facts, "nl");
   const summaryEn = buildSummary(fixture, facts, "en");
 
-  await db
+  // --- Draft the reply where the answer is knowable (plan os-v2 §5). ---
+  // A draft changes nothing: letters land as `draft` and only a human
+  // approves or sends (N2). Deterministic templates, so every number in the
+  // letter comes from the finding that produced it.
+  let proposedLetterId: string | null = null;
+  if (resolution.dossierId) {
+    const draft =
+      wik.finding === "wik_amount_exceeds_cap"
+        ? draftWikDispute({
+            creditorName: fixture.fromName,
+            reference: facts.reference?.value,
+            principalCents: wik.principalCents,
+            chargedCostsCents: wik.chargedCostsCents,
+            maximumCents: wik.maximumCents,
+            excessCents: wik.excessCents,
+            clientName: clientName ?? "cliënt",
+            sourceUrl: wik.sourceUrl,
+          })
+        : kind === "information_request"
+          ? draftInfoRequestAck({
+              senderName: fixture.fromName,
+              reference: facts.reference?.value,
+              clientName: clientName ?? "cliënt",
+              dueDate: facts.dueDate?.value ?? null,
+            })
+          : null;
+
+    if (draft) {
+      const draftGrant = await assertAgentMay(ctx, "letter_draft", {
+        type: "message",
+        id: msg.id,
+      });
+      assertGrantCovers(draftGrant, "letter_draft", {
+        type: "message",
+        id: msg.id,
+      });
+      const [letterRow] = await db
+        .insert(letters)
+        .values({
+          dossierId: resolution.dossierId,
+          templateKey: draft.templateKey,
+          recipientName: fixture.fromName,
+          subject: draft.subject,
+          body: draft.body,
+          language: "nl",
+          status: "draft",
+        })
+        .returning();
+      proposedLetterId = letterRow?.id ?? null;
+      if (letterRow) {
+        await writeAudit({
+          actorId: agentActorId(draftGrant),
+          actorType: "agent",
+          action: "create",
+          entityType: "letter",
+          entityId: letterRow.id,
+          correlationId: draftGrant.correlationId,
+          versionAfter: { templateKey: draft.templateKey, status: "draft" },
+          reason: "reply drafted by agent — awaiting human approval",
+        });
+      }
+    }
+  }
+
+  // Creating an obligation is a real work item, not an inbound fact, so it
+  // has its own gated, entity-bound capability (Temujin PR-9 r1 #1).
+  const obligationGrant = await assertAgentMay(ctx, "obligation_create", {
+    type: "message",
+    id: msg.id,
+  });
+  assertGrantCovers(obligationGrant, "obligation_create", {
+    type: "message",
+    id: msg.id,
+  });
+
+  const [obligationRow] = await db
     .insert(obligations)
     .values({
       dossierId: resolution.dossierId,
@@ -233,9 +351,24 @@ async function ingestOne(
       dueDateSource: facts.dueDate?.snippet ?? null,
       agentKey: ctx.agentKey,
       findings,
+      proposedLetterId,
       status: "open",
     })
-    .onConflictDoNothing();
+    .onConflictDoNothing()
+    .returning();
+
+  if (obligationRow) {
+    await writeAudit({
+      actorId: agentActorId(obligationGrant),
+      actorType: "agent",
+      action: "create",
+      entityType: "obligation",
+      entityId: obligationRow.id,
+      correlationId: obligationGrant.correlationId,
+      versionAfter: { kind, findings: findings.length, proposedLetterId },
+      reason: "obligation raised by agent — awaiting human decision",
+    });
+  }
 
   return "created";
 }
@@ -275,12 +408,22 @@ export async function receiveSimulatedPost(): Promise<{
   duplicates: number;
   error?: string;
 }> {
-  const ctx = agentContext("postbode");
+  // Human configuration FIRST, and fully finished, before any agent context
+  // exists (Temujin PR-9 r1 #2). Nothing an agent does may precede its gate,
+  // and nothing outside the gate may be attributed to an agent.
   const actor = await currentActor();
-  if (!actor.active) return { ok: false, created: 0, duplicates: 0, error: "inactive_actor" };
+  if (!actor.active)
+    return { ok: false, created: 0, duplicates: 0, error: "inactive_actor" };
+  const channelId = await provisionSimulatedChannel(actor.id);
+  await getDb()
+    .update(channels)
+    .set({ lastSyncAt: new Date() })
+    .where(eq(channels.id, channelId));
 
-  const channelId = await simulatedChannelId();
   const candidates = await loadCandidates();
+
+  // Only now does the agent begin.
+  const ctx = agentContext("postbode");
 
   let created = 0;
   let duplicates = 0;
@@ -289,11 +432,6 @@ export async function receiveSimulatedPost(): Promise<{
     if (r === "created") created++;
     else duplicates++;
   }
-
-  await getDb()
-    .update(channels)
-    .set({ lastSyncAt: new Date() })
-    .where(eq(channels.id, channelId));
 
   revalidatePath("/inbox");
   revalidatePath("/");

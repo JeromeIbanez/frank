@@ -44,6 +44,7 @@ export function ObligationCard({
   const locale = useLocale();
   const [pending, start] = useTransition();
   const [expanded, setExpanded] = useState(false);
+  const [showDraft, setShowDraft] = useState(false);
   const [dismissing, setDismissing] = useState(false);
   const [reason, setReason] = useState("");
   const [pickDossier, setPickDossier] = useState(
@@ -155,6 +156,35 @@ export function ObligationCard({
           <p className="rounded-[8px] border border-hairline px-3 py-2 text-[12.5px] text-ink-600">
             {t("provisional")}
           </p>
+        )}
+
+        {/* The drafted reply — the thing that actually saves the hour. */}
+        {row.draftLetter && (
+          <div className="rounded-[8px] border border-hairline px-3 py-2">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[12.5px] font-medium text-ink-900">
+                {t("draftReady")}
+              </span>
+              <span className="font-mono text-[11px] text-ink-400">
+                {t("draftStatus")}
+              </span>
+            </div>
+            <p className="mt-0.5 text-[12.5px] text-ink-600">
+              {row.draftLetter.subject}
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowDraft((v) => !v)}
+              className="mt-1 text-[12px] text-ink-400 underline"
+            >
+              {showDraft ? t("hideDraft") : t("showDraft")}
+            </button>
+            {showDraft && (
+              <pre className="mt-1.5 max-h-72 overflow-auto whitespace-pre-wrap rounded-[6px] bg-surface-subtle p-2.5 font-mono text-[11.5px] text-ink-600">
+                {row.draftLetter.body}
+              </pre>
+            )}
+          </div>
         )}
 
         <button

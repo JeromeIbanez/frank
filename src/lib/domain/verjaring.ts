@@ -31,10 +31,19 @@ export type VerjaringRule = {
 };
 
 /**
- * Deliberately small. Every rule here is one whose applicability can be
- * decided from a debt type Frank already records; the general five-year
- * rule is the safe default and anything genuinely uncertain is simply
- * absent, which produces abstention.
+ * Deliberately small, and DELIBERATELY SMALLER than it first was.
+ *
+ * A generic "period from an accrual date" clock cannot honestly model rules
+ * whose prerequisites it does not evaluate (Temujin PR-9 r1 #4). Cut for
+ * that reason:
+ *   - art. 3:310 BW (schadevergoeding) turns on the knowledge trigger and
+ *     carries an absolute long-stop, neither of which this models;
+ *   - art. 3:324 BW (tenuitvoerlegging) has its own conditions and a
+ *     five-year exception for periodic payments.
+ * Implying a uniform five- or twenty-year clock for those is worse than
+ * saying nothing, so an unmodellable type produces abstention instead.
+ *
+ * What remains is decidable from a debt type Frank already records.
  */
 export const VERJARING_RULES: readonly VerjaringRule[] = [
   {
@@ -57,20 +66,6 @@ export const VERJARING_RULES: readonly VerjaringRule[] = [
     years: 2,
     labelNl: "consumentenkoop",
     labelEn: "consumer sale",
-  },
-  {
-    key: "schadevergoeding",
-    article: "art. 3:310 BW",
-    years: 5,
-    labelNl: "vordering tot schadevergoeding",
-    labelEn: "claim for damages",
-  },
-  {
-    key: "rechterlijke_uitspraak",
-    article: "art. 3:324 BW",
-    years: 20,
-    labelNl: "bevoegdheid tot tenuitvoerlegging van een rechterlijke uitspraak",
-    labelEn: "power to enforce a court judgment",
   },
 ];
 
@@ -122,6 +117,12 @@ const CAVEAT_EN =
   "extends this period. The absence of such a record is not proof that none " +
   "exists.";
 
+/** The day after `iso`, in UTC date-only arithmetic (art. 3:319 BW). */
+function nextDay(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+}
+
 function addYears(iso: string, years: number): string {
   const [y, m, d] = iso.split("-").map(Number);
   // Date-only arithmetic in UTC; no local-timezone drift.
@@ -138,10 +139,13 @@ export function checkVerjaring(input: VerjaringInput): VerjaringFinding {
     return { finding: "none", abstained: true, missing };
   }
 
-  // An interruption we know of restarts the clock from that date.
+  // A stuiting we know of restarts the clock. Under art. 3:319 BW the new
+  // term begins on the DAY AFTER the interruption, not on the day itself
+  // (Temujin PR-9 r1 #4) — an off-by-one here shifts a limitation date by a
+  // day, which is exactly the kind of error that matters in a legal finding.
   const clockFrom =
     input.lastKnownStuiting && input.lastKnownStuiting > input.accrualDate
-      ? input.lastKnownStuiting
+      ? nextDay(input.lastKnownStuiting)
       : input.accrualDate;
 
   const periodElapsedOn = addYears(clockFrom, rule.years);

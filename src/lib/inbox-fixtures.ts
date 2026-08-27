@@ -46,6 +46,12 @@ export const INBOX_FIXTURES: InboxFixture[] = [
       "Totaal te voldoen: € 487,30",
       "Uiterlijk: 10-09-2026",
       "",
+      // The creditor's OWN invocation of the consumer regime. Without a line
+      // like this the WIK check abstains, because the consumer basis has to
+      // be evidenced by the document rather than inferred from the dossier
+      // (Temujin PR-9 r1 #3). Real aanmaningen to consumers do cite it.
+      "De incassokosten zijn berekend conform de Wet Incassokosten.",
+      "",
       "Betaling kunt u overmaken onder vermelding van het kenmerk.",
       "Tegenrekening cliënt bij ons bekend: NL22ABNA0417164184",
       "",

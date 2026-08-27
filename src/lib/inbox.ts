@@ -2,7 +2,7 @@ import "server-only";
 
 import { desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { obligations, messages, dossiers } from "@/lib/db/schema";
+import { obligations, messages, dossiers, letters } from "@/lib/db/schema";
 
 export type ObligationRow = {
   id: string;
@@ -27,6 +27,9 @@ export type ObligationRow = {
     linkReviewed: boolean;
   };
   dossier: { id: string; name: string } | null;
+  /** The reply Postbode drafted, if the answer was knowable. Always a
+   *  `draft` — nothing is sent without a human decision (N2). */
+  draftLetter: { id: string; subject: string; body: string; status: string } | null;
 };
 
 /** Open obligations, newest first, with their source message and dossier. */
@@ -39,10 +42,15 @@ export async function listObligations(): Promise<ObligationRow[]> {
       dFirst: dossiers.firstName,
       dLast: dossiers.lastName,
       dId: dossiers.id,
+      lId: letters.id,
+      lSubject: letters.subject,
+      lBody: letters.body,
+      lStatus: letters.status,
     })
     .from(obligations)
     .innerJoin(messages, eq(obligations.sourceMessageId, messages.id))
     .leftJoin(dossiers, eq(obligations.dossierId, dossiers.id))
+    .leftJoin(letters, eq(obligations.proposedLetterId, letters.id))
     .where(inArray(obligations.status, ["open", "in_review"]))
     .orderBy(desc(messages.receivedAt));
 
@@ -72,5 +80,13 @@ export async function listObligations(): Promise<ObligationRow[]> {
       linkReviewed: r.m.linkReviewed,
     },
     dossier: r.dId ? { id: r.dId, name: `${r.dFirst} ${r.dLast}` } : null,
+    draftLetter: r.lId
+      ? {
+          id: r.lId,
+          subject: r.lSubject ?? "",
+          body: r.lBody ?? "",
+          status: r.lStatus ?? "draft",
+        }
+      : null,
   }));
 }

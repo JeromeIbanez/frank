@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { readInboundFacts, classifyObligationKind } from "../inbound";
+import {
+  readInboundFacts,
+  readConsumerBasis,
+  classifyObligationKind,
+} from "../inbound";
 import { checkWikAmount } from "../wik";
 import { INBOX_FIXTURES } from "@/lib/inbox-fixtures";
 
@@ -79,6 +83,31 @@ describe("classifyObligationKind", () => {
   });
 });
 
+describe("readConsumerBasis — evidenced, never inferred", () => {
+  it("finds the creditor's own invocation of the regime", () => {
+    const b = readConsumerBasis(raw(aanmaning));
+    expect(b?.value).toBe("document_states_consumer");
+    expect(b?.snippet).toContain("Wet Incassokosten");
+  });
+
+  it("returns nothing when the document says nothing about it", () => {
+    // Temujin PR-9 r1 #3: a natural person under bewind can still incur a
+    // business debt, so dossier existence is NOT evidence of the consumer
+    // regime. No statement in the document → no basis → the check abstains.
+    expect(readConsumerBasis(raw(vague))).toBeUndefined();
+    expect(readConsumerBasis("Geachte heer, u bent ons geld schuldig.")).toBeUndefined();
+  });
+
+  it("does not fire on a substring inside another word", () => {
+    expect(readConsumerBasis("De wikkel zat om het pakket.")).toBeUndefined();
+  });
+
+  it("carries the verbatim line as its snippet", () => {
+    const b = readConsumerBasis("regel een\nBerekend conform de Wet Incassokosten.\nregel drie");
+    expect(b?.snippet).toBe("Berekend conform de Wet Incassokosten.");
+  });
+});
+
 describe("the demo motion end to end (pure part)", () => {
   it("produces an UNAMBIGUOUS WIK finding on the aanmaning fixture", () => {
     // Temujin os-v2 r1 #3: the rev-1 demo numbers were wrong, so the fixture
@@ -88,7 +117,7 @@ describe("the demo motion end to end (pure part)", () => {
     const r = checkWikAmount({
       principalCents: facts.principalCents?.value,
       chargedCostsCents: facts.collectionCostsCents?.value,
-      consumerBasis: "dossier_natural_person",
+      consumerBasis: readConsumerBasis(raw(aanmaning))?.value,
       onDate: "2026-08-27",
     });
     if (r.finding !== "wik_amount_exceeds_cap") throw new Error("expected finding");
@@ -102,9 +131,29 @@ describe("the demo motion end to end (pure part)", () => {
     const r = checkWikAmount({
       principalCents: facts.principalCents?.value,
       chargedCostsCents: facts.collectionCostsCents?.value,
-      consumerBasis: "dossier_natural_person",
+      consumerBasis: readConsumerBasis(raw(gemeente))?.value,
       onDate: "2026-08-27",
     });
     expect(r.finding).toBe("none");
+  });
+
+  it("ABSTAINS on the same overcharge when the regime is not evidenced", () => {
+    // Strip the creditor's WIK line and the finding must disappear, even
+    // though the arithmetic is identical. This is the regression guard for
+    // the inference Temujin caught.
+    const stripped = raw(aanmaning)
+      .split("\n")
+      .filter((l) => !/Wet Incassokosten/i.test(l))
+      .join("\n");
+    const facts = readInboundFacts(stripped);
+    expect(facts.collectionCostsCents?.value).toBe(7_500); // still read
+    const r = checkWikAmount({
+      principalCents: facts.principalCents?.value,
+      chargedCostsCents: facts.collectionCostsCents?.value,
+      consumerBasis: readConsumerBasis(stripped)?.value,
+      onDate: "2026-08-27",
+    });
+    if (r.finding !== "none") throw new Error("expected abstention");
+    expect(r.missing).toContain("consumerBasis");
   });
 });

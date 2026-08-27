@@ -1034,6 +1034,10 @@
       "title": "Incassokosten overschrijden het wettelijk maximum",
       "detail": "{charged} in rekening gebracht bij een hoofdsom van {principal}. Het wettelijk maximum is {max} — een overschrijding van {excess}.",
       "source": "Besluit vergoeding buitengerechtelijke incassokosten"
-    }
+    },
+    "draftReady": "Concept-antwoord gereed",
+    "draftStatus": "concept · niet verzonden",
+    "showDraft": "Toon het concept",
+    "hideDraft": "Verberg het concept"
   }
 }

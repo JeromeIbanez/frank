@@ -1,16 +1,30 @@
 /**
  * Reading structured facts out of an inbound message — pure, no I/O.
  *
- * Deterministic, provenance-bearing extraction of the few labelled fields the
- * rule checks need (principal, collection costs, reference dates). Every value
- * carries the verbatim snippet it came from, exactly as `intake.ts` requires
- * of model output — the rule is the same whoever did the reading.
+ * ITS OWN PROVENANCE CONTRACT (Temujin PR-9 r1)
+ * --------------------------------------------
+ * This is a SEPARATE extraction path from `intake.ts`, not a reuse of it, and
+ * it should be judged on its own terms rather than borrowing that module's
+ * guarantees. Stated explicitly, the contract here is:
  *
- * This is NOT a replacement for the AI extractor. It handles the labelled
- * lines that Dutch aanmaningen and beschikkingen almost always carry, which
- * means the checks work when the AI gateway is rate-limited or unavailable —
- * the graceful-fallback invariant. Free-form documents still go through
- * `intake.ts`.
+ *   1. LABEL-ANCHORED ONLY. A value is read solely from a line that carries
+ *      a recognised label. An unlabelled number anywhere in the letter is
+ *      never picked up — an amount with no label is not evidence of what it
+ *      is. This is narrower than the AI extractor and deliberately so.
+ *   2. VERBATIM SNIPPET, ALWAYS. Every returned value carries the exact
+ *      source line it came from. A value without a snippet cannot exist,
+ *      because the type makes the snippet mandatory.
+ *   3. NO INFERENCE. Nothing is derived, combined, or guessed from context.
+ *      What is not on a labelled line is `undefined`, and `undefined`
+ *      propagates to abstention in the checks downstream.
+ *   4. ONE PARSER. Amounts go through `parseEuro`, the same locale-aware
+ *      parser manual entry uses, so "486.30" cannot mean two different
+ *      things in two places.
+ *
+ * Because it makes no inferences it is stronger than the model path within
+ * its small scope, and useless outside it. Its purpose is that the rule
+ * checks still work when the AI gateway is rate-limited — the graceful-
+ * fallback invariant. Free-form documents still go through `intake.ts`.
  */
 
 import { parseEuro } from "@/lib/domain/money";
@@ -20,6 +34,49 @@ export type EvidencedValue<T> = {
   /** The verbatim source text this was read from. */
   readonly snippet: string;
 };
+
+/**
+ * Evidence that the CONSUMER collection regime applies to this claim
+ * (Temujin PR-9 r1 #3).
+ *
+ * Frank previously inferred this from the dossier existing — everyone under
+ * bewind is a natural person, so the reasoning went, the consumer rules
+ * apply. That is an inference dressed as evidence, and it is wrong on its
+ * own terms: a natural person can incur a debt from business activity, to
+ * which the BIK consumer staffel and its €40 minimum do not apply the same
+ * way. Asserting a cap breach on that footing would put a bewindvoerder in
+ * front of a creditor with a claim we cannot support.
+ *
+ * So the basis must come from the DOCUMENT. These are the phrases by which
+ * a Dutch collection letter signals that it is itself invoking the consumer
+ * regime — which is the creditor's own statement, not our guess.
+ */
+const CONSUMER_REGIME_PHRASES = [
+  "wet incassokosten",
+  "wik",
+  "besluit vergoeding voor buitengerechtelijke incassokosten",
+  "buitengerechtelijke incassokosten",
+  "wettelijke staffel",
+  "veertien dagen",
+  "14-dagenbrief",
+];
+
+export function readConsumerBasis(
+  text: string
+): EvidencedValue<"document_states_consumer"> | undefined {
+  if (!text) return undefined;
+  const lines = text.split("\n");
+  for (const line of lines) {
+    const lower = line.toLowerCase();
+    for (const phrase of CONSUMER_REGIME_PHRASES) {
+      // Word-boundary match so "wik" does not fire inside "wikkel".
+      const re = new RegExp(`(^|[^a-z])${escape(phrase)}([^a-z]|$)`, "i");
+      if (re.test(lower))
+        return { value: "document_states_consumer", snippet: line.trim() };
+    }
+  }
+  return undefined;
+}
 
 export type InboundFacts = {
   readonly principalCents?: EvidencedValue<number>;

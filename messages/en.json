@@ -1034,6 +1034,10 @@
       "title": "Collection costs exceed the statutory maximum",
       "detail": "{charged} charged on a principal of {principal}. The statutory maximum is {max} — an excess of {excess}.",
       "source": "Besluit vergoeding buitengerechtelijke incassokosten"
-    }
+    },
+    "draftReady": "Reply drafted",
+    "draftStatus": "draft · not sent",
+    "showDraft": "Show the draft",
+    "hideDraft": "Hide the draft"
   }
 }

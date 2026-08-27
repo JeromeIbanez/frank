@@ -17,7 +17,6 @@ describe("verjaring dataset", () => {
     expect(verjaringRule("algemeen_nakoming")?.years).toBe(5);
     expect(verjaringRule("periodiek")?.years).toBe(5);
     expect(verjaringRule("consumentenkoop")?.years).toBe(2);
-    expect(verjaringRule("rechterlijke_uitspraak")?.years).toBe(20);
     expect(verjaringRule("nonsense")).toBeNull();
   });
 });
@@ -79,6 +78,37 @@ describe("checkVerjaring", () => {
     );
   });
 
+  it("restarts the clock the DAY AFTER a stuiting (art. 3:319 BW)", () => {
+    // Temujin PR-9 r1 #4. A stuiting on 2021-08-26 gives a new 5-year term
+    // running from 2021-08-27, so it elapses on 2026-08-27 — not 2026-08-26.
+    const base = { ruleKey: "algemeen_nakoming", accrualDate: "2015-01-01" };
+    const r = checkVerjaring({
+      ...base,
+      lastKnownStuiting: "2021-08-26",
+      today: "2026-08-26",
+    });
+    expect(r.finding).toBe("none"); // one day short
+    const r2 = checkVerjaring({
+      ...base,
+      lastKnownStuiting: "2021-08-26",
+      today: "2026-08-27",
+    });
+    if (r2.finding !== "verjaring_possible") throw new Error("expected finding");
+    expect(r2.clockFrom).toBe("2021-08-27");
+    expect(r2.periodElapsedOn).toBe("2026-08-27");
+  });
+
+  it("rolls a month-end stuiting forward correctly", () => {
+    const r = checkVerjaring({
+      ruleKey: "algemeen_nakoming",
+      accrualDate: "2015-01-01",
+      lastKnownStuiting: "2020-12-31",
+      today: "2026-08-27",
+    });
+    if (r.finding !== "verjaring_possible") throw new Error("expected finding");
+    expect(r.clockFrom).toBe("2021-01-01");
+  });
+
   it("restarts the clock from a known stuiting", () => {
     const base = {
       ruleKey: "algemeen_nakoming",
@@ -113,14 +143,21 @@ describe("checkVerjaring", () => {
     ).toBe("verjaring_possible");
   });
 
-  it("does not fire on a 20-year judgment from 2015", () => {
-    expect(
-      checkVerjaring({
-        ruleKey: "rechterlijke_uitspraak",
-        accrualDate: "2015-01-01",
+  it("abstains on rule types this clock cannot honestly model", () => {
+    // Temujin PR-9 r1 #4: art. 3:310 needs the knowledge trigger plus an
+    // absolute long-stop; art. 3:324 has its own conditions and a five-year
+    // periodic exception. A generic clock implying a flat 5- or 20-year term
+    // for those is worse than saying nothing, so they are simply absent.
+    for (const key of ["schadevergoeding", "rechterlijke_uitspraak"]) {
+      expect(verjaringRule(key)).toBeNull();
+      const r = checkVerjaring({
+        ruleKey: key,
+        accrualDate: "2000-01-01",
         today: TODAY,
-      }).finding
-    ).toBe("none");
+      });
+      if (r.finding !== "none") throw new Error("expected abstention");
+      expect(r.missing).toContain("debtType");
+    }
   });
 
   it("handles a 29 February accrual without drifting", () => {

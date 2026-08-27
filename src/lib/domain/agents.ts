@@ -42,6 +42,7 @@ export type AgentActionClass =
   | "dossier_link"
   | "proposal_create"
   | "letter_draft"
+  | "obligation_create"
   // Waakhond — safeguarding
   | "safeguarding_case_open"
   | "clarification_draft"
@@ -80,6 +81,12 @@ export const ACTION_CATEGORY: Record<AgentActionClass, WriteCategory> = {
   dossier_link: "interpretation",
   proposal_create: "draft",
   letter_draft: "draft",
+  // An obligation is a real work item about a real demand, not an inbound
+  // fact and not inert (Temujin PR-9 r1 #1) — same category as opening a
+  // safeguarding case, and permitted for the same reason: failing to raise
+  // one is the more dangerous error. It asserts nothing and only a human
+  // decides it.
+  obligation_create: "protective",
   safeguarding_case_open: "protective",
   clarification_draft: "draft",
   escalation_draft: "draft",
@@ -139,6 +146,7 @@ export const AGENTS: Record<AgentKey, AgentDefinition> = {
       "dossier_link",
       "proposal_create",
       "letter_draft",
+      "obligation_create",
     ],
     neverGrants: [
       "safeguarding_case_open",
