@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyDebtDelta,
   matchRegelingPayments,
   schuldenverloop,
   type CandidateTx,
@@ -68,6 +69,37 @@ describe("schuldenverloop", () => {
     expect(v.paidCents).toBe(5_000);
     expect(v.otherDeltaCents).toBe(7_000);
     expect(v.beginCents + v.otherDeltaCents - v.paidCents).toBe(v.endCents);
+  });
+});
+
+describe("applyDebtDelta (clamping, Temujin PR-7 r2 gate A)", () => {
+  it("an ordinary payment reduces the balance, nothing clamped", () => {
+    expect(applyDebtDelta(10_000, -2_500)).toEqual({
+      beforeCents: 10_000,
+      afterCents: 7_500,
+      clampedCents: 0,
+    });
+  });
+
+  it("an OVERPAYMENT clamps at zero and reports the surplus — the prior balance is NOT after−delta", () => {
+    const t = applyDebtDelta(10_000, -20_000);
+    expect(t.beforeCents).toBe(10_000); // not 20_000
+    expect(t.afterCents).toBe(0);
+    expect(t.clampedCents).toBe(10_000);
+    // the naive audit formula would have misreported the prior balance:
+    expect(t.afterCents - -20_000).not.toBe(t.beforeCents);
+  });
+
+  it("paying exactly the balance settles it with nothing clamped", () => {
+    expect(applyDebtDelta(7_500, -7_500)).toEqual({
+      beforeCents: 7_500,
+      afterCents: 0,
+      clampedCents: 0,
+    });
+  });
+
+  it("added costs increase the balance", () => {
+    expect(applyDebtDelta(10_000, 1_250).afterCents).toBe(11_250);
   });
 });
 

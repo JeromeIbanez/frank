@@ -60,6 +60,25 @@ export function schuldenverloop(
   };
 }
 
+/**
+ * Balance transition for one event — the SQL chokepoint mirrors exactly
+ * this (Temujin PR-7 r2 gate A). A debt never goes negative: an
+ * overpayment clamps at zero, and the clamped surplus is REPORTED rather
+ * than silently folded into the balance, so the audit's before/after pair
+ * stays truthful.
+ */
+export function applyDebtDelta(
+  currentCents: number,
+  deltaCents: number
+): { beforeCents: number; afterCents: number; clampedCents: number } {
+  const raw = currentCents + deltaCents;
+  return {
+    beforeCents: currentCents,
+    afterCents: Math.max(0, raw),
+    clampedCents: raw < 0 ? -raw : 0,
+  };
+}
+
 // ---------- Reconciliation matching (conservative, code-only) ----------
 
 export type RegelingLine = {

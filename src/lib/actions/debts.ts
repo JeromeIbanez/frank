@@ -104,7 +104,10 @@ async function applyDebtEvent(input: {
     SELECT
       ${auditId}::text, ${input.actorId}::text, ${input.actorType}::text,
       'update', 'debt', ${input.debtId}::text,
-      jsonb_build_object('currentAmountCents', upd.new_balance - upd.delta_cents),
+      -- The PRE-UPDATE balance comes from the locked row, never from
+      -- new_balance − delta: an overpayment clamps the new balance at 0,
+      -- which would misreport the prior balance (Temujin PR-7 r2 gate A).
+      jsonb_build_object('currentAmountCents', locked.current_amount_cents),
       jsonb_build_object(
         'currentAmountCents', upd.new_balance,
         'eventId', ${eventId}::text,
@@ -112,10 +115,12 @@ async function applyDebtEvent(input: {
         'deltaCents', upd.delta_cents,
         'sourceProvenance', ${input.sourceProvenance}::text,
         'sourceTransactionId', ${input.sourceTransactionId ?? null}::text,
-        'sourceDocumentId', ${input.sourceDocumentId ?? null}::text
+        'sourceDocumentId', ${input.sourceDocumentId ?? null}::text,
+        -- an overpayment writes off more than was owed: recorded, not hidden
+        'clampedCents', GREATEST(0, -(locked.current_amount_cents + upd.delta_cents))
       ),
       ${reason}::text
-    FROM upd
+    FROM upd CROSS JOIN locked
     RETURNING id
   `);
   const applied = Array.isArray(rows) ? rows.length : (rows.rows?.length ?? 0);
