@@ -872,11 +872,11 @@
     "tiles": {
       "dossiers": "Declarabele dossiers",
       "feeRevenue": "Beloning (jaar)",
-      "exclBtw": "excl. btw, naar rato",
       "hours": "Geschreven uren",
       "benchmark": "interne norm {hours} u",
       "effectiveRate": "Effectief tarief",
-      "effectiveRateSub": "beloning ÷ geschreven uren"
+      "effectiveRateSub": "beloning ÷ geschreven uren",
+      "exclVat": "excl. btw · {vat} btw indien van toepassing"
     },
     "perHour": "/u",
     "h": "u",
@@ -901,7 +901,8 @@
       "bewind_standaard_2p": "bewind 2p",
       "bewind_schulden_2p": "schuldenbewind 2p",
       "curatele_standaard": "curatele",
-      "mentorschap_standaard": "mentorschap"
+      "mentorschap_standaard": "mentorschap",
+      "bewind_gemengd_2p": "bewind 2p gemengd"
     },
     "logTime": "Tijd schrijven",
     "minutes": "Minuten",
@@ -939,6 +940,7 @@
       "not_owner": "Je kunt alleen je eigen regels verwijderen.",
       "not_found": "Regel niet gevonden.",
       "unknown": "Tijd vastleggen mislukt."
-    }
+    },
+    "vatNote": "Bedragen zijn de wettelijke bedragen exclusief btw. Of btw van toepassing is hangt af van de fiscale positie van dit kantoor — Frank neemt dat niet aan."
   }
 }

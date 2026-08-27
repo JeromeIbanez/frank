@@ -196,6 +196,13 @@ export const debtEvents = pgTable(
     /** creditor_statement: the saldo-opgave document that proves the new
      *  balance (required for that kind, enforced in the action). */
     sourceDocumentId: text("source_document_id").references(() => documents.id),
+    /** How the underlying bank fact reached Frank (Temujin PR-7 gate A):
+     *  camt_import = machine-read from a bank file; manual_entry = a human
+     *  transcribed it from a statement. Both are allowed evidence, but the
+     *  distinction is recorded, never blurred. */
+    sourceProvenance: text("source_provenance", {
+      enum: ["camt_import", "manual_entry", "document", "human_assertion"],
+    }),
     note: text("note"),
     actorId: text("actor_id").notNull(), // human, or "system" for reconciliation
     createdAt: timestamp("created_at").notNull().defaultNow(),

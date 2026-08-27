@@ -32,7 +32,13 @@ export default async function OfficePage() {
         currency: "EUR",
         maximumFractionDigits: 0,
       }),
-      sub: t("tiles.exclBtw"),
+      sub: t("tiles.exclVat", {
+        vat: (summary.totals.vatIfApplicableCents / 100).toLocaleString("nl-NL", {
+          style: "currency",
+          currency: "EUR",
+          maximumFractionDigits: 0,
+        }),
+      }),
     },
     {
       label: t("tiles.hours"),
@@ -169,10 +175,11 @@ export default async function OfficePage() {
             <p className="mt-3 font-mono text-[10.5px] text-ink-300">
               {t("feeSource", {
                 source: schedule.legalSource,
-                version: schedule.sourceVersion,
+                version: summary.scheduleVersionsUsed.join(", ") || schedule.sourceVersion,
                 calc: summary.rows[0]?.fee?.calcVersion ?? "—",
               })}
             </p>
+            <p className="mt-1 text-[11.5px] text-ink-400">{t("vatNote")}</p>
           </CardContent>
         </Card>
 

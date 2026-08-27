@@ -14,7 +14,7 @@ describe("fee schedules as a versioned dataset", () => {
       expect(s.legalSource).toMatch(/Regeling beloning/);
       expect(s.sourceUrl).toContain("wetten.overheid.nl");
       expect(s.sourceVersion).toBeTruthy();
-      expect(s.vatTreatment).toBe("excl_btw_21");
+      expect(s.vatTreatment).toBe("excl_vat_applicability_varies");
     }
   });
 
@@ -29,6 +29,19 @@ describe("fee schedules as a versioned dataset", () => {
     const s = scheduleFor("2026-03-01")!;
     expect(s.yearlyCents.bewind_standaard).toBe(163_000);
     expect(s.yearlyCents.bewind_schulden).toBe(210_700);
+    // Two-person and mixed rates (independently verified, Temujin PR-7)
+    expect(s.yearlyCents.bewind_standaard_2p).toBe(195_400);
+    expect(s.yearlyCents.bewind_schulden_2p).toBe(252_800);
+    expect(s.yearlyCents.bewind_gemengd_2p).toBe(224_300);
+  });
+
+  it("2025 amounts match the transcribed Regeling (excl. VAT)", () => {
+    const s = scheduleFor("2025-06-01")!;
+    expect(s.yearlyCents.bewind_standaard).toBe(140_300);
+    expect(s.yearlyCents.bewind_schulden).toBe(181_400);
+    expect(s.yearlyCents.bewind_standaard_2p).toBe(168_100);
+    expect(s.yearlyCents.bewind_schulden_2p).toBe(217_600);
+    expect(s.yearlyCents.bewind_gemengd_2p).toBe(193_000);
   });
 });
 
@@ -82,8 +95,9 @@ describe("computeFee", () => {
       ...fullYear,
     })!;
     expect(fee.proratedCents).toBe(163_000);
-    expect(fee.vatCents).toBe(Math.round(163_000 * VAT_RATE));
-    expect(fee.totalInclVatCents).toBe(fee.proratedCents + fee.vatCents);
+    // VAT is never assumed: reported "if applicable", never as a total.
+    expect(fee.vatApplicability).toBe("varies_by_office");
+    expect(fee.vatIfApplicableCents).toBe(Math.round(163_000 * VAT_RATE));
     expect(fee.benchmarkHours).toBe(17);
   });
 
@@ -157,6 +171,62 @@ describe("computeFee", () => {
     expect(fee.legalSource).toMatch(/Regeling beloning/);
     expect(fee.scheduleVersion).toBe("2026-01-01");
     expect(fee.calcVersion).toMatch(/^fees-/);
+  });
+});
+
+describe("periods crossing a schedule boundary (Temujin PR-7 gate B)", () => {
+  const dossier = {
+    regime: "bewind",
+    schuldenbewind: false,
+    startDate: "2020-01-01",
+  };
+
+  it("a court year Jul 2025 – Jun 2026 is split per schedule", () => {
+    const fee = computeFee({
+      dossier,
+      periodStart: "2025-07-01",
+      periodEnd: "2026-06-30",
+    })!;
+    expect(fee.scheduleVersions).toEqual(["2025", "2026-01-01"]);
+    expect(fee.segments).toHaveLength(2);
+    const [s25, s26] = fee.segments;
+    expect(s25.yearlyCents).toBe(140_300); // 2025 rate for 2025 days
+    expect(s26.yearlyCents).toBe(163_000); // 2026 rate afterwards
+    // segments sum to the total, and the total sits between the two rates
+    expect(s25.cents + s26.cents).toBe(fee.proratedCents);
+    expect(fee.proratedCents).toBeGreaterThan(140_300);
+    expect(fee.proratedCents).toBeLessThan(163_000);
+  });
+
+  it("segment days cover the period exactly once", () => {
+    const fee = computeFee({
+      dossier,
+      periodStart: "2025-07-01",
+      periodEnd: "2026-06-30",
+    })!;
+    const covered = fee.segments.reduce((s, seg) => s + seg.activeDays, 0);
+    expect(covered).toBe(fee.activeDays);
+  });
+
+  it("a period entirely inside one schedule yields a single segment", () => {
+    const fee = computeFee({
+      dossier,
+      periodStart: "2026-01-01",
+      periodEnd: "2026-12-31",
+    })!;
+    expect(fee.segments).toHaveLength(1);
+    expect(fee.proratedCents).toBe(163_000);
+  });
+
+  it("a period starting before the dataset still earns its covered part", () => {
+    const fee = computeFee({
+      dossier,
+      periodStart: "2024-07-01",
+      periodEnd: "2025-06-30",
+    })!;
+    // only the 2025 half is covered by a schedule
+    expect(fee.scheduleVersions).toEqual(["2025"]);
+    expect(fee.proratedCents).toBeLessThan(140_300);
   });
 });
 

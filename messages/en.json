@@ -872,11 +872,11 @@
     "tiles": {
       "dossiers": "Billable dossiers",
       "feeRevenue": "Fee revenue (year)",
-      "exclBtw": "excl. BTW, pro-rated",
       "hours": "Hours logged",
       "benchmark": "internal benchmark {hours}h",
       "effectiveRate": "Effective rate",
-      "effectiveRateSub": "fee ÷ hours logged"
+      "effectiveRateSub": "fee ÷ hours logged",
+      "exclVat": "excl. VAT · {vat} VAT if applicable"
     },
     "perHour": "/h",
     "h": "h",
@@ -901,7 +901,8 @@
       "bewind_standaard_2p": "bewind 2p",
       "bewind_schulden_2p": "schuldenbewind 2p",
       "curatele_standaard": "curatele",
-      "mentorschap_standaard": "mentorschap"
+      "mentorschap_standaard": "mentorschap",
+      "bewind_gemengd_2p": "bewind 2p mixed"
     },
     "logTime": "Log time",
     "minutes": "Minutes",
@@ -939,6 +940,7 @@
       "not_owner": "You can only remove your own entries.",
       "not_found": "Entry not found.",
       "unknown": "Could not log time."
-    }
+    },
+    "vatNote": "Amounts are the statutory amounts excluding VAT. Whether VAT applies depends on this office's own tax position — Frank does not assume it."
   }
 }

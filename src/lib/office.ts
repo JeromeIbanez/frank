@@ -35,10 +35,14 @@ export type OfficeSummary = {
     minutesLogged: number;
     benchmarkHours: number;
     effectiveHourlyCents: number | null;
+    /** VAT is never assumed applicable — shown as "if applicable" only. */
+    vatIfApplicableCents: number;
     /** dossiers with no time logged at all — the number is only as good
      *  as the tijdschrijven behind it */
     dossiersWithoutTime: number;
   };
+  /** every fee-schedule version that contributed to these figures */
+  scheduleVersionsUsed: string[];
   byActor: { actorId: string; name: string; minutes: number; dossiers: number }[];
   byActivity: { activityKey: string; minutes: number }[];
 };
@@ -135,7 +139,14 @@ export async function officeSummary(year: number): Promise<OfficeSummary> {
       effectiveHourlyCents:
         minutesLogged > 0 ? Math.round(feeCents / (minutesLogged / 60)) : null,
       dossiersWithoutTime: rows.filter((r) => r.minutesLogged === 0).length,
+      vatIfApplicableCents: rows.reduce(
+        (s, r) => s + (r.fee?.vatIfApplicableCents ?? 0),
+        0
+      ),
     },
+    scheduleVersionsUsed: [
+      ...new Set(rows.flatMap((r) => r.fee?.scheduleVersions ?? [])),
+    ],
     byActor: [...byActorMap.entries()]
       .map(([actorId, v]) => ({
         actorId,

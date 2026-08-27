@@ -95,7 +95,7 @@ export async function setFeeCategory(
   formData: FormData
 ): Promise<{ ok: boolean; error?: string }> {
   const actor = await currentActor();
-  if (!canPerform(actor, "debt_adjust").allowed)
+  if (!canPerform(actor, "fee_category_override").allowed)
     return { ok: false, error: "role_required" };
   const db = getDb();
   const dossier = await db.query.dossiers.findFirst({

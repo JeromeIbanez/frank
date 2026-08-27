@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db";
 import { rvPeriods } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
+import { canPerform } from "@/lib/domain/authz";
 import { writeAudit } from "@/lib/audit";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -18,6 +19,10 @@ export async function recordRvPeriod(
   formData: FormData
 ): Promise<{ ok: boolean; error?: string }> {
   const actor = await currentActor();
+  // Court-period, discussion and signature facts are legal-position
+  // statements for the filing — bewindvoerder-only (Temujin PR-7 gate A).
+  if (!canPerform(actor, "rv_period_record").allowed)
+    return { ok: false, error: "role_required" };
   const db = getDb();
   const periodStart = String(formData.get("periodStart") || "");
   const periodEnd = String(formData.get("periodEnd") || "");
