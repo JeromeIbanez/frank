@@ -89,6 +89,12 @@ export const dossiers = pgTable("dossiers", {
   pvaGoals: text("pva_goals"),
   pvaAgreements: text("pva_agreements"),
   pvaDebtStrategy: text("pva_debt_strategy"), // schuldenbewind supplement
+  // Beloning category override (plan os-v1 W5): normally derived from
+  // regime + schuldenbewind; an override requires an audited reason.
+  feeCategory: text("fee_category"),
+  feeCategoryReason: text("fee_category_reason"),
+  /** end of the measure, for pro-rated beloning */
+  endDate: date("end_date"),
   leefgeldAmountCents: integer("leefgeld_amount_cents"),
   leefgeldFrequency: text("leefgeld_frequency", {
     enum: ["weekly", "monthly"],
@@ -598,6 +604,37 @@ export const signals = pgTable(
 export const signalsRelations = relations(signals, ({ one }) => ({
   dossier: one(dossiers, {
     fields: [signals.dossierId],
+    references: [dossiers.id],
+  }),
+}));
+
+// ---------- Time entries (plan os-v1 W5) ----------
+//
+// Tijdschrijven feeds the office capacity view. `source` distinguishes a
+// hand-logged entry from one accepted out of a suggestion — suggestions
+// are OFFERED after substantial actions, never auto-logged.
+
+export const timeEntries = pgTable(
+  "time_entries",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    dossierId: text("dossier_id").references(() => dossiers.id), // null = office-level
+    actorId: text("actor_id").notNull(),
+    date: date("date").notNull(),
+    minutes: integer("minutes").notNull(),
+    activityKey: text("activity_key").notNull(),
+    note: text("note"),
+    source: text("source", { enum: ["manual", "suggested"] })
+      .notNull()
+      .default("manual"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("time_entries_dossier").on(t.dossierId, t.date)]
+);
+
+export const timeEntriesRelations = relations(timeEntries, ({ one }) => ({
+  dossier: one(dossiers, {
+    fields: [timeEntries.dossierId],
     references: [dossiers.id],
   }),
 }));

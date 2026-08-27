@@ -14,6 +14,7 @@ export async function AppSidebar() {
     { href: "/dossiers", key: "dossiers", label: t("dossiers"), count: counts.dossiers },
     { href: "/inbox", key: "inbox", label: t("inbox"), count: counts.inboxNew },
     { href: "/payments", key: "payments", label: t("payments") },
+    { href: "/office", key: "office", label: t("office") },
     { href: "/audit", key: "audit", label: t("audit") },
     { href: "/team", key: "team", label: t("team") },
   ];

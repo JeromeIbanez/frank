@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TimeSuggestion } from "@/components/office-client";
 import {
   approveBatch,
   createPaymentProposals,
@@ -45,6 +46,17 @@ export function CreateProposalsButton() {
   );
 }
 
+/** Suggestion rendered after a successful approve (never auto-logged). */
+function ApprovedTimeSuggestion({ minutes }: { minutes: number }) {
+  return (
+    <TimeSuggestion
+      activityKey="betalingsverkeer"
+      minutes={minutes}
+      labelKey="work.batchApprove"
+    />
+  );
+}
+
 /**
  * Deliberate approve flow (design handoff §3): summary + warning + explicit
  * acknowledgment checkbox gating the confirm. The server re-checks the same
@@ -70,7 +82,10 @@ export function ApproveBatchFooterButton({
   const tm = useTranslations();
   const [open, setOpen] = useState(false);
   const [ack, setAck] = useState(false);
+  const [approved, setApproved] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  if (approved) return <ApprovedTimeSuggestion minutes={15} />;
 
   return (
     <>
@@ -132,6 +147,7 @@ export function ApproveBatchFooterButton({
                     if (res.ok) {
                       toast.success(t("approved"));
                       setOpen(false);
+                      setApproved(true);
                     } else if (
                       res.error === "vier_ogen" ||
                       res.error === "role_required" ||

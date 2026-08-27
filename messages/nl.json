@@ -18,7 +18,8 @@
       "bewindvoerder": "Bewindvoerder",
       "assistent": "Assistent"
     },
-    "team": "Team"
+    "team": "Team",
+    "office": "Kantoor"
   },
   "common": {
     "cancel": "Annuleren",
@@ -866,5 +867,78 @@
     "save": "Periode opslaan",
     "saved": "R&V-periode vastgelegd.",
     "invalid": "Ongeldige periode."
+  },
+  "office": {
+    "tiles": {
+      "dossiers": "Declarabele dossiers",
+      "feeRevenue": "Beloning (jaar)",
+      "exclBtw": "excl. btw, naar rato",
+      "hours": "Geschreven uren",
+      "benchmark": "interne norm {hours} u",
+      "effectiveRate": "Effectief tarief",
+      "effectiveRateSub": "beloning ÷ geschreven uren"
+    },
+    "perHour": "/u",
+    "h": "u",
+    "dossiersShort": "dossiers",
+    "perDossier": "Per dossier",
+    "benchmarkNote": "De urennorm is de eigen capaciteitsmaatstaf van dit kantoor, afgeleid van het beloningsniveau — geen wettelijke norm. De beloning is gemaximeerd door de Regeling; marge komt uit uren.",
+    "timeCoverageNote": "{count} van {total} dossiers hebben dit jaar geen uren geschreven — de tariefcijfers zijn niet beter dan de tijdschrijving.",
+    "cols": {
+      "dossier": "Dossier",
+      "fee": "Beloning",
+      "hours": "Uren",
+      "vsBenchmark": "t.o.v. norm",
+      "rate": "€/uur"
+    },
+    "noTimeLogged": "geen uren",
+    "emptyTitle": "Geen declarabele dossiers",
+    "emptySentence": "Actieve dossiers verschijnen hier met beloning en uren.",
+    "feeSource": "Beloning: {source} (versie {version}) · {calc}",
+    "category": {
+      "bewind_standaard": "bewind",
+      "bewind_schulden": "schuldenbewind",
+      "bewind_standaard_2p": "bewind 2p",
+      "bewind_schulden_2p": "schuldenbewind 2p",
+      "curatele_standaard": "curatele",
+      "mentorschap_standaard": "mentorschap"
+    },
+    "logTime": "Tijd schrijven",
+    "minutes": "Minuten",
+    "officeLevel": "Kantoorbreed (geen dossier)",
+    "note": "Notitie (optioneel)",
+    "log": "Vastleggen",
+    "timeLogged": "Tijd vastgelegd.",
+    "activity": {
+      "intake": "Intake",
+      "betalingsverkeer": "Betalingsverkeer",
+      "post": "Post",
+      "rechtbank": "Rechtbank",
+      "klantcontact": "Klantcontact",
+      "schulden": "Schulden",
+      "overig": "Overig"
+    },
+    "byActor": "Per persoon",
+    "byActivity": "Per activiteit",
+    "noTime": "Nog geen uren geschreven.",
+    "suggestion": "Zojuist gedaan: {work}. {minutes} minuten vastleggen?",
+    "logIt": "Vastleggen",
+    "dismissSuggestion": "Niet nu",
+    "work": {
+      "batchApprove": "goedkeuren betaalbatch",
+      "rvPack": "R&V-werkdocument",
+      "intakeAccept": "intakevoorstellen beoordelen",
+      "letterApprove": "brief goedkeuren"
+    },
+    "error": {
+      "invalid_minutes": "Minuten moet een geheel getal tussen 1 en 1440 zijn.",
+      "invalid_activity": "Kies een activiteit.",
+      "role_required": "Alleen een bewindvoerder kan dit.",
+      "reason_required": "Een reden is verplicht.",
+      "invalid_category": "Onbekende categorie.",
+      "not_owner": "Je kunt alleen je eigen regels verwijderen.",
+      "not_found": "Regel niet gevonden.",
+      "unknown": "Tijd vastleggen mislukt."
+    }
   }
 }

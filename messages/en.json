@@ -18,7 +18,8 @@
       "bewindvoerder": "Bewindvoerder",
       "assistent": "Assistent"
     },
-    "team": "Team"
+    "team": "Team",
+    "office": "Office"
   },
   "common": {
     "cancel": "Cancel",
@@ -866,5 +867,78 @@
     "save": "Save period",
     "saved": "R&V period recorded.",
     "invalid": "Invalid period."
+  },
+  "office": {
+    "tiles": {
+      "dossiers": "Billable dossiers",
+      "feeRevenue": "Fee revenue (year)",
+      "exclBtw": "excl. BTW, pro-rated",
+      "hours": "Hours logged",
+      "benchmark": "internal benchmark {hours}h",
+      "effectiveRate": "Effective rate",
+      "effectiveRateSub": "fee ÷ hours logged"
+    },
+    "perHour": "/h",
+    "h": "h",
+    "dossiersShort": "dossiers",
+    "perDossier": "Per dossier",
+    "benchmarkNote": "The hour benchmark is this office's own capacity yardstick derived from the fee level — not a legal norm. Fees are capped by the Regeling; margin comes from hours.",
+    "timeCoverageNote": "{count} of {total} dossiers have no time logged this year — the rate figures are only as good as the time written.",
+    "cols": {
+      "dossier": "Dossier",
+      "fee": "Fee",
+      "hours": "Hours",
+      "vsBenchmark": "vs benchmark",
+      "rate": "€/hour"
+    },
+    "noTimeLogged": "no time",
+    "emptyTitle": "No billable dossiers",
+    "emptySentence": "Active dossiers appear here with their fee and hours.",
+    "feeSource": "Fees: {source} (version {version}) · {calc}",
+    "category": {
+      "bewind_standaard": "bewind",
+      "bewind_schulden": "schuldenbewind",
+      "bewind_standaard_2p": "bewind 2p",
+      "bewind_schulden_2p": "schuldenbewind 2p",
+      "curatele_standaard": "curatele",
+      "mentorschap_standaard": "mentorschap"
+    },
+    "logTime": "Log time",
+    "minutes": "Minutes",
+    "officeLevel": "Office-level (no dossier)",
+    "note": "Note (optional)",
+    "log": "Log",
+    "timeLogged": "Time logged.",
+    "activity": {
+      "intake": "Intake",
+      "betalingsverkeer": "Payments",
+      "post": "Post",
+      "rechtbank": "Court",
+      "klantcontact": "Client contact",
+      "schulden": "Debts",
+      "overig": "Other"
+    },
+    "byActor": "By person",
+    "byActivity": "By activity",
+    "noTime": "No time logged yet.",
+    "suggestion": "Just did: {work}. Log {minutes} minutes?",
+    "logIt": "Log it",
+    "dismissSuggestion": "Not now",
+    "work": {
+      "batchApprove": "payment batch approval",
+      "rvPack": "R&V pack",
+      "intakeAccept": "intake proposal decisions",
+      "letterApprove": "letter approval"
+    },
+    "error": {
+      "invalid_minutes": "Minutes must be a whole number between 1 and 1440.",
+      "invalid_activity": "Choose an activity.",
+      "role_required": "Only a bewindvoerder can do this.",
+      "reason_required": "A reason is required.",
+      "invalid_category": "Unknown category.",
+      "not_owner": "You can only remove your own entries.",
+      "not_found": "Entry not found.",
+      "unknown": "Could not log time."
+    }
   }
 }
