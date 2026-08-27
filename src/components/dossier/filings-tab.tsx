@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Money, SeverityDot } from "@/components/format";
 import { getDossier } from "@/lib/queries";
 import { buildRvPack } from "@/lib/rv";
+import { getDb } from "@/lib/db";
+import { rvPeriods } from "@/lib/db/schema";
+import { and, eq, sql } from "drizzle-orm";
+import { RvPeriodForm } from "./rv-period-form";
 
 type DossierFull = NonNullable<Awaited<ReturnType<typeof getDossier>>>;
 
@@ -12,6 +16,12 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
   const t = await getTranslations("filings");
   const year = new Date().getFullYear();
   const pack = await buildRvPack(dossier.id, year);
+  const recordedPeriod = await getDb().query.rvPeriods.findFirst({
+    where: and(
+      eq(rvPeriods.dossierId, dossier.id),
+      sql`extract(year from ${rvPeriods.periodEnd}) = ${year}`
+    ),
+  });
 
   return (
     <div className="space-y-4">
@@ -142,6 +152,27 @@ export async function FilingsTab({ dossier }: { dossier: DossierFull }) {
               {t("openPvaDoc")} →
             </Link>
           </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="type-section-label">{t("rvPeriodTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RvPeriodForm
+            dossierId={dossier.id}
+            current={
+              recordedPeriod
+                ? {
+                    periodStart: recordedPeriod.periodStart,
+                    periodEnd: recordedPeriod.periodEnd,
+                    besprekingDate: recordedPeriod.besprekingDate,
+                    besprekingOutcome: recordedPeriod.besprekingOutcome,
+                    signedStatus: recordedPeriod.signedStatus,
+                  }
+                : null
+            }
+          />
         </CardContent>
       </Card>
       </div>

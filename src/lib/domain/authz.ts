@@ -21,6 +21,9 @@ export type PrivilegedAction =
   | "machtiging_resolve"
   | "letter_approve"
   | "letter_mark_sent"
+  | "debt_adjust"
+  | "rv_period_record"
+  | "fee_category_override"
   | "actor_manage";
 
 export type AuthzVerdict =

@@ -18,7 +18,8 @@
       "bewindvoerder": "Bewindvoerder",
       "assistent": "Assistent"
     },
-    "team": "Team"
+    "team": "Team",
+    "office": "Kantoor"
   },
   "common": {
     "cancel": "Annuleren",
@@ -175,7 +176,8 @@
       "letters": "Brieven",
       "filings": "Rechtbank",
       "copilot": "Copilot",
-      "intake": "Intake"
+      "intake": "Intake",
+      "debts": "Schulden"
     },
     "urgency": {
       "summary": "{count} vragen aandacht",
@@ -296,7 +298,8 @@
     "aiDone": "AI heeft {count} transacties gecategoriseerd (gemarkeerd ✦, beoordeel waar nodig).",
     "aiUnavailable": "AI niet beschikbaar — categoriseer handmatig of probeer later opnieuw.",
     "aiRunning": "Categoriseren…",
-    "aiCategorize": "AI-categoriseren"
+    "aiCategorize": "AI-categoriseren",
+    "counterpartyIban": "IBAN tegenpartij (optioneel)"
   },
   "documents": {
     "emptyDossier": "Geen documenten in dit dossier.",
@@ -392,7 +395,8 @@
     "boedelHint": "Vul de boedelbeschrijving aan in Mijn CBM; bewaar het bewijs in het tabblad Documenten.",
     "officialOutput": "Officiële output: Nederlands — rechtbankstukken worden in het Nederlands voorbereid, ongeacht de taalinstelling.",
     "openBoedelDoc": "Boedelbeschrijving (werkdocument)",
-    "openPvaDoc": "Plan van aanpak (werkdocument)"
+    "openPvaDoc": "Plan van aanpak (werkdocument)",
+    "rvPeriodTitle": "R&V-periode rechtbank & bespreking"
   },
   "rvPack": {
     "back": "Terug naar dossier",
@@ -417,7 +421,9 @@
       "uncategorized": "{detail} ongecategoriseerde transacties.",
       "largeExpenses": "{detail} uitgave(n) ≥ € 2.000 zonder vastgelegd bewijs.",
       "noTransactions": "Geen transacties in deze periode.",
-      "reconciliation": "Saldoverloop en categorietotalen verschillen € {detail} — controleer categorisering/imports vóór indiening."
+      "reconciliation": "Saldoverloop en categorietotalen verschillen € {detail} — controleer categorisering/imports vóór indiening.",
+      "periodNotCourtRecorded": "Verslagperiode niet vastgelegd volgens rechtbankinstructie — kalenderjaar aangenomen (alleen werkdocument).",
+      "debtNoHistory": "{detail} schuld(en) zonder verloophistorie — begin-/eindsaldi niet onderbouwd."
     },
     "attachments": "Bijlagenchecklist",
     "attachment": {
@@ -426,7 +432,29 @@
       "consentEvidence": "Toestemming/machtiging bij uitgaven ≥ € 2.000",
       "debtOverview": "Actueel schuldenoverzicht"
     },
-    "mijnCbmNote": "Indienen gebeurt in Mijn CBM (Rechtspraak). Markeer de R&V-taak als ingediend met het Mijn CBM-kenmerk als bewijs."
+    "mijnCbmNote": "Indienen gebeurt in Mijn CBM (Rechtspraak). Markeer de R&V-taak als ingediend met het Mijn CBM-kenmerk als bewijs.",
+    "schuldenverloop": "Schuldenverloop",
+    "noDebts": "Geen schulden vastgelegd.",
+    "creditor": "Schuldeiser",
+    "begin": "Begin",
+    "paid": "Betaald",
+    "end": "Eind",
+    "noHistory": "geen verloophistorie",
+    "bespreking": "Bespreking met betrokkene & ondertekening",
+    "besprekingDate": "Besproken op",
+    "notRecorded": "niet vastgelegd",
+    "besprekingOutcome": {
+      "understood": "betrokkene heeft de rekening begrepen",
+      "not_understood": "betrokkene heeft het niet (volledig) begrepen",
+      "not_possible": "bespreking niet mogelijk"
+    },
+    "signedStatus": "Ondertekening",
+    "signed": {
+      "signed": "ondertekend door betrokkene",
+      "declined": "betrokkene weigert te ondertekenen (reden in notitie)",
+      "pending": "nog niet ondertekend"
+    },
+    "periodNotRecorded": "Rechtbankperiode en besprekingsgegevens niet vastgelegd — leg ze vast op het tabblad Verslaglegging vóór indiening."
   },
   "copilot": {
     "intro": "Vraag alles over dit dossier. Antwoorden zijn gebaseerd op de eigen dossiergegevens; de copilot is alleen-lezen en kan niets wijzigen.",
@@ -757,5 +785,162 @@
       "weekly": "per week",
       "monthly": "per maand"
     }
+  },
+  "debtsTab": {
+    "kpiCount": "Schulden",
+    "kpiCurrent": "Openstaand",
+    "kpiOriginal": "Oorspronkelijk",
+    "kpiRegelingen": "Regelingen",
+    "register": "Schuldenregister",
+    "invariantNote": "Saldi wijzigen alleen met bewijs: een gereconcilieerde bankbetaling of een saldo-opgave van de schuldeiser (document verplicht). Een betaalexport wijzigt nooit een schuld.",
+    "emptyTitle": "Geen schulden vastgelegd",
+    "emptySentence": "Leg schulden hieronder vast of accepteer ze uit documentvoorstellen op het intaketabblad.",
+    "status": {
+      "open": "Open",
+      "regeling": "Regeling",
+      "betwist": "Betwist",
+      "afgelost": "Afgelost",
+      "msnp": "MSNP",
+      "wsnp": "WSNP"
+    },
+    "via": "via",
+    "regelingLine": "Regeling: {amount}/maand naar",
+    "events": "Verloop",
+    "eventKind": {
+      "payment_reconciled": "Betaling (bank-gereconcilieerd)",
+      "creditor_statement": "Saldo-opgave schuldeiser",
+      "correction": "Correctie"
+    },
+    "startRegeling": "Regeling starten",
+    "recordStatement": "Saldo-opgave vastleggen",
+    "regelingTitle": "Betalingsregeling",
+    "regelingHint": "Maakt een maandelijkse budgetregel gekoppeld aan deze schuld. Betalingen worden automatisch teruggekoppeld uit geïmporteerde bankafschriften (exact IBAN + bedrag).",
+    "regelingCreated": "Regeling aangemaakt.",
+    "statementTitle": "Saldo-opgave schuldeiser",
+    "statementHint": "Zet het saldo op het door de schuldeiser opgegeven bedrag. Het opgave-document is verplicht als bewijs — dit is de route voor deelbetalingen of gecombineerde betalingen.",
+    "statementRecorded": "Opgave vastgelegd, saldo bijgewerkt.",
+    "added": "Schuld vastgelegd.",
+    "addTitle": "Schuld toevoegen",
+    "form": {
+      "creditor": "Schuldeiser",
+      "reference": "Kenmerk",
+      "amount": "Bedrag (€)",
+      "deurwaarder": "Via deurwaarder (optioneel)",
+      "add": "Toevoegen",
+      "monthlyAmount": "Maandbedrag (€)",
+      "iban": "IBAN schuldeiser",
+      "expectedDay": "Betaaldag (1-31, optioneel)",
+      "statedAmount": "Opgegeven saldo (€)",
+      "document": "Opgave-document…",
+      "note": "Notitie (optioneel)"
+    },
+    "error": {
+      "role_required": "Alleen een bewindvoerder kan dit.",
+      "invalid_amount": "Bedrag is ongeldig.",
+      "invalid_iban": "IBAN is ongeldig.",
+      "invalid_creditor": "Schuldeiser is ongeldig.",
+      "regeling_exists": "Er is al een actieve regeling.",
+      "document_required": "Selecteer het opgave-document.",
+      "not_found": "Schuld niet gevonden.",
+      "duplicate_transaction": "Deze betaling is al verwerkt.",
+      "unknown": "Actie mislukt."
+    }
+  },
+  "rvPeriod": {
+    "hint": "Zoals vastgesteld door de rechtbank (brief / Mijn CBM). De verslagperiode wordt vastgelegd, nooit afgeleid.",
+    "periodStart": "Periode van",
+    "periodEnd": "Periode tot en met",
+    "besprekingDate": "Besproken met betrokkene op",
+    "besprekingOutcome": "Uitkomst",
+    "choose": "Kies…",
+    "outcome": {
+      "understood": "Begrepen",
+      "not_understood": "Niet (volledig) begrepen",
+      "not_possible": "Niet mogelijk"
+    },
+    "signedStatus": "Ondertekening",
+    "signed": {
+      "pending": "Nog niet",
+      "signed": "Ondertekend",
+      "declined": "Geweigerd"
+    },
+    "save": "Periode opslaan",
+    "saved": "R&V-periode vastgelegd.",
+    "invalid": "Ongeldige periode."
+  },
+  "office": {
+    "tiles": {
+      "dossiers": "Declarabele dossiers",
+      "feeRevenue": "Beloning (jaar)",
+      "hours": "Geschreven uren",
+      "benchmark": "interne norm {hours} u",
+      "effectiveRate": "Effectief tarief",
+      "effectiveRateSub": "beloning ÷ geschreven uren",
+      "exclVat": "excl. btw · {vat} btw indien van toepassing"
+    },
+    "perHour": "/u",
+    "h": "u",
+    "dossiersShort": "dossiers",
+    "perDossier": "Per dossier",
+    "benchmarkNote": "De urennorm is de eigen capaciteitsmaatstaf van dit kantoor, afgeleid van het beloningsniveau — geen wettelijke norm. De beloning is gemaximeerd door de Regeling; marge komt uit uren.",
+    "timeCoverageNote": "{count} van {total} dossiers hebben dit jaar geen uren geschreven — de tariefcijfers zijn niet beter dan de tijdschrijving.",
+    "cols": {
+      "dossier": "Dossier",
+      "fee": "Beloning",
+      "hours": "Uren",
+      "vsBenchmark": "t.o.v. norm",
+      "rate": "€/uur"
+    },
+    "noTimeLogged": "geen uren",
+    "emptyTitle": "Geen declarabele dossiers",
+    "emptySentence": "Actieve dossiers verschijnen hier met beloning en uren.",
+    "feeSource": "Beloning: {source} (versie {version}) · {calc}",
+    "category": {
+      "bewind_standaard": "bewind",
+      "bewind_schulden": "schuldenbewind",
+      "bewind_standaard_2p": "bewind 2p",
+      "bewind_schulden_2p": "schuldenbewind 2p",
+      "curatele_standaard": "curatele",
+      "mentorschap_standaard": "mentorschap",
+      "bewind_gemengd_2p": "bewind 2p gemengd"
+    },
+    "logTime": "Tijd schrijven",
+    "minutes": "Minuten",
+    "officeLevel": "Kantoorbreed (geen dossier)",
+    "note": "Notitie (optioneel)",
+    "log": "Vastleggen",
+    "timeLogged": "Tijd vastgelegd.",
+    "activity": {
+      "intake": "Intake",
+      "betalingsverkeer": "Betalingsverkeer",
+      "post": "Post",
+      "rechtbank": "Rechtbank",
+      "klantcontact": "Klantcontact",
+      "schulden": "Schulden",
+      "overig": "Overig"
+    },
+    "byActor": "Per persoon",
+    "byActivity": "Per activiteit",
+    "noTime": "Nog geen uren geschreven.",
+    "suggestion": "Zojuist gedaan: {work}. {minutes} minuten vastleggen?",
+    "logIt": "Vastleggen",
+    "dismissSuggestion": "Niet nu",
+    "work": {
+      "batchApprove": "goedkeuren betaalbatch",
+      "rvPack": "R&V-werkdocument",
+      "intakeAccept": "intakevoorstellen beoordelen",
+      "letterApprove": "brief goedkeuren"
+    },
+    "error": {
+      "invalid_minutes": "Minuten moet een geheel getal tussen 1 en 1440 zijn.",
+      "invalid_activity": "Kies een activiteit.",
+      "role_required": "Alleen een bewindvoerder kan dit.",
+      "reason_required": "Een reden is verplicht.",
+      "invalid_category": "Onbekende categorie.",
+      "not_owner": "Je kunt alleen je eigen regels verwijderen.",
+      "not_found": "Regel niet gevonden.",
+      "unknown": "Tijd vastleggen mislukt."
+    },
+    "vatNote": "Bedragen zijn de wettelijke bedragen exclusief btw. Of btw van toepassing is hangt af van de fiscale positie van dit kantoor — Frank neemt dat niet aan."
   }
 }

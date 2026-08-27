@@ -1,10 +1,11 @@
-import { and, eq, gte, lte, lt } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, lt, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { transactions } from "@/lib/db/schema";
+import { debtEvents, documents, rvPeriods, transactions } from "@/lib/db/schema";
 import { getDossier } from "@/lib/queries";
 import { CATEGORIES } from "@/lib/domain/categories";
 import { MACHTIGING_THRESHOLD_CENTS } from "@/lib/domain/machtiging";
 import { reconcileRv, type RvReconciliation } from "@/lib/domain/rvmath";
+import { schuldenverloop } from "@/lib/domain/debts";
 
 /**
  * R&V review pack (PRD M5): a worksheet computed BY CODE from the ledger —
@@ -35,6 +36,25 @@ export type RvPack = {
     counterparty: string | null;
     cents: number;
   }[];
+  /** Court-recorded period + bespreking facts (official LOV R&V form) —
+   *  null when no rv_periods row is recorded for this year. */
+  courtPeriod: {
+    besprekingDate: string | null;
+    besprekingOutcome: string | null;
+    signedStatus: string;
+    note: string | null;
+  } | null;
+  /** Schuldenverloop per debt from provenance-bearing debt events. */
+  schuldenverloop: {
+    creditor: string;
+    reference: string | null;
+    status: string;
+    beginCents: number;
+    paidCents: number;
+    otherDeltaCents: number;
+    endCents: number;
+    hasHistory: boolean;
+  }[];
 };
 
 export async function buildRvPack(
@@ -45,8 +65,18 @@ export async function buildRvPack(
   const dossier = await getDossier(dossierId);
   if (!dossier) return null;
 
-  const periodStart = `${year}-01-01`;
-  const periodEnd = `${year}-12-31`;
+  // Court-recorded reporting period for this year (plan os-v1 W3): the
+  // rechtbank sets the period; Frank records it in rv_periods and NEVER
+  // infers it. Without a recorded row we fall back to the calendar year
+  // and flag it — a werkdocument may estimate, a filing may not.
+  const recorded = await db.query.rvPeriods.findFirst({
+    where: and(
+      eq(rvPeriods.dossierId, dossierId),
+      sql`extract(year from ${rvPeriods.periodEnd}) = ${year}`
+    ),
+  });
+  const periodStart = recorded?.periodStart ?? `${year}-01-01`;
+  const periodEnd = recorded?.periodEnd ?? `${year}-12-31`;
 
   const accounts = [] as RvPack["accounts"];
   for (const acc of dossier.accounts) {
@@ -170,9 +200,60 @@ export async function buildRvPack(
     validations.push({ key: "noTransactions", level: "warning" });
   }
 
+  if (!recorded) {
+    validations.push({ key: "periodNotCourtRecorded", level: "warning" });
+  }
+
+  // Schuldenverloop from provenance-bearing debt events (never from the
+  // pain.001 export). Debts without event history are flagged.
+  const debtIds = dossier.debts.map((d) => d.id);
+  const eventRows = debtIds.length
+    ? await db.query.debtEvents.findMany({
+        where: inArray(debtEvents.debtId, debtIds),
+      })
+    : [];
+  const verloop: RvPack["schuldenverloop"] = dossier.debts.map((d) => {
+    const v = schuldenverloop(
+      d.currentAmountCents,
+      eventRows
+        .filter((e) => e.debtId === d.id)
+        .map((e) => ({
+          kind: e.kind,
+          deltaCents: e.deltaCents,
+          createdAtIso: e.createdAt.toISOString(),
+        })),
+      periodStart,
+      periodEnd
+    );
+    return {
+      creditor: d.creditor,
+      reference: d.reference,
+      status: d.status,
+      beginCents: v.beginCents,
+      paidCents: v.paidCents,
+      otherDeltaCents: v.otherDeltaCents,
+      endCents: v.endCents,
+      hasHistory: v.hasHistory,
+    };
+  });
+  if (verloop.some((v) => !v.hasHistory)) {
+    validations.push({
+      key: "debtNoHistory",
+      level: "warning",
+      detail: String(verloop.filter((v) => !v.hasHistory).length),
+    });
+  }
+
+  // Attachment checklist bound to REAL archived documents (plan os-v1 W3):
+  // a checkbox is done only when evidence exists in the dossier archive.
+  const dossierDocs = await db.query.documents.findMany({
+    where: eq(documents.dossierId, dossierId),
+  });
+  const hasClassified = (...keys: string[]) =>
+    dossierDocs.some((d) => d.classification && keys.includes(d.classification));
   const attachments: RvPack["attachments"] = [
-    { key: "bankStatements", done: false },
-    { key: "leefgeldBalances", done: false },
+    { key: "bankStatements", done: hasClassified("bankafschrift") },
+    { key: "leefgeldBalances", done: hasClassified("bankafschrift") },
     { key: "consentEvidence", done: largeExpenses.length === 0 },
     { key: "debtOverview", done: dossier.debts.length === 0 },
   ];
@@ -181,6 +262,15 @@ export async function buildRvPack(
     year,
     periodStart,
     periodEnd,
+    courtPeriod: recorded
+      ? {
+          besprekingDate: recorded.besprekingDate,
+          besprekingOutcome: recorded.besprekingOutcome,
+          signedStatus: recorded.signedStatus,
+          note: recorded.note,
+        }
+      : null,
+    schuldenverloop: verloop,
     reconciliation,
     accounts,
     incomeByCategory,
