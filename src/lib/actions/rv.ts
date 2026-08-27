@@ -67,7 +67,15 @@ export async function recordRvPeriod(
     reason: "court R&V period / bespreking recorded",
   });
   // The court set the period; the R&V process starts from it.
-  await activateProcessesFor(dossierId, actor.id);
+  // Scheduling must not fail invisibly: the period IS recorded either way,
+  // but a degraded result is surfaced rather than swallowed.
+  const scheduling = await activateProcessesFor(dossierId, actor.id);
+  if (scheduling.degraded) {
+    console.error(
+      "[frank:rv] R&V period recorded but its process was not scheduled",
+      dossierId
+    );
+  }
   revalidatePath(`/dossiers/${dossierId}`);
   return { ok: true };
 }

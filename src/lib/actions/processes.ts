@@ -5,8 +5,16 @@ import { currentActor } from "@/lib/identity";
 import { writeAudit } from "@/lib/audit";
 import { activateProcesses } from "@/lib/processes";
 
+export type ActivationResult = {
+  ok: boolean;
+  created: number;
+  /** True when scheduling failed — the caller's own work still succeeded. */
+  degraded?: boolean;
+  error?: string;
+};
+
 /**
- * Activate any process whose trigger has occurred.
+ * Activate any process whose trigger has occurred, for one dossier.
  *
  * Called from the actions that CAUSE a trigger — recording an R&V period,
  * creating a dossier, a payment item breaching the machtiging threshold —
@@ -15,70 +23,70 @@ import { activateProcesses } from "@/lib/processes";
  *
  * Idempotent: the unique index on (dossier, definition, source) means a
  * second call creates nothing, and every source key is non-null so the index
- * actually bites.
+ * actually bites. The instance and its audit row are written in ONE
+ * statement, so an activation can never exist unattributably.
+ *
+ * ON FAILURE (Temujin PR-11 r3 #2): the triggering action is NOT rolled back
+ * — a dossier should not fail to be created because scheduling had trouble —
+ * but the failure is never silent. It writes a durable audit row that the
+ * reconciliation pass and the audit log both surface, and it returns
+ * `degraded` so a caller that can tell the user, does. "The system
+ * schedules" must not fail invisibly.
  */
 export async function activateProcessesFor(
   dossierId: string,
   actorId: string
-): Promise<number> {
+): Promise<ActivationResult> {
   try {
-    const r = await activateProcesses(dossierId);
-    await auditActivations(r.created, actorId);
-    return r.created.length;
-  } catch {
-    // Activation must never break the action that triggered it. A missed
-    // instance is repaired by the reconciliation pass below.
-    return 0;
-  }
-}
-
-/**
- * One audit row PER INSTANCE, referencing its real id.
- *
- * An earlier version wrote a single `batch:<n>` row, which is not an entity
- * and cannot establish who activated a particular process (Temujin PR-11
- * r2 #3). A deadline that traces to an activation needs the activation to be
- * attributable.
- */
-async function auditActivations(
-  created: { id: string; dossierId: string; definitionKey: string; startedOn: string; startSource: string }[],
-  actorId: string
-): Promise<void> {
-  for (const i of created) {
-    await writeAudit({
-      actorId,
-      actorType: "human",
-      action: "create",
-      entityType: "process_instance",
-      entityId: i.id,
-      versionAfter: {
-        dossierId: i.dossierId,
-        definitionKey: i.definitionKey,
-        startedOn: i.startedOn,
-        startSource: i.startSource,
-      },
-      reason: `process activated from ${i.startSource}`,
-    });
+    const r = await activateProcesses(actorId, dossierId);
+    return { ok: true, created: r.created.length };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.error(
+      "[frank:processes] activation failed for dossier",
+      dossierId,
+      message
+    );
+    try {
+      await writeAudit({
+        actorId,
+        actorType: "system",
+        action: "update",
+        entityType: "process_activation_failure",
+        entityId: dossierId,
+        versionAfter: { error: message },
+        reason:
+          "process activation failed — scheduling degraded, repair with the " +
+          "reconciliation pass on /processes",
+      });
+    } catch {
+      // Last resort: the console line above is the only remaining record.
+    }
+    return { ok: false, created: 0, degraded: true, error: "activation_failed" };
   }
 }
 
 /**
  * Reconciliation pass over the whole office.
  *
- * Kept as a repair mechanism, not the primary path: it catches anything the
- * event-triggered calls missed (an import, a direct DB change, a bug).
+ * A repair mechanism, not the primary path: it catches anything the
+ * event-triggered calls missed — an import, a direct DB change, an
+ * activation that failed and left the audit row above.
  */
-export async function activateProcessesAction(): Promise<{
-  ok: boolean;
-  created: number;
-  error?: string;
-}> {
+export async function activateProcessesAction(): Promise<ActivationResult> {
   const actor = await currentActor();
   if (!actor.active) return { ok: false, created: 0, error: "inactive_actor" };
 
-  const r = await activateProcesses();
-  await auditActivations(r.created, actor.id);
-  revalidatePath("/processes");
-  revalidatePath("/");
-  return { ok: true, created: r.created.length };
+  try {
+    const r = await activateProcesses(actor.id);
+    revalidatePath("/processes");
+    revalidatePath("/");
+    return { ok: true, created: r.created.length };
+  } catch (e) {
+    console.error(
+      "[frank:processes] reconciliation pass failed",
+      e instanceof Error ? e.message : String(e)
+    );
+    return { ok: false, created: 0, degraded: true, error: "activation_failed" };
+  }
 }

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { eq, inArray, sql } from "drizzle-orm";
+import { createId } from "@paralleldrive/cuid2";
 import { getDb } from "@/lib/db";
 import {
   dossiers,
@@ -220,6 +221,8 @@ export type ActivatedInstance = {
 };
 
 export async function activateProcesses(
+  /** Who is activating — recorded atomically with each instance. */
+  actorId: string,
   /** Limit to one dossier — used by the event-triggered call sites. */
   onlyDossierId?: string
 ): Promise<{ ok: boolean; created: ActivatedInstance[] }> {
@@ -317,22 +320,80 @@ export async function activateProcesses(
   }
 
   if (pending.length === 0) return { ok: true, created: [] };
-  const inserted = await db
-    .insert(processInstances)
-    .values(
-      pending.map((p) => ({ ...p, definitionVersion: PROCESS_DEFINITION_VERSION }))
+
+  const created: ActivatedInstance[] = [];
+  for (const item of pending) {
+    const row = await insertInstanceWithAudit(item, actorId);
+    if (row) created.push(row);
+  }
+  return { ok: true, created };
+}
+
+/**
+ * Insert an instance AND its audit row in ONE statement.
+ *
+ * Temujin PR-11 r3 #1: doing these as two writes meant an instance could
+ * exist without the audit row that makes it attributable — and reconciliation
+ * could never repair it, because the unique index blocks reinsertion of the
+ * row whose audit is missing. A deadline traceable to an unattributable
+ * activation is not traceable at all.
+ *
+ * neon-http has no interactive transactions (os-v1 PR-7), so atomicity comes
+ * from a single CTE chain, the same shape `applyDebtEvent` uses. The
+ * ON CONFLICT keeps it idempotent: a duplicate inserts nothing and therefore
+ * audits nothing.
+ *
+ * Every parameter carries an explicit cast — os-v1 PR-7 hit
+ * "could not determine data type of parameter" inside jsonb_build_object.
+ */
+async function insertInstanceWithAudit(
+  item: {
+    dossierId: string;
+    definitionKey: ProcessDefinitionKey;
+    startedOn: string;
+    startSource: string;
+    sourceEntityId: string;
+  },
+  actorId: string
+): Promise<ActivatedInstance | null> {
+  const db = getDb();
+  const id = createId();
+  // `audit_events.id` is a Drizzle $defaultFn — generated in JS, NOT a
+  // database default — so raw SQL has to supply it. Same for the instance.
+  const auditId = createId();
+  const res = await db.execute<{ id: string }>(sql`
+    WITH ins AS (
+      INSERT INTO process_instances
+        (id, dossier_id, definition_key, definition_version,
+         started_on, start_source, source_entity_id)
+      VALUES (${id}::text, ${item.dossierId}::text, ${item.definitionKey}::text,
+              ${PROCESS_DEFINITION_VERSION}::text, ${item.startedOn}::date,
+              ${item.startSource}::text, ${item.sourceEntityId}::text)
+      ON CONFLICT (dossier_id, definition_key, source_entity_id) DO NOTHING
+      RETURNING id, dossier_id, definition_key, started_on, start_source
     )
-    .onConflictDoNothing()
-    .returning();
+    INSERT INTO audit_events
+      (id, actor_id, actor_type, action, entity_type, entity_id,
+       version_after, reason)
+    SELECT ${auditId}::text, ${actorId}::text, 'human', 'create',
+           'process_instance', ins.id,
+           jsonb_build_object(
+             'dossierId', ins.dossier_id,
+             'definitionKey', ins.definition_key,
+             'startedOn', ins.started_on::text,
+             'startSource', ins.start_source
+           ),
+           'process activated from ' || ins.start_source
+      FROM ins
+    RETURNING entity_id AS id
+  `);
+  if ((res.rows ?? []).length === 0) return null; // conflict: already active
   return {
-    ok: true,
-    created: inserted.map((r) => ({
-      id: r.id,
-      dossierId: r.dossierId,
-      definitionKey: r.definitionKey,
-      startedOn: r.startedOn,
-      startSource: r.startSource,
-    })),
+    id,
+    dossierId: item.dossierId,
+    definitionKey: item.definitionKey,
+    startedOn: item.startedOn,
+    startSource: item.startSource,
   };
 }
 
