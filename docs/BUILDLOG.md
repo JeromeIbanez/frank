@@ -1,5 +1,32 @@
 # Frank OS — Build Log
 
+## OS v1 PR-4: Court & office layer shipped — 2026-08-27 (plan COMPLETE)
+- Debts (PR #7, three Temujin rounds, two separate gates → both APPROVE):
+  `debt_events` is the only path to a balance, applied in ONE SQL CTE
+  (FOR UPDATE lock + conditional insert + relative update + audit) —
+  verified live: 3 concurrent events applied exactly once each, duplicate
+  transaction wrote nothing, overpayment clamps to 0 with the true prior
+  balance and `clampedCents` recorded. pain.001 export never touches debt
+  state. Exact-match reconciliation after imports/manual entry;
+  `sourceProvenance` records camt_import vs manual_entry vs document.
+  Betalingsregeling ↔ budget line; Schulden tab with event history.
+- R&V: `rv_periods` records the COURT-set period + bespreking/signature
+  (LOV form); schuldenverloop from debt events; attachments bound to real
+  documents; calendar-year fallback flagged.
+- Office: fee schedules as a versioned legal dataset (2025 + 2026, source
+  URL + version + VAT treatment). **Temujin independently verified the
+  amounts and caught transcription errors in the two-person rows** —
+  corrected, and the previously unmodelled mixed 2p rate added. VAT is no
+  longer assumed (applicability varies by office; shown "if applicable").
+  Fees split across schedule boundaries for court years. Tijdschrijven
+  with offered-not-automatic suggestions; /office shows fee vs hours,
+  effective rate, and an honest time-coverage caveat. The 17/22h figure
+  is labelled an internal benchmark everywhere, never a legal norm.
+- 194 tests; production deployed.
+
+**Plan os-v1 complete**: W0 foundation → W1 signals → W2 intake → W3/W4/W5
+court + office, 4 PRs, 12 Temujin review rounds, 0 findings waived.
+
 ## OS v1 PR-3: Intake pipeline shipped — 2026-08-26
 - AI proposals under human decision (PR #6, four Temujin rounds → APPROVE):
   typed contracts, field provenance verified against the source (signed
