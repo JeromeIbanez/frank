@@ -1028,7 +1028,9 @@
       "not_open": "Al beslist",
       "not_found": "Niet gevonden",
       "role_required": "Alleen een bewindvoerder kan dit goedkeuren",
-      "inactive_actor": "Uw account is inactief"
+      "inactive_actor": "Uw account is inactief",
+      "letter_not_approved": "De brief kon niet worden goedgekeurd",
+      "unknown_dossier": "Onbekend dossier"
     },
     "wik": {
       "title": "Incassokosten overschrijden het wettelijk maximum",
@@ -1038,6 +1040,8 @@
     "draftReady": "Concept-antwoord gereed",
     "draftStatus": "concept · niet verzonden",
     "showDraft": "Toon het concept",
-    "hideDraft": "Verberg het concept"
+    "hideDraft": "Verberg het concept",
+    "proposedDossier": "Frank stelt voor",
+    "actionedWithLetter": "Antwoord goedgekeurd — niet verzonden, en er is geen geld verplaatst"
   }
 }

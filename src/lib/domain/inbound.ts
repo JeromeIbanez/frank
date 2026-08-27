@@ -36,22 +36,25 @@ export type EvidencedValue<T> = {
 };
 
 /**
- * Evidence that the CONSUMER collection regime applies to this claim
- * (Temujin PR-9 r1 #3).
+ * The creditor's own invocation of the BIK regime — and NOTHING MORE
+ * (Temujin PR-9 r1 #3, r2 #3).
  *
- * Frank previously inferred this from the dossier existing — everyone under
- * bewind is a natural person, so the reasoning went, the consumer rules
- * apply. That is an inference dressed as evidence, and it is wrong on its
- * own terms: a natural person can incur a debt from business activity, to
- * which the BIK consumer staffel and its €40 minimum do not apply the same
- * way. Asserting a cap breach on that footing would put a bewindvoerder in
- * front of a creditor with a claim we cannot support.
+ * Two corrections are baked into this name. First, Frank once inferred the
+ * basis from the dossier existing: "everyone under bewind is a natural
+ * person, so the consumer rules apply". That is an inference dressed as
+ * evidence, and wrong on its own terms — a natural person can incur a debt
+ * from business activity.
  *
- * So the basis must come from the DOCUMENT. These are the phrases by which
- * a Dutch collection letter signals that it is itself invoking the consumer
- * regime — which is the creditor's own statement, not our guess.
+ * Second, and subtler: a creditor writing "conform de Wet Incassokosten" is
+ * invoking a regime, NOT proving that the debtor acted outside a profession
+ * or business. So this function is deliberately not called a consumer-status
+ * reader, and what it returns is not a consumer basis. It evidences that the
+ * creditor itself billed under the BIK scale, which is what the fee-cap
+ * arithmetic turns on. The 14-day notice duty is the genuinely
+ * consumer-specific part, and `checkWikNotice` demands separate documented
+ * consumer status for it.
  */
-const CONSUMER_REGIME_PHRASES = [
+const BIK_INVOCATION_PHRASES = [
   "wet incassokosten",
   "wik",
   "besluit vergoeding voor buitengerechtelijke incassokosten",
@@ -61,18 +64,18 @@ const CONSUMER_REGIME_PHRASES = [
   "14-dagenbrief",
 ];
 
-export function readConsumerBasis(
+export function readCreditorRegimeInvocation(
   text: string
-): EvidencedValue<"document_states_consumer"> | undefined {
+): EvidencedValue<"creditor_invoked_bik"> | undefined {
   if (!text) return undefined;
   const lines = text.split("\n");
   for (const line of lines) {
     const lower = line.toLowerCase();
-    for (const phrase of CONSUMER_REGIME_PHRASES) {
+    for (const phrase of BIK_INVOCATION_PHRASES) {
       // Word-boundary match so "wik" does not fire inside "wikkel".
       const re = new RegExp(`(^|[^a-z])${escape(phrase)}([^a-z]|$)`, "i");
       if (re.test(lower))
-        return { value: "document_states_consumer", snippet: line.trim() };
+        return { value: "creditor_invoked_bik", snippet: line.trim() };
     }
   }
   return undefined;

@@ -76,7 +76,7 @@ describe("checkWikAmount — abstains unless every precondition is evidenced", (
   const base = {
     principalCents: 41_230,
     chargedCostsCents: 7_500,
-    consumerBasis: "dossier_natural_person" as const,
+    applicabilityBasis: "creditor_invoked_bik" as const,
     onDate: ON,
   };
 
@@ -106,10 +106,10 @@ describe("checkWikAmount — abstains unless every precondition is evidenced", (
     expect(r.missing).toContain("principal");
   });
 
-  it("abstains without a consumer-applicability basis", () => {
-    const r = checkWikAmount({ ...base, consumerBasis: undefined });
+  it("abstains without an evidenced applicability basis", () => {
+    const r = checkWikAmount({ ...base, applicabilityBasis: undefined });
     if (r.finding !== "none") throw new Error("expected abstention");
-    expect(r.missing).toContain("consumerBasis");
+    expect(r.missing).toContain("applicabilityBasis");
   });
 
   it("abstains without charged costs", () => {
@@ -131,6 +131,7 @@ describe("checkWikNotice — receipt, not dispatch", () => {
     // N4b: Frank not having seen delivery proves nothing about what the
     // creditor sent. This is the common case, and abstention is correct.
     const r = checkWikNotice({
+      consumerStatusEvidenced: true,
       noticeContentEvidenced: true,
       costsChargedOn: "2026-08-20",
     });
@@ -140,6 +141,7 @@ describe("checkWikNotice — receipt, not dispatch", () => {
 
   it("abstains without the notice content", () => {
     const r = checkWikNotice({
+      consumerStatusEvidenced: true,
       receiptEvidencedOn: "2026-08-01",
       costsChargedOn: "2026-08-20",
     });
@@ -147,9 +149,23 @@ describe("checkWikNotice — receipt, not dispatch", () => {
     expect(r.missing).toContain("noticeContent");
   });
 
+  it("abstains without documented CONSUMER status — the notice duty is consumer-specific", () => {
+    // Temujin PR-9 r2 #3: a creditor invoking the BIK regime is not evidence
+    // that the debtor acted outside a profession or business, and the 14-day
+    // notice duty is exactly the part where that distinction bites.
+    const r = checkWikNotice({
+      noticeContentEvidenced: true,
+      receiptEvidencedOn: "2026-08-01",
+      costsChargedOn: "2026-08-10",
+    });
+    if (r.finding !== "none") throw new Error("expected abstention");
+    expect(r.missing).toContain("consumerStatus");
+  });
+
   it("fires when costs were charged inside the 14-day window", () => {
     expect(
       checkWikNotice({
+        consumerStatusEvidenced: true,
         noticeContentEvidenced: true,
         receiptEvidencedOn: "2026-08-01",
         costsChargedOn: "2026-08-10",
@@ -160,6 +176,7 @@ describe("checkWikNotice — receipt, not dispatch", () => {
   it("does not fire once a full 14 days have passed since RECEIPT", () => {
     expect(
       checkWikNotice({
+        consumerStatusEvidenced: true,
         noticeContentEvidenced: true,
         receiptEvidencedOn: "2026-08-01",
         costsChargedOn: "2026-08-16",
@@ -170,6 +187,7 @@ describe("checkWikNotice — receipt, not dispatch", () => {
   it("treats exactly 14 days as still inside the window", () => {
     expect(
       checkWikNotice({
+        consumerStatusEvidenced: true,
         noticeContentEvidenced: true,
         receiptEvidencedOn: "2026-08-01",
         costsChargedOn: "2026-08-15",

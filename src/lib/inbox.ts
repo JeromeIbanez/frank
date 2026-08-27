@@ -1,6 +1,7 @@
 import "server-only";
 
 import { desc, eq, inArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { getDb } from "@/lib/db";
 import { obligations, messages, dossiers, letters } from "@/lib/db/schema";
 
@@ -26,11 +27,18 @@ export type ObligationRow = {
     linkSource: string | null;
     linkReviewed: boolean;
   };
+  /** The dossier a HUMAN confirmed. Null until confirmation — nothing
+   *  dossier-bound exists before then (Temujin PR-9 r2 #1). */
   dossier: { id: string; name: string } | null;
+  /** What Frank proposed, carried on the message and marked provisional. */
+  proposedDossier: { id: string; name: string } | null;
   /** The reply Postbode drafted, if the answer was knowable. Always a
    *  `draft` — nothing is sent without a human decision (N2). */
   draftLetter: { id: string; subject: string; body: string; status: string } | null;
 };
+
+/** The provisional link lives on the message, so it needs its own join. */
+const proposed = alias(dossiers, "proposed_dossier");
 
 /** Open obligations, newest first, with their source message and dossier. */
 export async function listObligations(): Promise<ObligationRow[]> {
@@ -42,6 +50,9 @@ export async function listObligations(): Promise<ObligationRow[]> {
       dFirst: dossiers.firstName,
       dLast: dossiers.lastName,
       dId: dossiers.id,
+      pId: proposed.id,
+      pFirst: proposed.firstName,
+      pLast: proposed.lastName,
       lId: letters.id,
       lSubject: letters.subject,
       lBody: letters.body,
@@ -50,6 +61,7 @@ export async function listObligations(): Promise<ObligationRow[]> {
     .from(obligations)
     .innerJoin(messages, eq(obligations.sourceMessageId, messages.id))
     .leftJoin(dossiers, eq(obligations.dossierId, dossiers.id))
+    .leftJoin(proposed, eq(messages.dossierId, proposed.id))
     .leftJoin(letters, eq(obligations.proposedLetterId, letters.id))
     .where(inArray(obligations.status, ["open", "in_review"]))
     .orderBy(desc(messages.receivedAt));
@@ -80,6 +92,9 @@ export async function listObligations(): Promise<ObligationRow[]> {
       linkReviewed: r.m.linkReviewed,
     },
     dossier: r.dId ? { id: r.dId, name: `${r.dFirst} ${r.dLast}` } : null,
+    proposedDossier: r.pId
+      ? { id: r.pId, name: `${r.pFirst} ${r.pLast}` }
+      : null,
     draftLetter: r.lId
       ? {
           id: r.lId,

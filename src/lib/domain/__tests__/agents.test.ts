@@ -15,6 +15,7 @@ const ALL_ACTIONS: AgentActionClass[] = [
   "message_ingest",
   "document_create",
   "document_classify",
+  "message_resolve",
   "dossier_link",
   "proposal_create",
   "letter_draft",

@@ -1028,7 +1028,9 @@
       "not_open": "Already decided",
       "not_found": "Not found",
       "role_required": "Only a bewindvoerder can approve this",
-      "inactive_actor": "Your account is inactive"
+      "inactive_actor": "Your account is inactive",
+      "letter_not_approved": "The letter could not be approved",
+      "unknown_dossier": "Unknown dossier"
     },
     "wik": {
       "title": "Collection costs exceed the statutory maximum",
@@ -1038,6 +1040,8 @@
     "draftReady": "Reply drafted",
     "draftStatus": "draft · not sent",
     "showDraft": "Show the draft",
-    "hideDraft": "Hide the draft"
+    "hideDraft": "Hide the draft",
+    "proposedDossier": "Frank proposes",
+    "actionedWithLetter": "Reply approved — not sent, and no money moved"
   }
 }

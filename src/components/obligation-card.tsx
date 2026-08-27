@@ -52,9 +52,13 @@ export function ObligationCard({
   );
 
   const summary = locale.startsWith("nl") ? row.summaryNl : row.summaryEn;
-  const needsConfirm =
-    row.message.linkSource === "agent" && !row.message.linkReviewed;
+  // Confirmed is the only state in which anything dossier-bound exists
+  // (Temujin PR-9 r2 #1): before it, the link lives on the message and is
+  // shown as Frank's proposal, not as a fact about this client.
+  const confirmed = row.message.linkReviewed && row.dossier !== null;
   const unrouted = row.message.status === "needs_dossier";
+  const needsConfirm = !confirmed && !unrouted;
+  const shown = row.dossier ?? row.proposedDossier;
 
   return (
     <Card>
@@ -132,12 +136,12 @@ export function ObligationCard({
           ) : (
             <>
               <span className="text-ink-600">
-                {t("routedTo")}{" "}
+                {confirmed ? t("routedTo") : t("proposedDossier")}{" "}
                 <Link
-                  href={`/dossiers/${row.dossier?.id}`}
+                  href={`/dossiers/${shown?.id}`}
                   className="font-medium text-ink-900 hover:underline"
                 >
-                  {row.dossier?.name}
+                  {shown?.name}
                 </Link>
               </span>
               {row.message.resolutionConfidence !== null && (
@@ -152,7 +156,7 @@ export function ObligationCard({
           )}
         </div>
 
-        {needsConfirm && !unrouted && (
+        {needsConfirm && (
           <p className="rounded-[8px] border border-hairline px-3 py-2 text-[12.5px] text-ink-600">
             {t("provisional")}
           </p>
@@ -203,7 +207,7 @@ export function ObligationCard({
         {/* Decisions */}
         {!dismissing ? (
           <div className="flex flex-wrap gap-2 pt-0.5">
-            {(needsConfirm || unrouted) && (
+            {!confirmed && (
               <Button
                 size="sm"
                 disabled={pending || !pickDossier}
@@ -211,7 +215,7 @@ export function ObligationCard({
                   start(async () => {
                     const r = await confirmDossierLink(
                       row.message.id,
-                      unrouted ? pickDossier : row.dossier!.id
+                      unrouted ? pickDossier : shown!.id
                     );
                     toast[r.ok ? "success" : "error"](
                       r.ok ? t("linkConfirmed") : t("failed")
@@ -225,14 +229,16 @@ export function ObligationCard({
             <Button
               size="sm"
               variant="secondary"
-              disabled={pending || needsConfirm || unrouted}
-              title={needsConfirm || unrouted ? t("confirmFirst") : undefined}
+              disabled={pending || !confirmed}
+              title={!confirmed ? t("confirmFirst") : undefined}
               onClick={() =>
                 start(async () => {
                   const r = await actionObligation(row.id);
-                  toast[r.ok ? "success" : "error"](
-                    r.ok ? t("actioned") : t(`error.${r.error}`)
-                  );
+                  if (!r.ok) toast.error(t(`error.${r.error}`));
+                  else
+                    toast.success(
+                      r.approvedLetter ? t("actionedWithLetter") : t("actioned")
+                    );
                 })
               }
             >

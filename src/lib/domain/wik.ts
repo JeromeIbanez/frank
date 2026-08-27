@@ -16,7 +16,7 @@
  * produces claims the data cannot support. They have different
  * preconditions, so they are different findings:
  *
- *   - `wik_amount_exceeds_cap` needs principal + charged costs + a consumer
+ *   - `wik_amount_exceeds_cap` needs principal + charged costs + an evidenced
  *     applicability basis. It is deterministic arithmetic.
  *   - `wik_notice_missing` needs the notice content AND receipt evidence,
  *     because the 14-day period runs from RECEIPT, not dispatch. Frank not
@@ -139,11 +139,17 @@ export type WikAmountInput = {
   principalCents?: number;
   chargedCostsCents?: number;
   /**
-   * Why the consumer regime applies at all. The BIK staffel with its €40
-   * minimum governs consumer debtors; without a basis for that we cannot
-   * assert a cap. Recorded as evidence, not inferred from the dossier.
+   * Why the BIK scale applies to this claim (Temujin PR-9 r2 #3).
+   *
+   * NOT called a consumer basis, because that is not what it evidences. A
+   * creditor writing "conform de Wet Incassokosten" is INVOKING a regime;
+   * it is not proof that the debtor acted outside a profession or business.
+   * The distinction matters: the BIK fee scale governs contractual payment
+   * obligations generally, while the 14-day notice requirement is the part
+   * that is genuinely consumer-specific — so the two checks take different
+   * evidence and `checkWikNotice` demands documented consumer status.
    */
-  consumerBasis?: "dossier_natural_person" | "document_states_consumer";
+  applicabilityBasis?: "creditor_invoked_bik" | "documented_consumer_status";
   /** Date the costs were charged, selecting the schedule version. */
   onDate: string;
 };
@@ -166,7 +172,7 @@ export function checkWikAmount(input: WikAmountInput): WikFinding {
     missing.push("principal");
   if (input.chargedCostsCents === undefined || input.chargedCostsCents <= 0)
     missing.push("chargedCosts");
-  if (input.consumerBasis === undefined) missing.push("consumerBasis");
+  if (input.applicabilityBasis === undefined) missing.push("applicabilityBasis");
 
   const schedule = wikScheduleFor(input.onDate);
   if (!schedule) missing.push("schedule");
@@ -207,6 +213,12 @@ export function checkWikAmount(input: WikAmountInput): WikFinding {
  * not seen.
  */
 export type WikNoticeInput = {
+  /**
+   * The 14-day notice duty is genuinely consumer-specific, so unlike the fee
+   * cap this check needs actual consumer status, documented — not a
+   * creditor's invocation of the regime (Temujin PR-9 r2 #3).
+   */
+  consumerStatusEvidenced?: boolean;
   /** Evidence the 14-day notice exists and what it said. */
   noticeContentEvidenced?: boolean;
   /** Evidence of DELIVERY — the period runs from receipt, not dispatch. */
@@ -225,6 +237,7 @@ export type WikNoticeFinding =
 
 export function checkWikNotice(input: WikNoticeInput): WikNoticeFinding {
   const missing: string[] = [];
+  if (!input.consumerStatusEvidenced) missing.push("consumerStatus");
   if (!input.noticeContentEvidenced) missing.push("noticeContent");
   if (!input.receiptEvidencedOn) missing.push("receiptEvidence");
   if (!input.costsChargedOn) missing.push("costsChargedDate");

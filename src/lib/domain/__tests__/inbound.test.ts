@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   readInboundFacts,
-  readConsumerBasis,
+  readCreditorRegimeInvocation,
   classifyObligationKind,
 } from "../inbound";
 import { checkWikAmount } from "../wik";
@@ -83,10 +83,10 @@ describe("classifyObligationKind", () => {
   });
 });
 
-describe("readConsumerBasis — evidenced, never inferred", () => {
+describe("readCreditorRegimeInvocation — the creditor's invocation, nothing more", () => {
   it("finds the creditor's own invocation of the regime", () => {
-    const b = readConsumerBasis(raw(aanmaning));
-    expect(b?.value).toBe("document_states_consumer");
+    const b = readCreditorRegimeInvocation(raw(aanmaning));
+    expect(b?.value).toBe("creditor_invoked_bik");
     expect(b?.snippet).toContain("Wet Incassokosten");
   });
 
@@ -94,16 +94,16 @@ describe("readConsumerBasis — evidenced, never inferred", () => {
     // Temujin PR-9 r1 #3: a natural person under bewind can still incur a
     // business debt, so dossier existence is NOT evidence of the consumer
     // regime. No statement in the document → no basis → the check abstains.
-    expect(readConsumerBasis(raw(vague))).toBeUndefined();
-    expect(readConsumerBasis("Geachte heer, u bent ons geld schuldig.")).toBeUndefined();
+    expect(readCreditorRegimeInvocation(raw(vague))).toBeUndefined();
+    expect(readCreditorRegimeInvocation("Geachte heer, u bent ons geld schuldig.")).toBeUndefined();
   });
 
   it("does not fire on a substring inside another word", () => {
-    expect(readConsumerBasis("De wikkel zat om het pakket.")).toBeUndefined();
+    expect(readCreditorRegimeInvocation("De wikkel zat om het pakket.")).toBeUndefined();
   });
 
   it("carries the verbatim line as its snippet", () => {
-    const b = readConsumerBasis("regel een\nBerekend conform de Wet Incassokosten.\nregel drie");
+    const b = readCreditorRegimeInvocation("regel een\nBerekend conform de Wet Incassokosten.\nregel drie");
     expect(b?.snippet).toBe("Berekend conform de Wet Incassokosten.");
   });
 });
@@ -117,7 +117,7 @@ describe("the demo motion end to end (pure part)", () => {
     const r = checkWikAmount({
       principalCents: facts.principalCents?.value,
       chargedCostsCents: facts.collectionCostsCents?.value,
-      consumerBasis: readConsumerBasis(raw(aanmaning))?.value,
+      applicabilityBasis: readCreditorRegimeInvocation(raw(aanmaning))?.value,
       onDate: "2026-08-27",
     });
     if (r.finding !== "wik_amount_exceeds_cap") throw new Error("expected finding");
@@ -131,7 +131,7 @@ describe("the demo motion end to end (pure part)", () => {
     const r = checkWikAmount({
       principalCents: facts.principalCents?.value,
       chargedCostsCents: facts.collectionCostsCents?.value,
-      consumerBasis: readConsumerBasis(raw(gemeente))?.value,
+      applicabilityBasis: readCreditorRegimeInvocation(raw(gemeente))?.value,
       onDate: "2026-08-27",
     });
     expect(r.finding).toBe("none");
@@ -150,10 +150,10 @@ describe("the demo motion end to end (pure part)", () => {
     const r = checkWikAmount({
       principalCents: facts.principalCents?.value,
       chargedCostsCents: facts.collectionCostsCents?.value,
-      consumerBasis: readConsumerBasis(stripped)?.value,
+      applicabilityBasis: readCreditorRegimeInvocation(stripped)?.value,
       onDate: "2026-08-27",
     });
     if (r.finding !== "none") throw new Error("expected abstention");
-    expect(r.missing).toContain("consumerBasis");
+    expect(r.missing).toContain("applicabilityBasis");
   });
 });
