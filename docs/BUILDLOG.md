@@ -1,5 +1,33 @@
 # Frank OS — Build Log
 
+## OS v2 PR-8: agent runtime shipped — 2026-08-27
+- Plan docs/plans/os-v2.md approved at rev 3 (Temujin rounds 1–3, 9 findings,
+  0 waived). v1's diagnosis: a system of record with AI assists, where the
+  human is still the scheduler. v2 inverts it — the system schedules, the
+  human approves.
+- Agent runtime (PR #8, three code-review rounds → APPROVE): five charters as
+  CODE, an exhaustive AgentActionClass vocabulary kept separate from
+  PrivilegedAction, and a pure agentMay() ceiling where neverGrants beats
+  grants so overlap fails safe.
+- The guarantee is structural, not a deny-list: debt events, money movement,
+  approval, court filing and sending are not IN the vocabulary, so an agent
+  cannot ask. ASSERT_NO_CONSEQUENTIAL_LEAK makes a leak a compile error;
+  ACTION_CATEGORY is a Record over the union so nothing ships unclassified.
+- Identity is nominal AT RUNTIME (module-private WeakSet), not a structural
+  type that erases: literals, casts, spreads, Object.create, JSON and
+  structuredClone are all rejected. **Temujin r2 found that authentic
+  identity still is not authorization** — so assertAgentMay now mints an
+  opaque, frozen, action-scoped AgentGrant, and the gateway requires the
+  grant, not the context. Attribution needs proof the gate ran.
+- Denials throw and write a security_denied audit row (never a silent
+  no-op, per os-v1 PR-4 R2); a failed audit on a refusal is reported rather
+  than swallowed, and refusal never depends on DB availability.
+- Bug found while testing: isAgentKey used `in`, so "constructor" and
+  "__proto__" were valid agent keys via the prototype chain.
+- Intake extraction runs as Postbode behind the gate; /office Agents panel
+  is read-only by design (nothing to configure under N3).
+- 233 tests (was 194); tsc, lint, build clean.
+
 ## OS v1 PR-4: Court & office layer shipped — 2026-08-27 (plan COMPLETE)
 - Debts (PR #7, three Temujin rounds, two separate gates → both APPROVE):
   `debt_events` is the only path to a balance, applied in ONE SQL CTE
