@@ -1,5 +1,41 @@
 # Frank OS — Build Log
 
+## OS v2 PR-11: processes + autonomy reporting — 2026-08-27 (plan COMPLETE)
+- The "OS" claim made literal (PR #11, six review rounds → APPROVE): five
+  legal procedures as a dependency graph, with what each is waiting on.
+- Three modelling errors caught by building it: `blocked` was UNREACHABLE
+  in a pure DAG (the earliest not-done step always has its deps met), so
+  steps gained an OWNER and `awaiting` — what stalls a bewindvoerder is a
+  court, not the graph; a blocked step was marked overdue (you cannot be
+  late for work you cannot start — office overdue 23 → 14, all real); and
+  machtiging ran for every dossier though it is event-started.
+- ACTIVATION persisted, STEP STATUS derived. A stored step status is a
+  second copy that drifts; a step is done because the work is done. But
+  activation cannot be derived — dating every process from 1 January
+  fabricated deadlines — so `process_instances` is immutable and records
+  the date AND its source.
+- Six rounds of tightening, each closing a hole where a write succeeded but
+  its provenance did not: NULLs are DISTINCT in a unique index so
+  "idempotent" activation was silently duplicating; instance + audit are
+  now ONE CTE (a `$defaultFn` id is generated in JS, not by the DB — that
+  bug made every insert fail behind a caught exception); activation is
+  wired to the actions that cause it, not a button; failures surface as a
+  non-dismissible shell alert; and reconciliation evidence is PER DOSSIER
+  compared on `evaluatedAt`, so one client's repair cannot clear another's.
+- Evidence tightened: completion now rests on playbook TASKS being done —
+  one notified contact is not "instanties aangeschreven", one budget line
+  is not a plan. R&V bound to ONE court-set period. Machtiging reduced to
+  what Frank records (a `court_authorization` resolution is not a
+  beschikking on file). `einde_bewind` removed — a process that can only
+  report a hard-coded "not done" accuses a curator of invisible work.
+- Autonomy REPORTING, never a ratchet: accepted-unedited vs edited from the
+  existing `humanOverrides` audit, median time-to-decision, and a candidacy
+  observation with no switch behind it. The copy says it measures agreement,
+  not correctness.
+- 471 tests. **Plan os-v2 complete**: PR-8 agent runtime → PR-9 obligation
+  inbox → PR-10 safeguarding → PR-11 processes. 4 PRs, 14 review rounds,
+  0 findings waived.
+
 ## OS v2 PR-10: safeguarding shipped — 2026-08-27
 - Waakhond (PR #10, three review rounds → APPROVE): ten pure detectors,
   safeguarding-v1, watching for financial abuse of the client AND by the
