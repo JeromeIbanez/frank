@@ -11,6 +11,7 @@ import {
   dossiers,
   paymentItems,
   paymentBatches,
+  auditEvents,
   officeAccounts,
   actors,
   channels,
@@ -200,18 +201,65 @@ async function loadOfficeInput(today: string) {
     }
   }
 
-  // An EVIDENCED four-eyes breach: same actor created and approved.
-  const sameActorApprovals = batches
-    .filter(
-      (b) => b.createdBy && b.approvedBy && b.createdBy === b.approvedBy
-    )
-    .map((b) => ({
-      batchId: b.id,
-      actorId: b.approvedBy!,
-      createdAuditId: `batch:${b.id}:created`,
-      approvedAuditId: `batch:${b.id}:approved`,
-      activeBewindvoerderCount: activeBewind.length,
-    }));
+  // An EVIDENCED four-eyes breach.
+  //
+  // The detector's contract is that it can point at the rule AND at the two
+  // audit rows that breach it. An earlier version SYNTHESISED those ids as
+  // `batch:<id>:created` strings (Temujin PR-10 r2 #1), which looked like
+  // evidence and was not — a case citing an audit row that does not exist is
+  // worse than no case, because it invites someone to go and read it.
+  //
+  // So the rows are fetched and verified: both must exist, both must name the
+  // same actor, and that actor must match the batch's own record. Anything
+  // less produces no case.
+  const candidateBatches = batches.filter(
+    (b) => b.createdBy && b.approvedBy && b.createdBy === b.approvedBy
+  );
+  const sameActorApprovals: {
+    batchId: string;
+    actorId: string;
+    createdAuditId: string;
+    approvedAuditId: string;
+    activeBewindvoerderCount: number;
+  }[] = [];
+
+  if (candidateBatches.length > 0) {
+    const rows = await db
+      .select({
+        id: auditEvents.id,
+        actorId: auditEvents.actorId,
+        action: auditEvents.action,
+        entityId: auditEvents.entityId,
+      })
+      .from(auditEvents)
+      .where(
+        and(
+          eq(auditEvents.entityType, "payment_batch"),
+          inArray(
+            auditEvents.entityId,
+            candidateBatches.map((b) => b.id)
+          )
+        )
+      );
+    for (const b of candidateBatches) {
+      const forBatch = rows.filter((r) => r.entityId === b.id);
+      const created = forBatch.find(
+        (r) => r.action === "create" && r.actorId === b.createdBy
+      );
+      const approved = forBatch.find(
+        (r) => r.action === "approve" && r.actorId === b.approvedBy
+      );
+      if (!created || !approved) continue; // no verifiable evidence, no case
+      if (created.actorId !== approved.actorId) continue;
+      sameActorApprovals.push({
+        batchId: b.id,
+        actorId: approved.actorId,
+        createdAuditId: created.id,
+        approvedAuditId: approved.id,
+        activeBewindvoerderCount: activeBewind.length,
+      });
+    }
+  }
 
   return {
     officeLinkedIbans: offices.map((o) => ({
@@ -295,22 +343,7 @@ export async function refreshSafeguarding(): Promise<{
   return { ok: true, opened, existing };
 }
 
-/**
- * Is there an active bewindvoerder who is neither the acting actor nor the
- * concerned one? That person IS the independent reviewer — no configuration
- * table needed (Temujin PR-10 r1 #2).
- */
-async function independentReviewerAvailable(
-  actorId: string,
-  concernsActorId: string | null
-): Promise<boolean> {
-  const db = getDb();
-  const rows = await db
-    .select({ id: actors.id })
-    .from(actors)
-    .where(and(eq(actors.role, "bewindvoerder"), eq(actors.active, true)));
-  return rows.some((r) => r.id !== actorId && r.id !== concernsActorId);
-}
+
 
 async function openCase(
   ctx: ReturnType<typeof agentContext>,
@@ -580,10 +613,6 @@ export async function resolveCase(
     scope: row.scope,
     concernsActorId: row.concernsActorId,
     disposition: "resolve",
-    independentReviewerAvailable: await independentReviewerAvailable(
-      actor.id,
-      row.concernsActorId
-    ),
   });
   if (!verdict.allowed) {
     // An attempt by the concerned actor is itself security-relevant (N5).

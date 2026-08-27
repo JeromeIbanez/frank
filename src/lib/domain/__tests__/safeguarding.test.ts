@@ -640,68 +640,63 @@ describe("canDisposeCase — office cases need an INDEPENDENT reviewer", () => {
     expect(canDisposeCase({ ...bewind, scope: "client" })).toEqual({ allowed: true });
   });
 
-  it("REFUSES when the office case concerns the actor themselves", () => {
+  it("REFUSES resolution when the office case concerns the actor themselves", () => {
     expect(
-      canDisposeCase({
-        ...bewind,
-        scope: "office",
-        concernsActorId: "actor-1",
-        independentReviewerAvailable: true,
-      })
+      canDisposeCase({ ...bewind, scope: "office", concernsActorId: "actor-1" })
     ).toEqual({ allowed: false, reason: "concerns_self" });
   });
 
-  it("lets an independent bewindvoerder resolve it", () => {
+  it("lets a DIFFERENT bewindvoerder resolve a case naming someone", () => {
+    // Here the acting person genuinely is the independent reviewer: they are
+    // a distinct human taking the reviewing action.
     expect(
       canDisposeCase({
         ...bewind,
         actorId: "actor-2",
         scope: "office",
         concernsActorId: "actor-1",
-        independentReviewerAvailable: true,
       })
     ).toEqual({ allowed: true });
   });
 
-  it("REFUSES local resolution when no independent reviewer exists", () => {
-    // Temujin PR-10 r1 #2. In a solo office the sole bewindvoerder IS the
-    // office, so refusing only self-clearance lets them close a case about
-    // their own conduct — and `fee_above_schedule` names no actor at all, so
-    // it would slip through a null check.
-    expect(
-      canDisposeCase({
-        ...bewind,
-        scope: "office",
-        concernsActorId: null,
-        independentReviewerAvailable: false,
-      })
-    ).toEqual({ allowed: false, reason: "no_independent_reviewer" });
+  it("REFUSES in-office resolution of an ACTORLESS office case", () => {
+    // Temujin PR-10 r2 #2: availability of an independent person is not
+    // assignment of one. fee_above_schedule concerns the office as a whole,
+    // so A must not be able to close it merely because B exists.
+    for (const actorId of ["actor-1", "actor-2", "actor-3"]) {
+      expect(
+        canDisposeCase({ ...bewind, actorId, scope: "office", concernsActorId: null })
+      ).toEqual({
+        allowed: false,
+        reason: "office_wide_needs_external_review",
+      });
+    }
   });
 
-  it("still permits ESCALATION with no reviewer — outward, not stuck", () => {
-    // The honest move when nobody independent exists is to send it to the
-    // appointing kantonrechter, not to leave the case unresolvable.
+  it("permits ESCALATION of an actorless office case — outward, not stuck", () => {
     expect(
       canDisposeCase({
         ...bewind,
         disposition: "escalate",
         scope: "office",
         concernsActorId: null,
-        independentReviewerAvailable: false,
       })
     ).toEqual({ allowed: true });
   });
 
-  it("never lets the concerned actor escalate their own case either", () => {
+  it("lets the CONCERNED actor escalate — self-reporting, not self-clearance", () => {
+    // Reversed from an earlier draft. Handing a case to an external authority
+    // closes nothing in the actor's favour, the ground and destination are
+    // recorded, and blocking it would leave a solo-office case permanently
+    // stuck with no route outward.
     expect(
       canDisposeCase({
         ...bewind,
         disposition: "escalate",
         scope: "office",
         concernsActorId: "actor-1",
-        independentReviewerAvailable: false,
       })
-    ).toEqual({ allowed: false, reason: "concerns_self" });
+    ).toEqual({ allowed: true });
   });
 
   it("refuses an assistent regardless of scope", () => {

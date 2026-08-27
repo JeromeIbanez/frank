@@ -1147,7 +1147,7 @@
       "ground_required": "A ground is required",
       "response_required": "Please enter the answer",
       "invalid_destination": "Unknown destination",
-      "no_independent_reviewer": "An independent reviewer must resolve this — you can escalate it instead"
+      "office_wide_needs_external_review": "This concerns the office as a whole, so it must go to an external reviewer — you can escalate it"
     }
   }
 }

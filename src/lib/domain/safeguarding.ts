@@ -678,12 +678,6 @@ export function canDisposeCase(input: {
   concernsActorId?: string | null;
   /** What the actor is trying to do. Resolution and escalation differ. */
   disposition: "resolve" | "escalate";
-  /**
-   * Whether an active bewindvoerder exists who is neither the acting actor
-   * nor the concerned actor. Computed by the caller from the actor table;
-   * no configuration needed, because that IS the reviewer.
-   */
-  independentReviewerAvailable?: boolean;
 }):
   | { allowed: true }
   | {
@@ -692,29 +686,45 @@ export function canDisposeCase(input: {
         | "inactive_actor"
         | "role_required"
         | "concerns_self"
-        | "no_independent_reviewer";
+        | "office_wide_needs_external_review";
     } {
   if (!input.actorActive) return { allowed: false, reason: "inactive_actor" };
   if (input.actorRole !== "bewindvoerder")
     return { allowed: false, reason: "role_required" };
   if (input.scope !== "office") return { allowed: true };
 
-  // Office scope from here on.
-  if (input.concernsActorId && input.concernsActorId === input.actorId)
-    return { allowed: false, reason: "concerns_self" };
-
-  // RESOLVING an office case closes the loop on the office's own conduct, so
-  // it takes an independent reviewer (Temujin PR-10 r1 #2). Refusing to
-  // clear the actor themselves is not enough: in a solo office the sole
-  // bewindvoerder IS the office, and `fee_above_schedule` names no actor at
-  // all, so a self-clearance would slip through on a null check.
+  // --- Office scope from here on. -----------------------------------------
   //
-  // ESCALATION stays open, because the honest move when nobody independent
-  // exists is to send it outward — to the appointing kantonrechter — not to
-  // leave it stuck or quietly close it.
-  if (input.disposition === "resolve" && !input.independentReviewerAvailable)
-    return { allowed: false, reason: "no_independent_reviewer" };
+  // RESOLVING an office case closes the loop on the office's own conduct.
+  // Two distinct ways that goes wrong:
+  //
+  //  a) The actor is the person concerned. Obvious, and refused.
+  //
+  //  b) The case concerns the office as a whole and names nobody —
+  //     `fee_above_schedule` is exactly this. An earlier version allowed
+  //     resolution here whenever some OTHER bewindvoerder merely existed,
+  //     which Temujin (PR-10 r2 #2) correctly called out: availability of an
+  //     independent person is not assignment of one. With A and B both
+  //     active, A could close a case about the office's own billing purely
+  //     because B happened to have an account.
+  //
+  // So an actorless office case cannot be resolved inside the office at all.
+  // It goes out, to the appointing kantonrechter or another external
+  // reviewer, and the record shows that is what happened.
+  if (input.disposition === "resolve") {
+    if (input.concernsActorId && input.concernsActorId === input.actorId)
+      return { allowed: false, reason: "concerns_self" };
+    if (!input.concernsActorId)
+      return { allowed: false, reason: "office_wide_needs_external_review" };
+    return { allowed: true };
+  }
 
+  // ESCALATION is deliberately open to everyone, including the actor a case
+  // concerns. Handing a case to an external authority is self-REPORTING, not
+  // self-clearance: it does not close anything in the actor's favour, the
+  // destination and ground are recorded, and blocking it would leave a
+  // solo-office case permanently stuck with no route outward — which helps
+  // nobody, least of all the client.
   return { allowed: true };
 }
 

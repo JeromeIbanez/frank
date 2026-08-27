@@ -1147,7 +1147,7 @@
       "ground_required": "Een grond is verplicht",
       "response_required": "Vul het antwoord in",
       "invalid_destination": "Onbekende bestemming",
-      "no_independent_reviewer": "Een onafhankelijke beoordelaar moet dit afhandelen — u kunt het wel escaleren"
+      "office_wide_needs_external_review": "Dit betreft het kantoor als geheel en moet naar een externe beoordelaar — u kunt het wel escaleren"
     }
   }
 }
