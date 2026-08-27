@@ -1,5 +1,35 @@
 # Frank OS — Build Log
 
+## OS v2 PR-9: obligation inbox shipped — 2026-08-27 (the demo motion)
+- Inbox is now the OBLIGATION QUEUE (PR #9, three review rounds → APPROVE).
+  An inbound item is not a document: someone outside demands a response,
+  there is a deadline and a right answer. Grouped by decision, not arrival.
+- Legal datasets versioned like fees.ts: WIK/BIK staffel (15/10/5/1/0.5%,
+  €40 min, €6.775 max — Temujin verified against art. 2 BIK) computed in
+  integer basis points with a DOCUMENTED half-up rule and a €1 de-minimis,
+  so a rounding difference can never become an allegation. Split into two
+  checks: the fee cap turns on evidenced contractual applicability, the
+  14-day notice on documented CONSUMER status (period runs from receipt).
+  Verjaring says "mogelijke verjaring — juridische toetsing vereist",
+  restarts the day AFTER a stuiting (art. 3:319), and drops art. 3:310 and
+  3:324 because a generic clock cannot honestly model their prerequisites.
+- Every check ABSTAINS by default. A regression test strips the creditor's
+  WIK line and asserts the finding vanishes though the arithmetic is
+  identical — the guard against inference dressed as evidence.
+- Routing refuses to guess: deterministic matchers with recorded per-matcher
+  evidence, a name alone far below the floor, a top-two tie resolving to
+  needs_dossier, confidence never 100, BSN never echoed back.
+- **Nothing dossier-bound exists before a human confirms** (Temujin r2 #1,
+  my own §2.1 rule broken in my own code): ingest yields a message with a
+  provisional link plus an obligation attached only to that message.
+  Confirmation is what materializes the dossier link AND drafts the reply.
+- Reply drafting in deterministic Dutch templates, not generation: the
+  dispute letter states the arithmetic exactly, disputes ONLY the excess,
+  and offers the undisputed total. Approval runs through approveLetter (one
+  approval path) and re-reads to verify, since it refuses silently.
+- Verified live: approve → letter approved, sent_at null, obligation
+  actioned, debt balance unchanged and no debt event. 318 tests.
+
 ## OS v2 PR-8: agent runtime shipped — 2026-08-27
 - Plan docs/plans/os-v2.md approved at rev 3 (Temujin rounds 1–3, 9 findings,
   0 waived). v1's diagnosis: a system of record with AI assists, where the
