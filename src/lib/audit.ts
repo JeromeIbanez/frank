@@ -13,7 +13,10 @@ export type AuditInput = {
     | "download"
     | "ai_call"
     | "import"
-    | "delete";
+    | "delete"
+    /** An agent tried to act outside its capability ceiling (os-v2 N1).
+     *  Recorded so a refused action is visible, not merely absent. */
+    | "security_denied";
   entityType: string;
   entityId: string;
   versionBefore?: unknown;

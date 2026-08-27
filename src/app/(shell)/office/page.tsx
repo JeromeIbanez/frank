@@ -5,6 +5,7 @@ import { FEE_SCHEDULES, scheduleFor } from "@/lib/domain/fees";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState, Money, SeverityDot } from "@/components/format";
 import { LogTimeForm } from "@/components/office-client";
+import { AgentsPanel } from "@/components/agents-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -250,6 +251,8 @@ export default async function OfficePage() {
           </Card>
         </div>
       </div>
+
+      <AgentsPanel />
     </div>
   );
 }

@@ -22,6 +22,7 @@ import { z } from "zod";
 import { count, sum } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { aiCalls } from "@/lib/db/schema";
+import { isAgentGrant, type AgentGrant } from "@/lib/agent-context";
 
 export const PROMPT_VERSION = "2026-08.1";
 export const DATA_CLASS = "synthetic_demo"; // only value until auth exists
@@ -74,9 +75,39 @@ async function capExceeded(): Promise<boolean> {
   }
 }
 
+/**
+ * Attribution is EARNED, not asserted (Temujin PR-8 r1 #1, r2 #1).
+ *
+ * These signatures first took a raw `agentKey` — any caller could mint
+ * agent-attributed `ai_calls` rows without passing the ceiling. Taking an
+ * `AgentContext` instead was still not enough: a context proves only WHO is
+ * acting, so a future entry point could build an authentic one and never
+ * gate it.
+ *
+ * So the gateway demands an `AgentGrant`, which `assertAgentMay` mints only
+ * after the ceiling passes and only for a specific action. Attribution now
+ * requires proof that the gate actually ran. A forged grant degrades the row
+ * to UNATTRIBUTED — the model call itself is not a mutation, so failing it
+ * would turn a logging concern into an outage — and raises a security event.
+ */
+function attributedAgent(grant?: AgentGrant): string | undefined {
+  if (grant === undefined) return undefined;
+  if (!isAgentGrant(grant)) {
+    console.error(
+      "[frank:security] AI call supplied an AgentGrant that assertAgentMay " +
+        "never minted; logging the call as unattributed"
+    );
+    return undefined;
+  }
+  return grant.agentKey;
+}
+
 async function logCall(input: {
   purpose: string;
   model: string;
+  /** Derived INTERNALLY from a verified AgentGrant — never accepted from a
+   *  caller (Temujin PR-8 r1 #1, r2 #1). Null for human-invoked calls. */
+  agentKey?: string;
   inputTokens?: number;
   outputTokens?: number;
   ok: boolean;
@@ -87,6 +118,7 @@ async function logCall(input: {
     await db.insert(aiCalls).values({
       purpose: input.purpose,
       model: input.model,
+      agentKey: input.agentKey ?? null,
       promptVersion: PROMPT_VERSION,
       dataClass: DATA_CLASS,
       inputTokens: input.inputTokens ?? null,
@@ -113,6 +145,9 @@ export async function callStructured<T>(input: {
   system: string;
   prompt: string;
   keepIban?: boolean;
+  /** The grant returned by `assertAgentMay` for this action. Attribution
+   *  requires proof the ceiling was checked — not merely who is calling. */
+  grant?: AgentGrant;
 }): Promise<AiResult<T>> {
   if (await capExceeded()) {
     return { ok: false, unavailable: true, reason: "token_cap" };
@@ -127,6 +162,7 @@ export async function callStructured<T>(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_STRUCTURED,
+      agentKey: attributedAgent(input.grant),
       inputTokens: res.usage?.inputTokens,
       outputTokens: res.usage?.outputTokens,
       ok: true,
@@ -142,6 +178,7 @@ export async function callStructured<T>(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_STRUCTURED,
+      agentKey: attributedAgent(input.grant),
       ok: false,
       error: e instanceof Error ? e.message : String(e),
     });
@@ -202,6 +239,8 @@ export async function callChatStream(input: {
     });
     return { ok: true, result };
   } catch (e) {
+    // No agentKey: the copilot runs as the human who opened it, not as an
+    // agent. Only agent-driven calls are attributed to an agent.
     await logCall({
       purpose: input.purpose,
       model: MODEL_DRAFTING,
@@ -218,6 +257,8 @@ export async function callDraft(input: {
   system: string;
   prompt: string;
   keepIban?: boolean;
+  /** See callStructured. */
+  grant?: AgentGrant;
 }): Promise<AiResult<string>> {
   if (await capExceeded()) {
     return { ok: false, unavailable: true, reason: "token_cap" };
@@ -231,6 +272,7 @@ export async function callDraft(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_DRAFTING,
+      agentKey: attributedAgent(input.grant),
       inputTokens: res.usage?.inputTokens,
       outputTokens: res.usage?.outputTokens,
       ok: true,
@@ -240,6 +282,7 @@ export async function callDraft(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_DRAFTING,
+      agentKey: attributedAgent(input.grant),
       ok: false,
       error: e instanceof Error ? e.message : String(e),
     });

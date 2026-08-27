@@ -942,5 +942,30 @@
       "unknown": "Tijd vastleggen mislukt."
     },
     "vatNote": "Bedragen zijn de wettelijke bedragen exclusief btw. Of btw van toepassing is hangt af van de fiscale positie van dit kantoor — Frank neemt dat niet aan."
+  },
+  "agents": {
+    "title": "Agents",
+    "ceilingNote": "Wat een agent mag, staat in code en wordt op de server afgedwongen — het wordt niet aan het model gevraagd. Een agent kan geen actie aanroepen buiten zijn bevoegdheid.",
+    "neverNote": "Geen enkele agent kan een schuldmutatie doorvoeren, geld overmaken, iets goedkeuren, bij de rechtbank indienen of post versturen. Die handelingen bestaan niet in het agent-vocabulaire, dus ze kunnen niet worden aangevraagd.",
+    "neverTitle": "Expliciet onthouden aan deze agent",
+    "callCount": "{count} aanroepen",
+    "acceptRate": "{pct}% overgenomen",
+    "noActivity": "nog geen activiteit",
+    "denials": "{count} geweigerd — actie buiten de bevoegdheid",
+    "name": {
+      "postbode": "Postbode · postverwerking",
+      "waakhond": "Waakhond · signalering",
+      "griffier": "Griffier · rechtbank",
+      "kassier": "Kassier · kas",
+      "rechtenjager": "Rechtenjager · voorzieningen"
+    },
+    "category": {
+      "inbound_fact": "Legt vast dat er iets binnenkwam",
+      "interpretation": "Franks lezing van een feit — herzienbaar, nooit bevestigd",
+      "draft": "Een concept — verandert niets tot een mens het overneemt",
+      "protective": "Opent een beschermend werkitem — stelt niets vast, alleen een mens sluit het af"
+    },
+    "mayLabel": "Mag",
+    "neverLabel": "Nooit"
   }
 }
