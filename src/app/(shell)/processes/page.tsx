@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState, SeverityDot } from "@/components/format";
 import { officeProcesses } from "@/lib/processes";
+import { ActivateProcessesButton } from "@/components/activate-processes-button";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,10 @@ export default async function ProcessesPage() {
         ))}
       </div>
 
-      <p className="max-w-2xl text-[12.5px] text-ink-600">{t("intro")}</p>
+      <div className="space-y-2">
+        <ActivateProcessesButton />
+        <p className="max-w-2xl text-[12.5px] text-ink-600">{t("intro")}</p>
+      </div>
 
       {rows.length === 0 && (
         <EmptyState title={t("emptyTitle")} sentence={t("emptySentence")} />
@@ -68,16 +72,30 @@ export default async function ProcessesPage() {
 
               {row.processes.map((p) => (
                 <div
-                  key={p.definitionKey}
+                  key={p.instanceId}
                   className="rounded-[8px] border border-hairline px-3 py-2"
                 >
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="text-[13px] font-medium text-ink-900">
                       {t(`definition.${p.definitionKey}`)}
+                      {p.periodLabel && (
+                        <span className="ml-1.5 font-mono text-[11px] font-normal text-ink-400">
+                          {p.periodLabel}
+                        </span>
+                      )}
                     </span>
                     <span className="font-mono text-[11px] text-ink-400">
                       {t(`status.${p.status}`)}
                     </span>
+                  </div>
+
+                  {/* Where the deadlines come from — traceable to a fact,
+                      never to the calendar. */}
+                  <div className="mt-0.5 font-mono text-[11px] text-ink-400">
+                    {t("startedOn", {
+                      date: p.startedOn,
+                      source: t(`source.${p.startSource}`),
+                    })}
                   </div>
 
                   <div className="mt-1.5 space-y-1">

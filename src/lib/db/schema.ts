@@ -1053,3 +1053,42 @@ export const officeAccounts = pgTable("office_accounts", {
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/**
+ * Process activation (plan os-v2 W3, Temujin PR-11 r1 #1).
+ *
+ * IMMUTABLE, and deliberately NOT a step-status cache. Step status stays
+ * derived from what is recorded, because a stored status is a second copy
+ * that drifts. What cannot be derived is WHEN a process began and WHY —
+ * dating an einde-bewind process from 1 January because that is the start of
+ * the year fabricates its deadlines. So the activation is a fact with a
+ * source, written once and never updated.
+ */
+export const processInstances = pgTable(
+  "process_instances",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    dossierId: text("dossier_id")
+      .notNull()
+      .references(() => dossiers.id),
+    definitionKey: text("definition_key").notNull(),
+    definitionVersion: text("definition_version").notNull(),
+    /** The date the process actually began, from its source. */
+    startedOn: date("started_on").notNull(),
+    /** What made it start — named, so a deadline can be traced to a fact. */
+    startSource: text("start_source").notNull(),
+    /** The row that source refers to (an rv_period, a payment_item, …). */
+    sourceEntityId: text("source_entity_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    // One instance per source. An R&V process belongs to ONE court-set
+    // period, so a second period is a second process, not a mutation.
+    uniqueIndex("process_instance_unique").on(
+      t.dossierId,
+      t.definitionKey,
+      t.sourceEntityId
+    ),
+    index("process_instance_dossier").on(t.dossierId),
+  ]
+);

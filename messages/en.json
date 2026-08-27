@@ -1217,6 +1217,17 @@
       "einde_bewind": {
         "eindrekening": "Draw up the eindrekening"
       }
+    },
+    "activate": "Start due processes",
+    "activating": "Starting…",
+    "activateDone": "{count} process(es) started",
+    "activateNothingNew": "Nothing new to start",
+    "activateFailed": "Could not start processes",
+    "startedOn": "from {date} · {source}",
+    "source": {
+      "dossier_start_date": "start of the measure",
+      "rv_period": "court-set period",
+      "machtiging_threshold": "threshold reached"
     }
   }
 }

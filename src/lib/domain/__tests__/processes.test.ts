@@ -74,10 +74,11 @@ describe("process definitions", () => {
     // date is worse than an absent one.
     const rv = PROCESS_DEFINITIONS.rv_jaarlijks;
     expect(rv.steps.every((s) => s.dueOffsetDays === null)).toBe(true);
-    const beschikking = PROCESS_DEFINITIONS.machtiging.steps.find(
-      (s) => s.key === "beschikking_vastleggen"
+    // The threshold being reached is an event, not something with a deadline.
+    const drempel = PROCESS_DEFINITIONS.machtiging.steps.find(
+      (s) => s.key === "drempel_geconstateerd"
     )!;
-    expect(beschikking.dueOffsetDays).toBeNull();
+    expect(drempel.dueOffsetDays).toBeNull();
   });
 });
 
@@ -226,14 +227,14 @@ describe("evaluateProcess — process status", () => {
   });
 
   it("is BLOCKED when the only remaining step is someone else's move", () => {
-    // The office has filed the verzoek and the drempel is recorded; all that
-    // remains is the kantonrechter's beschikking. Nobody here can move it,
-    // and calling that "running" would overstate what the office is doing.
+    // The period is recorded and the transactions are categorised; the
+    // bespreking is the client's move. Nobody here can move it, and calling
+    // that "running" would overstate what the office is doing.
     const p = evaluateProcess({
-      definition: PROCESS_DEFINITIONS.machtiging,
+      definition: PROCESS_DEFINITIONS.rv_jaarlijks,
       facts: {
-        machtiging_drempel_bereikt: true,
-        machtiging_verzoek_opgesteld: true,
+        rv_periode_vastgelegd: true,
+        transacties_gecategoriseerd: true,
       },
       startDate: START,
       today: TODAY,
@@ -241,20 +242,27 @@ describe("evaluateProcess — process status", () => {
     expect(p.status).toBe("blocked");
     expect(p.readyCount).toBe(0);
     expect(p.awaitingCount).toBe(1);
-    expect(p.steps.find((s) => s.key === "beschikking_vastleggen")!.status).toBe(
-      "awaiting"
-    );
+    expect(p.steps.find((s) => s.key === "bespreking")!.status).toBe("awaiting");
   });
 
   it("is still running while the office has anything of its own to do", () => {
     const p = evaluateProcess({
       definition: PROCESS_DEFINITIONS.machtiging,
-      facts: { machtiging_verzoek_opgesteld: true },
+      facts: { machtiging_drempel_bereikt: true },
       startDate: START,
       today: TODAY,
     });
-    // drempel_geconstateerd is unrecorded and is the office's own step.
     expect(p.status).toBe("running");
+  });
+
+  it("claims only what Frank records about a machtiging", () => {
+    // Temujin PR-11 r1 #3: a `court_authorization` resolution on the payment
+    // guard records that a human resolved the guard on that ground — not
+    // that a beschikking is on file. Frank does not store beschikkingen, so
+    // no step may imply that it does.
+    const keys = PROCESS_DEFINITIONS.machtiging.steps.map((s) => s.key);
+    expect(keys).toEqual(["drempel_geconstateerd", "afhandelen"]);
+    expect(keys).not.toContain("beschikking_vastleggen");
   });
 });
 
@@ -299,14 +307,12 @@ describe("step ownership — waiting on you vs waiting on someone else", () => {
     // Ownership only matters once dependencies are met; before that it is
     // genuinely blocked by the graph.
     const p = evaluateProcess({
-      definition: PROCESS_DEFINITIONS.machtiging,
+      definition: PROCESS_DEFINITIONS.rv_jaarlijks,
       facts: {},
       startDate: START,
       today: TODAY,
     });
-    expect(p.steps.find((s) => s.key === "beschikking_vastleggen")!.status).toBe(
-      "blocked"
-    );
+    expect(p.steps.find((s) => s.key === "bespreking")!.status).toBe("blocked");
   });
 });
 
@@ -342,13 +348,15 @@ describe("applicableProcesses — court facts are recorded, never inferred", () 
     );
   });
 
-  it("adds einde_bewind only once an end date is RECORDED", () => {
-    expect(applicableProcesses({ schuldenbewind: false })).not.toContain(
+  it("does not offer einde_bewind at all — Frank has no evidence for it", () => {
+    // Temujin PR-11 r1 #4: its only step is the eindrekening, and there is
+    // no source for whether one exists. A process that can only ever report
+    // "not done", from a hard-coded false, quietly accuses a curator of
+    // being behind on work the system cannot see.
+    expect(Object.keys(PROCESS_DEFINITIONS)).not.toContain("einde_bewind");
+    expect(applicableProcesses({ schuldenbewind: true })).not.toContain(
       "einde_bewind"
     );
-    expect(
-      applicableProcesses({ schuldenbewind: false, endDate: "2026-12-31" })
-    ).toContain("einde_bewind");
   });
 });
 
@@ -365,10 +373,10 @@ describe("summariseProcesses", () => {
       plan_van_aanpak_vastgelegd: true,
     });
     const blocked = evaluateProcess({
-      definition: PROCESS_DEFINITIONS.machtiging,
+      definition: PROCESS_DEFINITIONS.rv_jaarlijks,
       facts: {
-        machtiging_drempel_bereikt: true,
-        machtiging_verzoek_opgesteld: true,
+        rv_periode_vastgelegd: true,
+        transacties_gecategoriseerd: true,
       },
       startDate: START,
       today: TODAY,
@@ -378,7 +386,7 @@ describe("summariseProcesses", () => {
     expect(s.done).toBe(1);
     expect(s.blocked).toBe(1);
     expect(s.waitingOnYou).toBe(2); // one ready step in each running process
-    expect(s.awaitingOthers).toBe(1); // the kantonrechter's beschikking
+    expect(s.awaitingOthers).toBe(1); // the bespreking with the client
     expect(s.overdue).toBeGreaterThan(0);
   });
 

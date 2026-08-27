@@ -1217,6 +1217,17 @@
       "einde_bewind": {
         "eindrekening": "Eindrekening opstellen"
       }
+    },
+    "activate": "Openstaande procedures starten",
+    "activating": "Bezig…",
+    "activateDone": "{count} procedure(s) gestart",
+    "activateNothingNew": "Niets nieuws te starten",
+    "activateFailed": "Procedures starten is niet gelukt",
+    "startedOn": "vanaf {date} · {source}",
+    "source": {
+      "dossier_start_date": "aanvang van de maatregel",
+      "rv_period": "door de rechtbank vastgestelde periode",
+      "machtiging_threshold": "drempel bereikt"
     }
   }
 }

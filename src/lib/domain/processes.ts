@@ -26,12 +26,20 @@
 
 export const PROCESS_DEFINITION_VERSION = "processes-v1";
 
+/**
+ * `einde_bewind` is deliberately ABSENT (Temujin PR-11 r1 #4).
+ *
+ * Its only step is the eindrekening, and Frank has no source for whether one
+ * has been drawn up. A process that can only ever report "not done", from a
+ * hard-coded false, tells a curator nothing and quietly accuses them of
+ * being behind on work the system cannot see. It returns when there is
+ * something real to read.
+ */
 export type ProcessDefinitionKey =
   | "intake"
   | "rv_jaarlijks"
   | "machtiging"
-  | "schuldtraject"
-  | "einde_bewind";
+  | "schuldtraject";
 
 /**
  * The facts a step can depend on.
@@ -55,9 +63,7 @@ export type ProcessFactKey =
   | "rv_bespreking_vastgelegd"
   | "rv_ondertekend"
   | "machtiging_drempel_bereikt"
-  | "machtiging_verzoek_opgesteld"
-  | "machtiging_beschikking_vastgelegd"
-  | "eindrekening_opgesteld";
+  | "machtiging_afgehandeld";
 
 export type ProcessFacts = Readonly<Partial<Record<ProcessFactKey, boolean>>>;
 
@@ -186,6 +192,20 @@ export const PROCESS_DEFINITIONS: Record<
     ],
   },
 
+  /**
+   * Machtiging, reduced to what Frank can actually evidence
+   * (Temujin PR-11 r1 #3).
+   *
+   * An earlier version claimed three steps: threshold reached, verzoek
+   * drafted, beschikking recorded. Only the first and last had a source, and
+   * the last was wrong — a `court_authorization` resolution on the payment
+   * guard records that a human resolved the guard on that ground, which is
+   * not the same as a beschikking being on file. Frank does not store
+   * beschikkingen, so it must not imply that it does.
+   *
+   * What remains is true: the guard fired, and a human recorded how it was
+   * resolved with a ground and a timestamp.
+   */
   machtiging: {
     key: "machtiging",
     version: PROCESS_DEFINITION_VERSION,
@@ -198,17 +218,10 @@ export const PROCESS_DEFINITIONS: Record<
         legalSource: "LOVT Aanbevelingen B.D2/B.D3",
       },
       {
-        key: "verzoek_opstellen",
+        key: "afhandelen",
         dependsOn: ["drempel_geconstateerd"],
-        satisfiedBy: "machtiging_verzoek_opgesteld",
+        satisfiedBy: "machtiging_afgehandeld",
         dueOffsetDays: 14,
-      },
-      {
-        key: "beschikking_vastleggen",
-        dependsOn: ["verzoek_opstellen"],
-        satisfiedBy: "machtiging_beschikking_vastgelegd",
-        dueOffsetDays: null, // the court's pace, not ours
-        owner: "court",
       },
     ],
   },
@@ -233,19 +246,6 @@ export const PROCESS_DEFINITIONS: Record<
     ],
   },
 
-  einde_bewind: {
-    key: "einde_bewind",
-    version: PROCESS_DEFINITION_VERSION,
-    steps: [
-      {
-        key: "eindrekening",
-        dependsOn: [],
-        satisfiedBy: "eindrekening_opgesteld",
-        dueOffsetDays: 60,
-        legalSource: "art. 1:445 lid 2 BW",
-      },
-    ],
-  },
 };
 
 // ---------------------------------------------------------------------------
@@ -379,20 +379,17 @@ export function evaluateProcess(input: {
  * machtiging nobody ever needed — noise that trains people to ignore the
  * page.
  *
- * `schuldtraject` only for schuldenbewind, `einde_bewind` only once an end
- * date is recorded — court facts are recorded, never inferred.
+ * `schuldtraject` only for schuldenbewind.
  */
 export function applicableProcesses(
   dossier: {
     schuldenbewind: boolean;
-    endDate?: string | null;
   },
   facts: ProcessFacts = {}
 ): ProcessDefinitionKey[] {
   const keys: ProcessDefinitionKey[] = ["intake", "rv_jaarlijks"];
   if (facts.machtiging_drempel_bereikt) keys.push("machtiging");
   if (dossier.schuldenbewind) keys.push("schuldtraject");
-  if (dossier.endDate) keys.push("einde_bewind");
   return keys;
 }
 
