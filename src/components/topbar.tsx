@@ -14,6 +14,7 @@ const SECTION_BY_PREFIX: [string, string][] = [
   ["/dossiers", "dossiers"],
   ["/inbox", "inbox"],
   ["/payments", "payments"],
+  ["/processes", "processes"],
   ["/safeguarding", "safeguarding"],
   ["/office", "office"],
   ["/audit", "audit"],

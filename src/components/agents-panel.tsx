@@ -1,7 +1,11 @@
 import { getTranslations, getLocale } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SeverityDot } from "@/components/format";
-import { agentActivity, agentCeilings } from "@/lib/agent-report";
+import {
+  agentActivity,
+  agentCeilings,
+  automationCandidacy,
+} from "@/lib/agent-report";
 import { agentCharter } from "@/lib/agent-context";
 import { ACTION_CATEGORY } from "@/lib/domain/agents";
 
@@ -35,6 +39,7 @@ export async function AgentsPanel() {
         <div className="space-y-2.5">
           {activity.map((a) => {
             const { grants, neverGrants } = agentCeilings(a.key);
+            const candidacy = automationCandidacy(a);
             return (
               <div
                 key={a.key}
@@ -94,6 +99,29 @@ export async function AgentsPanel() {
                     </div>
                   )}
                 </div>
+
+                {/* Autonomy REPORTING, not a ratchet (plan os-v2 N3). There
+                    is deliberately no control here: the number is an
+                    observation for a human, and nothing acts on it. */}
+                {(a.acceptedUnedited > 0 || a.acceptedWithEdits > 0) && (
+                  <p className="mt-1.5 font-mono text-[11px] text-ink-400">
+                    {t("uneditedSplit", {
+                      unedited: a.acceptedUnedited,
+                      edited: a.acceptedWithEdits,
+                    })}
+                    {a.medianMinutesToDecision !== null &&
+                      ` · ${t("timeToDecision", {
+                        minutes: a.medianMinutesToDecision,
+                      })}`}
+                  </p>
+                )}
+                {candidacy.status !== "insufficient_evidence" && (
+                  <p className="mt-1 text-[11.5px] text-ink-600">
+                    {t(`candidacy.${candidacy.status}`, {
+                      pct: Math.round((candidacy.uneditedShare ?? 0) * 100),
+                    })}
+                  </p>
+                )}
 
                 {a.denials > 0 && (
                   <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-ink-600">

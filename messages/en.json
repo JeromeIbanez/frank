@@ -20,7 +20,8 @@
     },
     "team": "Team",
     "office": "Office",
-    "safeguarding": "Safeguarding"
+    "safeguarding": "Safeguarding",
+    "processes": "Processes"
   },
   "common": {
     "cancel": "Cancel",
@@ -980,7 +981,13 @@
       "protective": "Opens a protective work item — asserts nothing, disposed of only by a human"
     },
     "mayLabel": "May",
-    "neverLabel": "Never"
+    "neverLabel": "Never",
+    "uneditedSplit": "{unedited} accepted unchanged · {edited} edited first",
+    "timeToDecision": "median {minutes} min to decide",
+    "candidacy": {
+      "candidate": "Accepted unchanged {pct}% of the time. On this evidence the class would be a candidate for automation — a note for a human, not something Frank acts on.",
+      "not_yet": "Accepted unchanged {pct}% of the time. Not a candidate for automation."
+    }
   },
   "obligations": {
     "group": {
@@ -1148,6 +1155,68 @@
       "response_required": "Please enter the answer",
       "invalid_destination": "Unknown destination",
       "office_wide_needs_external_review": "This concerns the office as a whole, so it must go to an external reviewer — you can escalate it"
+    }
+  },
+  "processes": {
+    "intro": "Every legal procedure this office runs, with what each one is waiting on. A process is blocked when nobody here can move it — a court, a client or a creditor has to act first.",
+    "derivedNote": "Step status is derived from what is actually recorded in the dossier, not stored separately. A step is done because the work is done, never because someone ticked it.",
+    "emptyTitle": "No running processes",
+    "emptySentence": "No open dossier has a procedure under way.",
+    "tiles": {
+      "running": "Running",
+      "waitingOnYou": "Steps needing you",
+      "blocked": "Waiting on others",
+      "overdue": "Overdue"
+    },
+    "definition": {
+      "intake": "Intake",
+      "rv_jaarlijks": "Annual R&V",
+      "machtiging": "Machtiging",
+      "schuldtraject": "Debt track",
+      "einde_bewind": "End of bewind"
+    },
+    "status": {
+      "running": "running",
+      "blocked": "waiting on someone else",
+      "done": "done"
+    },
+    "awaiting": {
+      "court": "waiting on the court",
+      "client": "waiting on the client",
+      "third_party": "waiting on a third party",
+      "office": "needs you"
+    },
+    "blockedBy": "first: {steps}",
+    "due": "due {date}",
+    "overdueSince": "overdue since {date}",
+    "step": {
+      "intake": {
+        "beheerrekening": "Open the beheerrekening",
+        "leefgeldrekening": "Open the leefgeldrekening",
+        "aanschrijven_instanties": "Notify the agencies",
+        "budgetplan": "Draw up the budget plan",
+        "schulden_inventariseren": "Inventory the debts",
+        "boedelbeschrijving": "File the boedelbeschrijving",
+        "plan_van_aanpak": "Record the plan van aanpak"
+      },
+      "rv_jaarlijks": {
+        "periode_vastleggen": "Court sets the R&V period",
+        "transacties_compleet": "Categorise every transaction",
+        "bespreking": "Discuss with the client",
+        "ondertekenen_indienen": "Sign and file"
+      },
+      "machtiging": {
+        "drempel_geconstateerd": "Threshold reached",
+        "verzoek_opstellen": "Draw up the verzoek",
+        "beschikking_vastleggen": "Record the beschikking"
+      },
+      "schuldtraject": {
+        "inventariseren": "Inventory the debts",
+        "regelingen_treffen": "Agree payment arrangements"
+      },
+      "einde_bewind": {
+        "eindrekening": "Draw up the eindrekening"
+      }
     }
   }
 }
