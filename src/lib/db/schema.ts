@@ -795,3 +795,172 @@ export const contactsRelations = relations(contacts, ({ one }) => ({
     references: [dossiers.id],
   }),
 }));
+
+// ---------- Channels, messages, obligations (plan os-v2 W1 / PR-9) ----------
+//
+// The DRIVER layer. os-v1 had no way for anything to ARRIVE: a human
+// uploaded a document. Curators live in email, so every inbound item — mail,
+// scanned post, portal, bank — lands here as a `message`, is resolved to a
+// dossier with recorded evidence, and becomes an `obligation`.
+//
+// N6: the only adapter in this build is a SIMULATED one over synthetic data.
+// No real mailbox, bank or client contact.
+
+export const channels = pgTable("channels", {
+  id: text("id").primaryKey().$defaultFn(createId),
+  kind: text("kind", {
+    enum: ["email", "post", "portal", "bank", "client_app"],
+  }).notNull(),
+  label: text("label").notNull(),
+  /** Only "simulated" exists in this build; the column is here so a real
+   *  adapter is a new value rather than a schema change. */
+  adapter: text("adapter").notNull().default("simulated"),
+  active: boolean("active").notNull().default(true),
+  lastSyncAt: timestamp("last_sync_at"),
+});
+
+export const messages = pgTable(
+  "messages",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => channels.id),
+    /** Idempotent ingest: re-pulling a mailbox must never duplicate. */
+    externalId: text("external_id").notNull(),
+    threadKey: text("thread_key"),
+    direction: text("direction", { enum: ["inbound", "outbound"] })
+      .notNull()
+      .default("inbound"),
+    fromName: text("from_name"),
+    fromAddress: text("from_address"),
+    subject: text("subject"),
+    bodyText: text("body_text"),
+    receivedAt: timestamp("received_at").notNull(),
+    rawSha256: text("raw_sha256").notNull(),
+
+    dossierId: text("dossier_id").references(() => dossiers.id),
+    resolutionConfidence: integer("resolution_confidence"), // 0-100
+    /** WHY we think it is this dossier — per matcher, human-readable. */
+    resolutionEvidence: jsonb("resolution_evidence").$type<
+      { matcher: string; value: string }[]
+    >(),
+    /** An agent-written link is PROVISIONAL (plan os-v2 §2.1 category B):
+     *  linkSource "agent" + linkReviewed false, shown as awaiting
+     *  confirmation, and no dossier-dependent action may proceed on it. */
+    linkSource: text("link_source", { enum: ["agent", "human"] }),
+    linkReviewed: boolean("link_reviewed").notNull().default(false),
+
+    status: text("status", {
+      enum: ["new", "resolved", "needs_dossier", "archived"],
+    })
+      .notNull()
+      .default("new"),
+    /** Outbound only, and only ever set by a human decision (N2). */
+    sentAt: timestamp("sent_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("messages_external_unique").on(t.channelId, t.externalId),
+    index("messages_status").on(t.status, t.receivedAt),
+  ]
+);
+
+export const messageAttachments = pgTable("message_attachments", {
+  id: text("id").primaryKey().$defaultFn(createId),
+  messageId: text("message_id")
+    .notNull()
+    .references(() => messages.id),
+  documentId: text("document_id")
+    .notNull()
+    .references(() => documents.id),
+});
+
+/**
+ * An obligation is what someone OUTSIDE demands of us, with a deadline and a
+ * right answer. Distinct from `tasks`, which is our own internal work
+ * (Temujin os-v2 r1): an obligation is externally sourced and evidential, and
+ * it LINKS to tasks rather than duplicating their state.
+ */
+export const obligations = pgTable(
+  "obligations",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    dossierId: text("dossier_id").references(() => dossiers.id),
+    sourceMessageId: text("source_message_id")
+      .notNull()
+      .references(() => messages.id),
+    sourceDocumentId: text("source_document_id").references(() => documents.id),
+    kind: text("kind", {
+      enum: [
+        "payment_demand",
+        "information_request",
+        "court_filing",
+        "decision_notice",
+        "client_request",
+        "appointment",
+        "other",
+      ],
+    }).notNull(),
+    summaryNl: text("summary_nl").notNull(),
+    summaryEn: text("summary_en").notNull(),
+    dueDate: date("due_date"),
+    dueDateSource: text("due_date_source"),
+    agentKey: text("agent_key"),
+    /** Rule-check results. Every check ABSTAINS unless evidenced, so an
+     *  empty array is the common and correct case. */
+    findings: jsonb("findings").$type<Record<string, unknown>[]>(),
+    proposedLetterId: text("proposed_letter_id").references(() => letters.id),
+    proposedProposalIds: jsonb("proposed_proposal_ids").$type<string[]>(),
+    status: text("status", {
+      enum: ["open", "in_review", "actioned", "dismissed", "escalated"],
+    })
+      .notNull()
+      .default("open"),
+    decidedBy: text("decided_by"),
+    decidedAt: timestamp("decided_at"),
+    dismissReason: text("dismiss_reason"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("obligations_message_unique").on(t.sourceMessageId),
+    index("obligations_status").on(t.status, t.dueDate),
+  ]
+);
+
+/** Link, do not duplicate (Temujin os-v2 r1). */
+export const obligationLinks = pgTable(
+  "obligation_links",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    obligationId: text("obligation_id")
+      .notNull()
+      .references(() => obligations.id),
+    targetType: text("target_type", { enum: ["task", "process_step"] }).notNull(),
+    targetId: text("target_id").notNull(),
+  },
+  (t) => [uniqueIndex("obligation_link_unique").on(t.obligationId, t.targetType, t.targetId)]
+);
+
+export const messagesRelations = relations(messages, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [messages.channelId],
+    references: [channels.id],
+  }),
+  dossier: one(dossiers, {
+    fields: [messages.dossierId],
+    references: [dossiers.id],
+  }),
+  attachments: many(messageAttachments),
+}));
+
+export const obligationsRelations = relations(obligations, ({ one }) => ({
+  dossier: one(dossiers, {
+    fields: [obligations.dossierId],
+    references: [dossiers.id],
+  }),
+  sourceMessage: one(messages, {
+    fields: [obligations.sourceMessageId],
+    references: [messages.id],
+  }),
+}));

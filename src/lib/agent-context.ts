@@ -92,6 +92,18 @@ export type AgentGrant = {
   readonly agentKey: AgentKey;
   readonly action: AgentActionClass;
   readonly correlationId: string;
+  /**
+   * What this grant authorizes work ON (Temujin PR-8 r3, required before the
+   * first per-entity agent write).
+   *
+   * Without it a grant proves only that SOME gate ran for this action class,
+   * so a grant minted for document A would satisfy a writer acting on
+   * document B in the same request — which for `dossier_link` means a draft
+   * attached to the wrong person's dossier. Null only for genuinely
+   * entity-less actions.
+   */
+  readonly entityType: string | null;
+  readonly entityId: string | null;
 };
 
 export function isAgentGrant(v: unknown): v is AgentGrant {
@@ -150,9 +162,45 @@ export async function assertAgentMay(
     agentKey: ctx.agentKey,
     action,
     correlationId: ctx.correlationId,
+    entityType: entity?.type ?? null,
+    entityId: entity?.id ?? null,
   });
   REAL_GRANTS.add(grant);
   return grant;
+}
+
+/**
+ * Demand a grant that covers this exact action AND this exact entity.
+ *
+ * Entity-specific writers call this instead of trusting that the grant in
+ * scope happens to be the right one. Getting it wrong is not an abstract
+ * risk: linking a creditor's letter to the wrong dossier puts one client's
+ * debt in another client's file.
+ */
+export function assertGrantCovers(
+  grant: AgentGrant,
+  action: AgentActionClass,
+  entity: { type: string; id: string }
+): void {
+  if (!isAgentGrant(grant)) {
+    throw new AgentCeilingError(
+      `no grant: ${action} on ${entity.type}:${entity.id}`,
+      "forged_context"
+    );
+  }
+  if (grant.action !== action) {
+    throw new AgentCeilingError(
+      `grant is for ${grant.action}, not ${action}`,
+      "not_granted"
+    );
+  }
+  if (grant.entityType !== entity.type || grant.entityId !== entity.id) {
+    throw new AgentCeilingError(
+      `grant covers ${grant.entityType}:${grant.entityId}, ` +
+        `not ${entity.type}:${entity.id}`,
+      "not_granted"
+    );
+  }
 }
 
 async function auditDenial(

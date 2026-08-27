@@ -6,6 +6,7 @@ import {
   agentActorId,
   agentCharter,
   isAgentGrant,
+  assertGrantCovers,
   AgentCeilingError,
   type AgentContext,
 } from "@/lib/agent-context";
@@ -209,6 +210,65 @@ describe("AgentGrant — proof the gate actually ran", () => {
         correlationId: "x",
       } as unknown as AgentContext)
     ).toThrow(AgentCeilingError);
+  });
+});
+
+describe("assertGrantCovers — entity binding", () => {
+  const entity = { type: "message", id: "m-1" };
+
+  it("accepts a grant minted for this exact action and entity", async () => {
+    const grant = await assertAgentMay(agentContext("postbode"), "dossier_link", entity);
+    expect(() => assertGrantCovers(grant, "dossier_link", entity)).not.toThrow();
+  });
+
+  it("REFUSES a grant minted for a different entity", async () => {
+    // The failure this exists to prevent: a grant taken for message A
+    // authorizing a dossier link on message B, which puts one client's
+    // creditor letter into another client's file.
+    const grant = await assertAgentMay(agentContext("postbode"), "dossier_link", entity);
+    expect(() =>
+      assertGrantCovers(grant, "dossier_link", { type: "message", id: "m-2" })
+    ).toThrow(AgentCeilingError);
+  });
+
+  it("refuses a grant minted for a different action", async () => {
+    const grant = await assertAgentMay(agentContext("postbode"), "letter_draft", entity);
+    expect(() => assertGrantCovers(grant, "dossier_link", entity)).toThrow(
+      AgentCeilingError
+    );
+  });
+
+  it("refuses a grant with no entity binding when one is required", async () => {
+    const grant = await assertAgentMay(agentContext("postbode"), "dossier_link");
+    expect(() => assertGrantCovers(grant, "dossier_link", entity)).toThrow(
+      AgentCeilingError
+    );
+  });
+
+  it("refuses a forged grant outright", () => {
+    expect(() =>
+      assertGrantCovers(
+        {
+          agentKey: "postbode",
+          action: "dossier_link",
+          correlationId: "x",
+          entityType: "message",
+          entityId: "m-1",
+        } as unknown as Parameters<typeof assertGrantCovers>[0],
+        "dossier_link",
+        entity
+      )
+    ).toThrow(AgentCeilingError);
+  });
+
+  it("distinguishes entities of the same id but different type", async () => {
+    const grant = await assertAgentMay(agentContext("postbode"), "dossier_link", {
+      type: "document",
+      id: "m-1",
+    });
+    expect(() => assertGrantCovers(grant, "dossier_link", entity)).toThrow(
+      AgentCeilingError
+    );
   });
 });
 
