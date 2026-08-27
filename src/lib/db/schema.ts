@@ -1034,3 +1034,22 @@ export const safeguardingCasesRelations = relations(
     }),
   })
 );
+
+/**
+ * Accounts belonging to the office or to an office actor (plan os-v2 N5).
+ *
+ * Office configuration, maintained by a human — this is what lets Frank
+ * recognise a payment to itself. Without it the office-scope detectors have
+ * nothing to compare against and correctly stay silent, which is why the
+ * table exists rather than the IBANs being inferred from anywhere.
+ */
+export const officeAccounts = pgTable("office_accounts", {
+  id: text("id").primaryKey().$defaultFn(createId),
+  iban: text("iban").notNull().unique(),
+  /** The actor this account belongs to, when it is personal rather than the
+   *  firm's. Drives who may not dispose of a resulting case. */
+  actorId: text("actor_id"),
+  label: text("label").notNull(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

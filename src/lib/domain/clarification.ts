@@ -50,7 +50,7 @@ const CLOSING =
   "Weet u het niet meer? Dat is niet erg. Zegt u dan gerust dat u het niet " +
   "meer weet.\n\n" +
   "Het is uw geld. U hoeft geen toestemming te vragen om het uit te geven. " +
-  "Wij willen alleen zeker weten dat er niets mis is gegaan.\n\n" +
+  "Wij vragen dit zodat wij u goed kunnen helpen.\n\n" +
   "Met vriendelijke groet,\n\n" +
   "[naam bewindvoerder]";
 
@@ -141,22 +141,8 @@ export function draftClarification(
         n,
         "Een vraag over een betaling",
         `Er is ${euro(e.amountCents)} betaald aan ${String(e.counterparty || "iemand")}. ` +
-          `Dat is de eerste keer dat wij deze naam zien.`,
+          `Wij hebben deze naam niet eerder in het dossier gezien.`,
         "Kent u deze naam? En weet u waar deze betaling voor was?"
-      );
-      return { detectorKey: input.detectorKey, subject, body };
-    }
-
-    case "high_risk_merchant": {
-      // The gentlest of the set on purpose: how someone spends their own
-      // money is their business, and the only real risk we are helping with
-      // is money running out before the month does.
-      const { subject, body } = compose(
-        n,
-        "Een vraag over een betaling",
-        `Wij zagen een betaling aan ${String(e.merchant || "een bedrijf")}.`,
-        "Wij vragen dit alleen om te weten of het geld deze maand toereikend " +
-          "blijft. Lukt het u om rond te komen? Wilt u dat wij meekijken?"
       );
       return { detectorKey: input.detectorKey, subject, body };
     }

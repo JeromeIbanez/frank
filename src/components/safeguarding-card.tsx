@@ -82,11 +82,6 @@ export function SafeguardingCard({
           amount: euro(e.amountCents),
           counterparty: String(e.counterparty ?? ""),
         });
-      case "high_risk_merchant":
-        return t("detail.high_risk_merchant", {
-          merchant: String(e.merchant ?? ""),
-          amount: euro(e.amountCents),
-        });
       case "leefgeld_diversion":
         return t("detail.leefgeld_diversion", {
           credit: euro(e.creditCents),

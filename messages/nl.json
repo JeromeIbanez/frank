@@ -1113,8 +1113,7 @@
       "cash_withdrawal_spike": "Meer contant opgenomen dan gebruikelijk",
       "structuring": "Herhaald opgenomen net onder een rond bedrag",
       "rapid_in_out": "Geld erin, en bijna hetzelfde bedrag er meteen weer uit",
-      "new_payee_high_value": "Eerste betaling aan een onbekende rekening",
-      "high_risk_merchant": "Betaling om even bij stil te staan",
+      "new_payee_high_value": "Hoge betaling aan een niet eerder vastgelegde rekening",
       "leefgeld_diversion": "Leefgeld vrijwel meteen weg",
       "direct_debit_without_recorded_mandate": "Incasso zonder vastgelegde machtiging",
       "beneficiary_name_mismatch": "Tenaamstelling wijkt af van de schuldeiser in het dossier",
@@ -1126,8 +1125,7 @@
       "cash_withdrawal_spike": "{recent} opgenomen in de afgelopen {days} dagen, tegen een maandelijks gemiddelde van {baseline} voor deze cliënt.",
       "structuring": "{count} opnames net onder {threshold}.",
       "rapid_in_out": "{credit} kwam binnen en {debit} ging er {days} dag(en) later weer uit.",
-      "new_payee_high_value": "{amount} naar {counterparty} — de eerste keer dat deze rekening voorkomt.",
-      "high_risk_merchant": "{amount} aan {merchant}.",
+      "new_payee_high_value": "{amount} aan {counterparty} — deze rekening staat niet eerder in Frank, wat niet hetzelfde is als nooit eerder gebruikt.",
       "leefgeld_diversion": "{credit} kwam binnen en {outflow} ging er vrijwel meteen weer af.",
       "direct_debit_without_recorded_mandate": "{counterparty} incasseerde {amount}. Er is hier geen machtiging vastgelegd — dat betekent niet dat die er niet is.",
       "beneficiary_name_mismatch": "In het dossier: {onFile}. Op de transactie: {onTransaction}. Verificatie vóór betaling is verstandig.",
@@ -1148,7 +1146,8 @@
       "reason_required": "Een reden is verplicht",
       "ground_required": "Een grond is verplicht",
       "response_required": "Vul het antwoord in",
-      "invalid_destination": "Onbekende bestemming"
+      "invalid_destination": "Onbekende bestemming",
+      "no_independent_reviewer": "Een onafhankelijke beoordelaar moet dit afhandelen — u kunt het wel escaleren"
     }
   }
 }

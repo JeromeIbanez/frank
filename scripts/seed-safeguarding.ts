@@ -18,7 +18,13 @@
  */
 import { eq, and } from "drizzle-orm";
 import { getDb } from "../src/lib/db";
-import { dossiers, accounts, transactions } from "../src/lib/db/schema";
+import {
+  dossiers,
+  accounts,
+  transactions,
+  officeAccounts,
+  actors,
+} from "../src/lib/db/schema";
 
 /** Baseline months must sit OUTSIDE the 30-day recent window. */
 const BASELINE: { date: string; cents: number }[] = [
@@ -71,9 +77,53 @@ async function main() {
     .returning();
 
   console.log(
-    `safeguarding scenario: ${inserted.length} inserted, ` +
+    `client scenario: ${inserted.length} inserted, ` +
       `${rows.length - inserted.length} already present ` +
       `(${dossier.firstName} ${dossier.lastName})`
+  );
+
+  // ---- Office scope (N5): Frank watching its own operators ----------------
+  //
+  // Registering the office's own IBAN is real configuration, not demo
+  // trickery — without it the office detectors have nothing to compare
+  // against and correctly stay silent. The transaction below IS synthetic:
+  // a payment to that account categorised as something other than the fee,
+  // which is exactly the shape the detector is meant to surface.
+  const actor = await db.query.actors.findFirst({
+    where: eq(actors.role, "bewindvoerder"),
+  });
+
+  const [office] = await db
+    .insert(officeAccounts)
+    .values({
+      iban: "NL10FRNK0000000010",
+      actorId: actor?.id ?? null,
+      label: `${actor?.name ?? "Kantoor"} (kantoorrekening)`,
+    })
+    .onConflictDoNothing()
+    .returning();
+  if (office) console.log(`office account registered: ${office.label}`);
+
+  const [officeTx] = await db
+    .insert(transactions)
+    .values({
+      accountId: account.id,
+      dossierId: dossier.id,
+      bookingDate: "2026-08-14",
+      amountCents: -75_000,
+      counterpartyName: "Kantoorrekening",
+      counterpartyIban: "NL10FRNK0000000010",
+      description: "Overboeking",
+      categoryKey: "overige_uitgaven", // NOT the fee category
+      dedupeHash: "sg-demo-office-2026-08-14",
+      reviewed: false,
+    })
+    .onConflictDoNothing()
+    .returning();
+  console.log(
+    officeTx
+      ? "office-scope scenario inserted"
+      : "office-scope scenario already present"
   );
 }
 

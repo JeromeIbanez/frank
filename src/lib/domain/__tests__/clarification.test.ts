@@ -7,7 +7,6 @@ const CLIENT_KEYS = [
   "structuring",
   "rapid_in_out",
   "new_payee_high_value",
-  "high_risk_merchant",
   "leefgeld_diversion",
   "direct_debit_without_recorded_mandate",
 ];
@@ -21,7 +20,6 @@ const draftFor = (key: string) =>
       creditCents: 120_000,
       amountCents: 80_000,
       counterparty: "Q Trading BV",
-      merchant: "Holland Casino",
     },
   });
 
@@ -96,16 +94,6 @@ describe("every client-facing question obeys the N4 wording rules", () => {
 });
 
 describe("the gentler cases stay gentle", () => {
-  it("does not moralise about how the client spends their own money", () => {
-    const body = draftFor("high_risk_merchant")!.body.toLowerCase();
-    for (const word of ["gokken", "verslaving", "probleem", "gevaarlijk"]) {
-      expect(body).not.toContain(word);
-    }
-    // It offers help rather than passing judgement.
-    expect(body).toContain("rond te komen");
-    expect(body).toContain("wilt u dat wij meekijken");
-  });
-
   it("asks about pressure without naming or accusing anyone", () => {
     // "Did someone ask you to do this" is the safeguarding question that
     // matters, and it can be asked without implicating a specific person.
@@ -147,8 +135,8 @@ describe("coverage", () => {
   it("keeps the detector set and the question set in step", () => {
     // If a client detector ships without a decision about whether it has a
     // question, that is a gap worth failing on.
-    expect(CLIENT_DETECTORS.length).toBe(8);
-    expect(CLIENT_KEYS.length + 1).toBe(8); // +1 = beneficiary_name_mismatch
+    expect(CLIENT_DETECTORS.length).toBe(7);
+    expect(CLIENT_KEYS.length + 1).toBe(7); // +1 = beneficiary_name_mismatch
     expect(SAFEGUARDING_VERSION).toBe("safeguarding-v1");
   });
 });

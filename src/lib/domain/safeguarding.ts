@@ -22,7 +22,14 @@
  *      own history, never against a population norm.
  *   2. A DETECTOR THAT CANNOT SEE ENOUGH HISTORY ABSTAINS. Too little data
  *      is not a licence to guess; it is a reason to say nothing.
- *   3. NO RELATIONSHIP-BASED DETECTOR EXISTS. `payment_to_related_contact`
+ *   3. NOTHING IS FLAGGED MERELY FOR BEING LAWFUL SPENDING. A
+ *      `high_risk_merchant` detector existed in an earlier draft and was cut
+ *      (Temujin PR-10 r1 #3): it opened a case on a single lawful payment
+ *      with no baseline, no frequency and no affordability signal. "Info"
+ *      severity and gentle wording do not undo the dignity cost of filing a
+ *      casino, crypto or pawn transaction as a safeguarding signal about
+ *      someone whose money is already administered by another person.
+ *   4. NO RELATIONSHIP-BASED DETECTOR EXISTS. `payment_to_related_contact`
  *      was cut in plan rev 2 (Temujin r1 #5): a family label is not
  *      suspicious evidence, and normal support between relatives is common
  *      in exactly these households. Do not reintroduce it without a
@@ -114,40 +121,6 @@ export function isCashWithdrawal(t: SafeguardingTransaction): boolean {
   return CASH_MARKERS.some((m) => hay.includes(m));
 }
 
-/**
- * Curated, versioned merchant list — NEVER model guesswork (plan §6).
- *
- * Deliberately short and conservative. A wrong entry here produces a flag
- * about how someone spends their own money, so the bar for inclusion is that
- * the merchant is unambiguously in the category, not that it might be.
- */
-export const HIGH_RISK_MERCHANTS: readonly {
-  readonly match: string;
-  readonly category: "gokken" | "crypto" | "pandhuis";
-}[] = [
-  { match: "holland casino", category: "gokken" },
-  { match: "toto", category: "gokken" },
-  { match: "unibet", category: "gokken" },
-  { match: "bet365", category: "gokken" },
-  { match: "jack's casino", category: "gokken" },
-  { match: "bitvavo", category: "crypto" },
-  { match: "coinbase", category: "crypto" },
-  { match: "binance", category: "crypto" },
-  { match: "kraken.com", category: "crypto" },
-  { match: "used products", category: "pandhuis" },
-  { match: "cash converters", category: "pandhuis" },
-];
-
-export function highRiskMerchant(
-  t: SafeguardingTransaction
-): { match: string; category: string } | null {
-  const hay = `${t.counterpartyName ?? ""} ${t.description ?? ""}`.toLowerCase();
-  for (const m of HIGH_RISK_MERCHANTS) {
-    if (hay.includes(m.match)) return { match: m.match, category: m.category };
-  }
-  return null;
-}
-
 // ---------------------------------------------------------------------------
 // Client-scope detectors
 // ---------------------------------------------------------------------------
@@ -157,6 +130,12 @@ export type ClientDetectorInput = {
   readonly transactions: readonly SafeguardingTransaction[];
   /** Office-timezone evaluation date, supplied by the caller. */
   readonly today: string;
+  /**
+   * Minimum span of transaction history, in days, before "first-ever"
+   * claims are permitted (Temujin PR-10 r1 #4). Callers pass what they
+   * actually have; a freshly connected account produces abstention.
+   */
+  readonly historyDays?: number;
   /** How far back the "recent" window reaches. */
   readonly windowDays?: number;
   /** Known SEPA mandates on file, by creditor IBAN. */
@@ -322,13 +301,33 @@ export function detectRapidInOut(
   return cases;
 }
 
-/** First-ever transfer to an unknown IBAN, above a floor. */
+/**
+ * A high-value transfer to an account NOT PREVIOUSLY RECORDED IN FRANK.
+ *
+ * Deliberately not called "first-ever" (Temujin PR-10 r1 #4). Frank only
+ * knows what has been imported: on a freshly connected account every payee
+ * looks new, and the client's long-standing landlord would be flagged on
+ * their first €500 transfer. So this abstains unless there is a demonstrated
+ * span of history to have seen the payee in — N4b again, in a different
+ * costume.
+ */
 const NEW_PAYEE_FLOOR_CENTS = 50_000; // €500
+/** Same span the baseline detectors demand: roughly three months. */
+const MIN_HISTORY_DAYS = 90;
 
 export function detectNewPayeeHighValue(
   input: ClientDetectorInput
 ): SafeguardingCase[] {
   const windowDays = input.windowDays ?? DEFAULT_WINDOW_DAYS;
+
+  // How much history do we actually have? Prefer the caller's figure;
+  // otherwise measure the span of what we were given.
+  const dates = input.transactions.map((t) => t.bookingDate).sort();
+  const spanDays =
+    input.historyDays ??
+    (dates.length > 0 ? daysBetween(dates[0], input.today) : 0);
+  if (spanDays < MIN_HISTORY_DAYS) return [];
+
   const seenBefore = new Set(
     input.transactions
       .filter((t) => daysBetween(t.bookingDate, input.today) > windowDays)
@@ -359,36 +358,6 @@ export function detectNewPayeeHighValue(
         transactionIds: [t.id],
       },
     }));
-}
-
-export function detectHighRiskMerchant(
-  input: ClientDetectorInput
-): SafeguardingCase[] {
-  const windowDays = input.windowDays ?? DEFAULT_WINDOW_DAYS;
-  return input.transactions
-    .filter(
-      (t) => isDebit(t) && daysBetween(t.bookingDate, input.today) <= windowDays
-    )
-    .flatMap((t) => {
-      const m = highRiskMerchant(t);
-      if (!m) return [];
-      return [
-        {
-          detectorKey: "high_risk_merchant",
-          detectorVersion: SAFEGUARDING_VERSION,
-          scope: "client" as const,
-          dossierId: input.dossierId,
-          dedupeKey: `high_risk_merchant:${t.id}`,
-          severity: "info" as const, // a question, not an alarm
-          evidence: {
-            category: m.category,
-            merchant: t.counterpartyName ?? m.match,
-            amountCents: abs(t.amountCents),
-            transactionIds: [t.id],
-          },
-        },
-      ];
-    });
 }
 
 /** Leefgeld drained almost immediately after it arrives. */
@@ -519,7 +488,6 @@ export const CLIENT_DETECTORS = [
   detectStructuring,
   detectRapidInOut,
   detectNewPayeeHighValue,
-  detectHighRiskMerchant,
   detectLeefgeldDiversion,
   detectDirectDebitWithoutRecordedMandate,
   detectBeneficiaryNameMismatch,
@@ -708,22 +676,45 @@ export function canDisposeCase(input: {
   actorActive: boolean;
   scope: SafeguardingScope;
   concernsActorId?: string | null;
+  /** What the actor is trying to do. Resolution and escalation differ. */
+  disposition: "resolve" | "escalate";
+  /**
+   * Whether an active bewindvoerder exists who is neither the acting actor
+   * nor the concerned actor. Computed by the caller from the actor table;
+   * no configuration needed, because that IS the reviewer.
+   */
+  independentReviewerAvailable?: boolean;
 }):
   | { allowed: true }
   | {
       allowed: false;
-      reason: "inactive_actor" | "role_required" | "concerns_self";
+      reason:
+        | "inactive_actor"
+        | "role_required"
+        | "concerns_self"
+        | "no_independent_reviewer";
     } {
   if (!input.actorActive) return { allowed: false, reason: "inactive_actor" };
   if (input.actorRole !== "bewindvoerder")
     return { allowed: false, reason: "role_required" };
-  if (
-    input.scope === "office" &&
-    input.concernsActorId &&
-    input.concernsActorId === input.actorId
-  ) {
+  if (input.scope !== "office") return { allowed: true };
+
+  // Office scope from here on.
+  if (input.concernsActorId && input.concernsActorId === input.actorId)
     return { allowed: false, reason: "concerns_self" };
-  }
+
+  // RESOLVING an office case closes the loop on the office's own conduct, so
+  // it takes an independent reviewer (Temujin PR-10 r1 #2). Refusing to
+  // clear the actor themselves is not enough: in a solo office the sole
+  // bewindvoerder IS the office, and `fee_above_schedule` names no actor at
+  // all, so a self-clearance would slip through on a null check.
+  //
+  // ESCALATION stays open, because the honest move when nobody independent
+  // exists is to send it outward — to the appointing kantonrechter — not to
+  // leave it stuck or quietly close it.
+  if (input.disposition === "resolve" && !input.independentReviewerAvailable)
+    return { allowed: false, reason: "no_independent_reviewer" };
+
   return { allowed: true };
 }
 

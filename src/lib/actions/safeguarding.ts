@@ -10,6 +10,9 @@ import {
   accounts,
   dossiers,
   paymentItems,
+  paymentBatches,
+  officeAccounts,
+  actors,
   channels,
   messages,
 } from "@/lib/db/schema";
@@ -23,6 +26,7 @@ import {
 } from "@/lib/agent-context";
 import {
   runClientDetectors,
+  runOfficeDetectors,
   canDisposeCase,
   isEscalationDestination,
   type SafeguardingTransaction,
@@ -32,6 +36,7 @@ import {
   draftClarification,
   hasClientQuestion,
 } from "@/lib/domain/clarification";
+import { computeFee } from "@/lib/domain/fees";
 
 const CLIENT_CHANNEL_LABEL = "Cliëntkanaal (gesimuleerd)";
 
@@ -122,6 +127,117 @@ async function loadDetectorInput(dossierId: string): Promise<{
   };
 }
 
+/** The category that legitimately pays the office. */
+const FEE_BASIS_CATEGORY_KEYS = ["bewindvoerderskosten"];
+
+/**
+ * Everything the office-scope detectors need, from real tables.
+ *
+ * These were declared in PR-10's first cut but never wired, which meant the
+ * headline claim of this workstream — that Frank watches its own operators —
+ * was dead code (Temujin PR-10 r1 #1). Each input now has a real source:
+ * `office_accounts` for the office's own IBANs, transactions categorised as
+ * the fee for what was actually charged, and `payment_batches` for approvals.
+ */
+async function loadOfficeInput(today: string) {
+  const db = getDb();
+  const year = Number(today.slice(0, 4));
+
+  const [offices, txs, batches, activeBewind] = await Promise.all([
+    db.select().from(officeAccounts).where(eq(officeAccounts.active, true)),
+    db.select().from(transactions),
+    db.select().from(paymentBatches),
+    db
+      .select({ id: actors.id })
+      .from(actors)
+      .where(and(eq(actors.role, "bewindvoerder"), eq(actors.active, true))),
+  ]);
+
+  const accs = await db.select().from(accounts);
+  const typeById = new Map(accs.map((a) => [a.id, a.type]));
+
+  // What the office actually charged this dossier this year, from the
+  // transactions categorised as the fee — versus what the versioned
+  // schedule permits.
+  const chargedByDossier = new Map<string, number>();
+  for (const t of txs) {
+    if (t.amountCents >= 0) continue;
+    if (!t.categoryKey || !FEE_BASIS_CATEGORY_KEYS.includes(t.categoryKey))
+      continue;
+    if (!t.bookingDate.startsWith(String(year))) continue;
+    chargedByDossier.set(
+      t.dossierId,
+      (chargedByDossier.get(t.dossierId) ?? 0) + Math.abs(t.amountCents)
+    );
+  }
+
+  const feeComparisons: {
+    dossierId: string;
+    chargedCents: number;
+    permittedCents: number;
+    year: number;
+  }[] = [];
+  for (const [dossierId, chargedCents] of chargedByDossier) {
+    const d = await db.query.dossiers.findFirst({
+      where: eq(dossiers.id, dossierId),
+    });
+    if (!d) continue;
+    try {
+      const fee = computeFee({
+        dossier: d,
+        periodStart: `${year}-01-01`,
+        periodEnd: `${year}-12-31`,
+      });
+      if (!fee) continue; // unpriceable is not evidence of overcharging
+      feeComparisons.push({
+        dossierId,
+        chargedCents,
+        permittedCents: fee.proratedCents,
+        year,
+      });
+    } catch {
+      // A dossier the fee engine cannot price is not evidence of overcharging.
+    }
+  }
+
+  // An EVIDENCED four-eyes breach: same actor created and approved.
+  const sameActorApprovals = batches
+    .filter(
+      (b) => b.createdBy && b.approvedBy && b.createdBy === b.approvedBy
+    )
+    .map((b) => ({
+      batchId: b.id,
+      actorId: b.approvedBy!,
+      createdAuditId: `batch:${b.id}:created`,
+      approvedAuditId: `batch:${b.id}:approved`,
+      activeBewindvoerderCount: activeBewind.length,
+    }));
+
+  return {
+    officeLinkedIbans: offices.map((o) => ({
+      iban: o.iban,
+      actorId: o.actorId,
+      label: o.label,
+    })),
+    feeBasisCategoryKeys: FEE_BASIS_CATEGORY_KEYS,
+    today,
+    transactions: txs.map((t) => ({
+      id: t.id,
+      dossierId: t.dossierId,
+      accountId: t.accountId,
+      accountType: typeById.get(t.accountId) ?? ("beheer" as const),
+      bookingDate: t.bookingDate,
+      amountCents: t.amountCents,
+      counterpartyName: t.counterpartyName,
+      counterpartyIban: t.counterpartyIban,
+      description: t.description,
+      categoryKey: t.categoryKey,
+    })),
+    feeComparisons,
+    sameActorApprovals,
+  };
+}
+
 /**
  * Waakhond's detection pass.
  *
@@ -164,9 +280,36 @@ export async function refreshSafeguarding(): Promise<{
     }
   }
 
+  // Office scope (N5). Frank watching its own operators is the part a
+  // rechtbank auditor would care about most, so it runs every pass — not
+  // only when someone thinks to look.
+  const officeInput = await loadOfficeInput(today);
+  for (const c of runOfficeDetectors(officeInput)) {
+    const created = await openCase(ctx, c);
+    if (created) opened++;
+    else existing++;
+  }
+
   revalidatePath("/safeguarding");
   revalidatePath("/");
   return { ok: true, opened, existing };
+}
+
+/**
+ * Is there an active bewindvoerder who is neither the acting actor nor the
+ * concerned one? That person IS the independent reviewer — no configuration
+ * table needed (Temujin PR-10 r1 #2).
+ */
+async function independentReviewerAvailable(
+  actorId: string,
+  concernsActorId: string | null
+): Promise<boolean> {
+  const db = getDb();
+  const rows = await db
+    .select({ id: actors.id })
+    .from(actors)
+    .where(and(eq(actors.role, "bewindvoerder"), eq(actors.active, true)));
+  return rows.some((r) => r.id !== actorId && r.id !== concernsActorId);
 }
 
 async function openCase(
@@ -323,6 +466,8 @@ export async function sendClarification(
     actorActive: actor.active,
     scope: row.scope,
     concernsActorId: row.concernsActorId,
+    // Sending a question is not a disposition; treat it as the lighter act.
+    disposition: "escalate",
   });
   if (!verdict.allowed) return { ok: false, error: verdict.reason };
   if (!row.clarificationMessageId) return { ok: false, error: "no_draft" };
@@ -434,6 +579,11 @@ export async function resolveCase(
     actorActive: actor.active,
     scope: row.scope,
     concernsActorId: row.concernsActorId,
+    disposition: "resolve",
+    independentReviewerAvailable: await independentReviewerAvailable(
+      actor.id,
+      row.concernsActorId
+    ),
   });
   if (!verdict.allowed) {
     // An attempt by the concerned actor is itself security-relevant (N5).
@@ -506,6 +656,7 @@ export async function escalateCase(
     actorActive: actor.active,
     scope: row.scope,
     concernsActorId: row.concernsActorId,
+    disposition: "escalate",
   });
   if (!verdict.allowed) {
     if (verdict.reason === "concerns_self") {

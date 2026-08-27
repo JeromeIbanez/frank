@@ -1113,8 +1113,7 @@
       "cash_withdrawal_spike": "More cash withdrawn than usual",
       "structuring": "Repeated withdrawals just under a round amount",
       "rapid_in_out": "Money in, then almost the same amount straight out",
-      "new_payee_high_value": "First payment to an unknown account",
-      "high_risk_merchant": "Payment worth a check-in",
+      "new_payee_high_value": "High-value payment to an account not recorded before",
       "leefgeld_diversion": "Leefgeld gone almost immediately",
       "direct_debit_without_recorded_mandate": "Direct debit with no mandate on file",
       "beneficiary_name_mismatch": "Account name differs from the creditor on file",
@@ -1126,8 +1125,7 @@
       "cash_withdrawal_spike": "{recent} withdrawn in the last {days} days, against a monthly baseline of {baseline} for this client.",
       "structuring": "{count} withdrawals just under {threshold}.",
       "rapid_in_out": "{credit} came in and {debit} went out {days} day(s) later.",
-      "new_payee_high_value": "{amount} to {counterparty} — the first time this account appears.",
-      "high_risk_merchant": "{amount} to {merchant}.",
+      "new_payee_high_value": "{amount} to {counterparty} — this account is not recorded earlier in Frank, which is not the same as never used before.",
       "leefgeld_diversion": "{credit} arrived and {outflow} left almost immediately.",
       "direct_debit_without_recorded_mandate": "{counterparty} collected {amount}. No mandate is recorded here — which does not mean none exists.",
       "beneficiary_name_mismatch": "On file: {onFile}. On the transaction: {onTransaction}. Worth verifying before paying.",
@@ -1148,7 +1146,8 @@
       "reason_required": "A reason is required",
       "ground_required": "A ground is required",
       "response_required": "Please enter the answer",
-      "invalid_destination": "Unknown destination"
+      "invalid_destination": "Unknown destination",
+      "no_independent_reviewer": "An independent reviewer must resolve this — you can escalate it instead"
     }
   }
 }

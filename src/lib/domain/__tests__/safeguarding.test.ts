@@ -1,13 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   SAFEGUARDING_VERSION,
-  HIGH_RISK_MERCHANTS,
   isCashWithdrawal,
   detectCashWithdrawalSpike,
   detectStructuring,
   detectRapidInOut,
   detectNewPayeeHighValue,
-  detectHighRiskMerchant,
   detectLeefgeldDiversion,
   detectDirectDebitWithoutRecordedMandate,
   detectBeneficiaryNameMismatch,
@@ -226,8 +224,9 @@ describe("detectRapidInOut", () => {
 });
 
 describe("detectNewPayeeHighValue", () => {
-  it("flags a first-ever transfer above the floor", () => {
+  it("flags a not-previously-recorded payee once history supports it", () => {
     const transactions = [
+      tx({ bookingDate: "2026-03-01", amountCents: -3_000 }), // establishes span
       tx({
         bookingDate: "2026-08-20",
         amountCents: -80_000,
@@ -239,8 +238,41 @@ describe("detectNewPayeeHighValue", () => {
     expect(cases).toHaveLength(1);
   });
 
+  it("ABSTAINS on a freshly connected account (Temujin PR-10 r1 #4)", () => {
+    // With three weeks of imported history every payee looks new, and the
+    // client's long-standing landlord would be flagged on the first €500
+    // transfer. Absence from Frank is not absence in the world.
+    const transactions = [
+      tx({
+        bookingDate: "2026-08-20",
+        amountCents: -80_000,
+        counterpartyIban: "NL99BANK0000000001",
+      }),
+    ];
+    expect(
+      detectNewPayeeHighValue({ dossierId: D, transactions, today: TODAY })
+    ).toEqual([]);
+  });
+
+  it("honours an explicit historyDays from the caller", () => {
+    const transactions = [
+      tx({
+        bookingDate: "2026-08-20",
+        amountCents: -80_000,
+        counterpartyIban: "NL99BANK0000000001",
+      }),
+    ];
+    expect(
+      detectNewPayeeHighValue({ dossierId: D, transactions, today: TODAY, historyDays: 200 })
+    ).toHaveLength(1);
+    expect(
+      detectNewPayeeHighValue({ dossierId: D, transactions, today: TODAY, historyDays: 10 })
+    ).toEqual([]);
+  });
+
   it("does not flag a payee seen before the window", () => {
     const transactions = [
+      tx({ bookingDate: "2026-03-01", amountCents: -3_000 }),
       tx({
         bookingDate: "2026-01-10",
         amountCents: -80_000,
@@ -259,6 +291,7 @@ describe("detectNewPayeeHighValue", () => {
 
   it("does not flag a small first payment", () => {
     const transactions = [
+      tx({ bookingDate: "2026-03-01", amountCents: -3_000 }),
       tx({
         bookingDate: "2026-08-20",
         amountCents: -2_000,
@@ -267,33 +300,6 @@ describe("detectNewPayeeHighValue", () => {
     ];
     expect(
       detectNewPayeeHighValue({ dossierId: D, transactions, today: TODAY })
-    ).toEqual([]);
-  });
-});
-
-describe("detectHighRiskMerchant", () => {
-  it("uses the curated list, never inference", () => {
-    for (const m of HIGH_RISK_MERCHANTS) {
-      expect(m.match).toBe(m.match.toLowerCase());
-      expect(["gokken", "crypto", "pandhuis"]).toContain(m.category);
-    }
-  });
-
-  it("flags a listed merchant at INFO severity — a question, not an alarm", () => {
-    const transactions = [
-      tx({ bookingDate: "2026-08-20", amountCents: -5_000, counterpartyName: "Holland Casino Utrecht" }),
-    ];
-    const cases = detectHighRiskMerchant({ dossierId: D, transactions, today: TODAY });
-    expect(cases).toHaveLength(1);
-    expect(cases[0].severity).toBe("info");
-  });
-
-  it("does not flag an unlisted merchant", () => {
-    const transactions = [
-      tx({ bookingDate: "2026-08-20", counterpartyName: "Coffeeshop De Vriendschap" }),
-    ];
-    expect(
-      detectHighRiskMerchant({ dossierId: D, transactions, today: TODAY })
     ).toEqual([]);
   });
 });
@@ -441,6 +447,23 @@ describe("detectBeneficiaryNameMismatch", () => {
       }),
     ];
     expect(detectBeneficiaryNameMismatch({ ...base, transactions })).toEqual([]);
+  });
+});
+
+describe("lawful spending is not a safeguarding signal (Temujin PR-10 r1 #3)", () => {
+  it("does not open a case for a casino, crypto or pawn payment", () => {
+    // Cut in review: a single lawful payment, with no baseline, frequency or
+    // affordability signal, does not justify filing a case about how someone
+    // spends money that is already administered by another person. "Info"
+    // severity and gentle copy do not undo that.
+    const transactions = [
+      tx({ bookingDate: "2026-08-20", amountCents: -5_000, counterpartyName: "Holland Casino Utrecht" }),
+      tx({ bookingDate: "2026-08-21", amountCents: -9_000, counterpartyName: "Bitvavo" }),
+      tx({ bookingDate: "2026-08-22", amountCents: -4_000, counterpartyName: "Used Products" }),
+    ];
+    const cases = runClientDetectors({ dossierId: D, transactions, today: TODAY });
+    expect(cases.map((c) => c.detectorKey)).not.toContain("high_risk_merchant");
+    expect(cases).toEqual([]);
   });
 });
 
@@ -605,11 +628,12 @@ describe("office-scope detectors (N5)", () => {
   });
 });
 
-describe("canDisposeCase — office cases are immutable to the actor they concern", () => {
+describe("canDisposeCase — office cases need an INDEPENDENT reviewer", () => {
   const bewind = {
     actorId: "actor-1",
     actorRole: "bewindvoerder" as const,
     actorActive: true,
+    disposition: "resolve" as const,
   };
 
   it("lets a bewindvoerder dispose of a client case", () => {
@@ -618,19 +642,66 @@ describe("canDisposeCase — office cases are immutable to the actor they concer
 
   it("REFUSES when the office case concerns the actor themselves", () => {
     expect(
-      canDisposeCase({ ...bewind, scope: "office", concernsActorId: "actor-1" })
+      canDisposeCase({
+        ...bewind,
+        scope: "office",
+        concernsActorId: "actor-1",
+        independentReviewerAvailable: true,
+      })
     ).toEqual({ allowed: false, reason: "concerns_self" });
   });
 
-  it("lets a different bewindvoerder dispose of it", () => {
+  it("lets an independent bewindvoerder resolve it", () => {
     expect(
       canDisposeCase({
         ...bewind,
         actorId: "actor-2",
         scope: "office",
         concernsActorId: "actor-1",
+        independentReviewerAvailable: true,
       })
     ).toEqual({ allowed: true });
+  });
+
+  it("REFUSES local resolution when no independent reviewer exists", () => {
+    // Temujin PR-10 r1 #2. In a solo office the sole bewindvoerder IS the
+    // office, so refusing only self-clearance lets them close a case about
+    // their own conduct — and `fee_above_schedule` names no actor at all, so
+    // it would slip through a null check.
+    expect(
+      canDisposeCase({
+        ...bewind,
+        scope: "office",
+        concernsActorId: null,
+        independentReviewerAvailable: false,
+      })
+    ).toEqual({ allowed: false, reason: "no_independent_reviewer" });
+  });
+
+  it("still permits ESCALATION with no reviewer — outward, not stuck", () => {
+    // The honest move when nobody independent exists is to send it to the
+    // appointing kantonrechter, not to leave the case unresolvable.
+    expect(
+      canDisposeCase({
+        ...bewind,
+        disposition: "escalate",
+        scope: "office",
+        concernsActorId: null,
+        independentReviewerAvailable: false,
+      })
+    ).toEqual({ allowed: true });
+  });
+
+  it("never lets the concerned actor escalate their own case either", () => {
+    expect(
+      canDisposeCase({
+        ...bewind,
+        disposition: "escalate",
+        scope: "office",
+        concernsActorId: "actor-1",
+        independentReviewerAvailable: false,
+      })
+    ).toEqual({ allowed: false, reason: "concerns_self" });
   });
 
   it("refuses an assistent regardless of scope", () => {
