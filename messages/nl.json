@@ -20,7 +20,8 @@
     },
     "team": "Team",
     "office": "Kantoor",
-    "safeguarding": "Signalering"
+    "safeguarding": "Signalering",
+    "processes": "Procedures"
   },
   "common": {
     "cancel": "Annuleren",
@@ -980,7 +981,13 @@
       "protective": "Opent een beschermend werkitem — stelt niets vast, alleen een mens sluit het af"
     },
     "mayLabel": "Mag",
-    "neverLabel": "Nooit"
+    "neverLabel": "Nooit",
+    "uneditedSplit": "{unedited} ongewijzigd overgenomen · {edited} eerst aangepast",
+    "timeToDecision": "mediaan {minutes} min tot besluit",
+    "candidacy": {
+      "candidate": "In {pct}% van de gevallen ongewijzigd overgenomen. Op basis hiervan zou deze soort in aanmerking komen voor automatisering — een notitie voor een mens, niet iets waar Frank naar handelt.",
+      "not_yet": "In {pct}% van de gevallen ongewijzigd overgenomen. Komt niet in aanmerking voor automatisering."
+    }
   },
   "obligations": {
     "group": {
@@ -1148,6 +1155,84 @@
       "response_required": "Vul het antwoord in",
       "invalid_destination": "Onbekende bestemming",
       "office_wide_needs_external_review": "Dit betreft het kantoor als geheel en moet naar een externe beoordelaar — u kunt het wel escaleren"
+    }
+  },
+  "processes": {
+    "intro": "Elke wettelijke procedure die dit kantoor draait, met waar elke procedure op wacht. Een procedure is geblokkeerd als niemand hier hem verder kan brengen — een rechtbank, een cliënt of een schuldeiser moet eerst iets doen.",
+    "derivedNote": "De status van een stap wordt afgeleid uit wat er werkelijk in het dossier staat, niet apart opgeslagen. Een stap is klaar omdat het werk klaar is, nooit omdat iemand een vinkje zette.",
+    "emptyTitle": "Geen lopende procedures",
+    "emptySentence": "Geen enkel open dossier heeft een procedure lopen.",
+    "tiles": {
+      "running": "Lopend",
+      "waitingOnYou": "Stappen voor u",
+      "blocked": "Wacht op anderen",
+      "overdue": "Te laat"
+    },
+    "definition": {
+      "intake": "Intake",
+      "rv_jaarlijks": "Jaarlijkse R&V",
+      "machtiging": "Machtiging",
+      "schuldtraject": "Schuldtraject",
+      "einde_bewind": "Einde bewind"
+    },
+    "status": {
+      "running": "lopend",
+      "blocked": "wacht op iemand anders",
+      "done": "klaar"
+    },
+    "awaiting": {
+      "court": "wacht op de rechtbank",
+      "client": "wacht op de cliënt",
+      "third_party": "wacht op een derde",
+      "office": "voor u"
+    },
+    "blockedBy": "eerst: {steps}",
+    "due": "uiterlijk {date}",
+    "overdueSince": "te laat sinds {date}",
+    "step": {
+      "intake": {
+        "beheerrekening": "Beheerrekening openen",
+        "leefgeldrekening": "Leefgeldrekening openen",
+        "aanschrijven_instanties": "Instanties aanschrijven",
+        "budgetplan": "Budgetplan opstellen",
+        "schulden_inventariseren": "Schulden inventariseren",
+        "boedelbeschrijving": "Boedelbeschrijving indienen",
+        "plan_van_aanpak": "Plan van aanpak vastleggen"
+      },
+      "rv_jaarlijks": {
+        "periode_vastleggen": "Rechtbank stelt de R&V-periode vast",
+        "transacties_compleet": "Alle transacties categoriseren",
+        "bespreking": "Bespreken met de cliënt",
+        "ondertekenen_indienen": "Ondertekenen en indienen"
+      },
+      "machtiging": {
+        "drempel_geconstateerd": "Drempel bereikt",
+        "verzoek_opstellen": "Verzoek opstellen",
+        "beschikking_vastleggen": "Beschikking vastleggen"
+      },
+      "schuldtraject": {
+        "inventariseren": "Schulden inventariseren",
+        "regelingen_treffen": "Betalingsregelingen treffen"
+      },
+      "einde_bewind": {
+        "eindrekening": "Eindrekening opstellen"
+      }
+    },
+    "activate": "Openstaande procedures starten",
+    "activating": "Bezig…",
+    "activateDone": "{count} procedure(s) gestart",
+    "activateNothingNew": "Niets nieuws te starten",
+    "activateFailed": "Procedures starten is niet gelukt",
+    "startedOn": "vanaf {date} · {source}",
+    "source": {
+      "dossier_start_date": "aanvang van de maatregel",
+      "rv_period": "door de rechtbank vastgestelde periode",
+      "machtiging_threshold": "drempel bereikt"
+    },
+    "alert": {
+      "title": "Het inplannen is verstoord.",
+      "body": "Het werk is vastgelegd, maar de procedures konden niet worden gestart voor {names}. Termijnen voor die dossiers worden nu niet bewaakt.",
+      "action": "Herstelronde uitvoeren"
     }
   }
 }

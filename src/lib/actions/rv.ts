@@ -6,6 +6,7 @@ import { rvPeriods } from "@/lib/db/schema";
 import { currentActor } from "@/lib/identity";
 import { canPerform } from "@/lib/domain/authz";
 import { writeAudit } from "@/lib/audit";
+import { activateProcessesFor } from "@/lib/actions/processes";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -65,6 +66,16 @@ export async function recordRvPeriod(
     versionAfter: values,
     reason: "court R&V period / bespreking recorded",
   });
+  // The court set the period; the R&V process starts from it.
+  // Scheduling must not fail invisibly: the period IS recorded either way,
+  // but a degraded result is surfaced rather than swallowed.
+  const scheduling = await activateProcessesFor(dossierId, actor.id);
+  if (scheduling.degraded) {
+    console.error(
+      "[frank:rv] R&V period recorded but its process was not scheduled",
+      dossierId
+    );
+  }
   revalidatePath(`/dossiers/${dossierId}`);
   return { ok: true };
 }

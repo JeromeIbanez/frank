@@ -207,11 +207,22 @@ export async function getNavCounts() {
   } catch {
     // Table may not exist yet on an un-migrated environment.
   }
+  let processesWaiting = 0;
+  try {
+    const { officeProcesses } = await import("@/lib/processes");
+    processesWaiting = (await officeProcesses()).summary.waitingOnYou;
+  } catch {
+    // Never let the badge take the shell down.
+  }
   return {
     dossiers: Number(dossierCount?.n ?? 0),
     openTasks: Number(openTaskCount?.n ?? 0),
     inboxNew: Number(inboxNew?.n ?? 0) + openObligations,
     safeguarding,
+    // Steps the office itself can act on. Deliberately NOT the count of
+    // running processes: a badge that includes work nobody here can move is
+    // a badge people learn to ignore.
+    processesWaiting,
   };
 }
 
