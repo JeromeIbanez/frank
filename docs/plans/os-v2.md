@@ -442,9 +442,20 @@ solo bewindvoerder, creates a case nobody can close. So:
   kantonrechter who appointed the bewindvoerder is the natural default.
 - Where neither exists the case stays open and visible rather than being
   quietly closable. An unresolvable open case is the honest state.
-- The demo seeds an independent reviewer so the path is demonstrable. In
-  production this needs a real governance policy, which is a Jerome decision,
-  not a code decision — recorded here as an open item, not silently assumed.
+- The demo seeds an independent reviewer so the path is demonstrable.
+
+**Decided by Jerome, 2026-08-27:** for a solo office the independent
+destination is **the kantonrechter** who appointed the bewindvoerder. That is
+now the default rather than an open question.
+
+**Future direction (NOT in v2, recorded so it is not lost):** an LLM acting
+as a standing independent inspector — reviewing office-scope cases, and more
+broadly auditing the office's own work as it happens, rather than only when a
+detector fires. Worth noting that this does not replace the kantonrechter: an
+inspector that reports to the same office it inspects is not independent in
+the sense that matters legally. The plausible shape is that it *prepares* what
+a kantonrechter or an external reviewer then reads, which is the same
+copilot-not-replacement rule applied to oversight itself.
 
 ### Ethical guardrails
 
