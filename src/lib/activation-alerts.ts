@@ -14,12 +14,19 @@ import { getDb } from "@/lib/db";
  * Outstanding is DERIVED, not stored, because `audit_events` is append-only
  * by DB grant (os-v1 PR-1) and there is nothing to mark resolved.
  *
- * A failure counts as repaired once a RECONCILIATION PASS has completed
- * successfully after it. An earlier version looked for a process instance
- * created after the failure, which was wrong in the common case: if the
- * dossier already had its instances, reconciliation correctly creates
- * nothing, and the alert could never clear. Running the repair IS the
- * repair, whether or not it had anything left to do.
+ * A failure counts as repaired once a reconciliation pass EVALUATED THAT
+ * DOSSIER after the failure was recorded. The rule lives in
+ * `domain/activation-alerts.ts` so it can be regression-tested; this SQL
+ * mirrors it and the two must agree.
+ *
+ * Two earlier versions were wrong, both in the direction of hiding a real
+ * problem:
+ *  - looking for a process instance created after the failure meant the
+ *    alert could never clear when the dossier already had its instances,
+ *    since reconciliation then correctly creates nothing;
+ *  - an office-wide "the pass ran" marker cleared every dossier at once,
+ *    including one that failed concurrently or a different client entirely
+ *    (Temujin PR-11 r5).
  */
 export type ActivationFailure = {
   dossierId: string;
@@ -47,7 +54,9 @@ export async function outstandingActivationFailures(): Promise<
          AND NOT EXISTS (
            SELECT 1 FROM audit_events r
             WHERE r.entity_type = 'process_activation_reconciled'
-              AND r.created_at > a.created_at
+              AND r.entity_id = a.entity_id
+              AND (r.version_after ->> 'evaluatedAt')::timestamptz
+                  > a.created_at
          )
        ORDER BY a.entity_id, a.created_at DESC
     `);

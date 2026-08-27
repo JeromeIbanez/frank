@@ -225,7 +225,13 @@ export async function activateProcesses(
   actorId: string,
   /** Limit to one dossier — used by the event-triggered call sites. */
   onlyDossierId?: string
-): Promise<{ ok: boolean; created: ActivatedInstance[] }> {
+): Promise<{
+  ok: boolean;
+  created: ActivatedInstance[];
+  /** Per dossier, the instant it was evaluated — NOT when the audit row is
+   *  written. A failure recorded mid-pass must not be cleared by it. */
+  evaluated: { dossierId: string; evaluatedAt: string }[];
+}> {
   const db = getDb();
 
   const ds = await db
@@ -240,7 +246,8 @@ export async function activateProcesses(
     (d) =>
       d.status !== "afgesloten" && (!onlyDossierId || d.id === onlyDossierId)
   );
-  if (live.length === 0) return { ok: true, created: [] };
+  if (live.length === 0) return { ok: true, created: [], evaluated: [] };
+  const evaluated: { dossierId: string; evaluatedAt: string }[] = [];
 
   const ids = live.map((d) => d.id);
   const [periods, machtiging] = await Promise.all([
@@ -265,6 +272,10 @@ export async function activateProcesses(
   }[] = [];
 
   for (const d of live) {
+    // Stamped BEFORE looking at the dossier, so anything that fails after
+    // this instant is not treated as covered by this pass.
+    evaluated.push({ dossierId: d.id, evaluatedAt: new Date().toISOString() });
+
     // Intake runs from the start of the measure. With no recorded start date
     // there is no honest date to run it from, so it does not start at all —
     // rather than being dated from the calendar.
@@ -319,14 +330,14 @@ export async function activateProcesses(
     }
   }
 
-  if (pending.length === 0) return { ok: true, created: [] };
+  if (pending.length === 0) return { ok: true, created: [], evaluated };
 
   const created: ActivatedInstance[] = [];
   for (const item of pending) {
     const row = await insertInstanceWithAudit(item, actorId);
     if (row) created.push(row);
   }
-  return { ok: true, created };
+  return { ok: true, created, evaluated };
 }
 
 /**

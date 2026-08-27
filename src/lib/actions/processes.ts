@@ -79,18 +79,22 @@ export async function activateProcessesAction(): Promise<ActivationResult> {
 
   try {
     const r = await activateProcesses(actor.id);
-    // Record that the repair ran. This is what clears the degraded-scheduling
-    // alert — running the pass IS the repair, whether or not it had anything
-    // left to create.
-    await writeAudit({
-      actorId: actor.id,
-      actorType: "human",
-      action: "update",
-      entityType: "process_activation_reconciled",
-      entityId: "office",
-      versionAfter: { created: r.created.length },
-      reason: "reconciliation pass completed",
-    });
+    // One row PER DOSSIER EVALUATED (Temujin PR-11 r5). An office-wide
+    // marker cleared every dossier at once — including a different client's
+    // unresolved failure, or one recorded while the pass was still running.
+    // `evaluatedAt` is when this dossier was looked at, not when the row was
+    // written, so a concurrent failure survives the pass that missed it.
+    for (const e of r.evaluated) {
+      await writeAudit({
+        actorId: actor.id,
+        actorType: "human",
+        action: "update",
+        entityType: "process_activation_reconciled",
+        entityId: e.dossierId,
+        versionAfter: { evaluatedAt: e.evaluatedAt },
+        reason: "reconciliation pass evaluated this dossier",
+      });
+    }
     revalidatePath("/processes");
     revalidatePath("/");
     return { ok: true, created: r.created.length };
