@@ -186,10 +186,21 @@ export async function getNavCounts() {
     .select({ n: sql<number>`count(*)` })
     .from(documents)
     .where(eq(documents.status, "new"));
+  // Obligations count too (plan os-v2 W1): the badge should mean "decisions
+  // waiting on you", not "files someone uploaded".
+  let openObligations = 0;
+  try {
+    const r = await db.execute<{ n: number }>(
+      sql`SELECT COUNT(*)::int AS n FROM obligations WHERE status = 'open'`
+    );
+    openObligations = Number(r.rows?.[0]?.n ?? 0);
+  } catch {
+    // Table may not exist yet on an un-migrated environment.
+  }
   return {
     dossiers: Number(dossierCount?.n ?? 0),
     openTasks: Number(openTaskCount?.n ?? 0),
-    inboxNew: Number(inboxNew?.n ?? 0),
+    inboxNew: Number(inboxNew?.n ?? 0) + openObligations,
   };
 }
 

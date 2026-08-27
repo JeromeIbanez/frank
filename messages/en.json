@@ -479,7 +479,20 @@
     "aiTriageNote": "AI triage proposes; nothing happens without your approval.",
     "empty": "Inbox empty.",
     "emptyTitle": "Inbox empty",
-    "emptySentence": "Uploaded documents appear here for AI triage and dossier linking."
+    "emptySentence": "Uploaded documents appear here for AI triage and dossier linking.",
+    "receive": "Receive post",
+    "receiving": "Receiving…",
+    "receiveDone": "{count} new item(s) received",
+    "receiveNothingNew": "Nothing new in the mailbox",
+    "receiveFailed": "Could not receive post",
+    "simulatedNote": "Simulated mailbox — synthetic data only",
+    "zeroTitle": "Nothing waiting",
+    "zeroSentence": "No obligations need a decision right now.",
+    "group": {
+      "needsRouting": "Needs a dossier",
+      "withFindings": "Frank found something",
+      "routine": "Routine"
+    }
   },
   "payments": {
     "title": "Payments",
@@ -967,5 +980,68 @@
     },
     "mayLabel": "May",
     "neverLabel": "Never"
+  },
+  "obligations": {
+    "group": {
+      "needsRouting": "Needs a dossier",
+      "withFindings": "Frank found something",
+      "routine": "Routine"
+    },
+    "kind": {
+      "payment_demand": "payment demand",
+      "information_request": "information request",
+      "court_filing": "court",
+      "decision_notice": "decision",
+      "client_request": "client request",
+      "appointment": "appointment",
+      "other": "other"
+    },
+    "matcher": {
+      "dossiernummer": "dossier number",
+      "bsn": "BSN",
+      "iban": "IBAN",
+      "debt_reference": "debt reference",
+      "contact_email": "sender",
+      "name": "name"
+    },
+    "due": "due {date}",
+    "routedTo": "Routed to",
+    "unrouted": "Frank could not identify the dossier",
+    "provisional": "Frank proposed this dossier. Confirm it before acting — nothing that depends on who this client is may proceed on an unconfirmed link.",
+    "confirmLink": "Confirm dossier",
+    "assign": "Assign",
+    "confirmFirst": "Confirm the dossier first",
+    "linkConfirmed": "Dossier confirmed",
+    "action": "Approve reply",
+    "actioned": "Obligation actioned",
+    "dismiss": "Dismiss",
+    "confirmDismiss": "Dismiss",
+    "dismissed": "Dismissed",
+    "cancel": "Cancel",
+    "reasonPlaceholder": "Reason (recorded in the audit log)",
+    "showSource": "Show the original letter",
+    "hideSource": "Hide the original letter",
+    "failed": "That did not work",
+    "noMoneyNote": "Approving a reply does not change any balance. A debt adjustment is a separate, explicit decision.",
+    "error": {
+      "link_unconfirmed": "Confirm the dossier first",
+      "not_open": "Already decided",
+      "not_found": "Not found",
+      "role_required": "Only a bewindvoerder can approve this",
+      "inactive_actor": "Your account is inactive",
+      "letter_not_approved": "The letter could not be approved",
+      "unknown_dossier": "Unknown dossier"
+    },
+    "wik": {
+      "title": "Collection costs exceed the statutory maximum",
+      "detail": "{charged} charged on a principal of {principal}. The statutory maximum is {max} — an excess of {excess}.",
+      "source": "Besluit vergoeding buitengerechtelijke incassokosten"
+    },
+    "draftReady": "Reply drafted",
+    "draftStatus": "draft · not sent",
+    "showDraft": "Show the draft",
+    "hideDraft": "Hide the draft",
+    "proposedDossier": "Frank proposes",
+    "actionedWithLetter": "Reply approved — not sent, and no money moved"
   }
 }

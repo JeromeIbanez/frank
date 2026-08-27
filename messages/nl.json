@@ -479,7 +479,20 @@
     "aiTriageNote": "AI-triage stelt voor; zonder uw goedkeuring gebeurt er niets.",
     "empty": "Postbus leeg.",
     "emptyTitle": "Postbus leeg",
-    "emptySentence": "Geüploade documenten verschijnen hier voor AI-triage en dossierkoppeling."
+    "emptySentence": "Geüploade documenten verschijnen hier voor AI-triage en dossierkoppeling.",
+    "receive": "Ontvang post",
+    "receiving": "Bezig…",
+    "receiveDone": "{count} nieuw(e) bericht(en) ontvangen",
+    "receiveNothingNew": "Niets nieuws in de postbus",
+    "receiveFailed": "Post ophalen is niet gelukt",
+    "simulatedNote": "Gesimuleerde postbus — alleen synthetische data",
+    "zeroTitle": "Niets in behandeling",
+    "zeroSentence": "Op dit moment vraagt geen enkele verplichting om een beslissing.",
+    "group": {
+      "needsRouting": "Dossier onbekend",
+      "withFindings": "Frank zag iets",
+      "routine": "Regulier"
+    }
   },
   "payments": {
     "title": "Betalingen",
@@ -967,5 +980,68 @@
     },
     "mayLabel": "Mag",
     "neverLabel": "Nooit"
+  },
+  "obligations": {
+    "group": {
+      "needsRouting": "Dossier onbekend",
+      "withFindings": "Frank zag iets",
+      "routine": "Regulier"
+    },
+    "kind": {
+      "payment_demand": "vordering",
+      "information_request": "informatieverzoek",
+      "court_filing": "rechtbank",
+      "decision_notice": "beschikking",
+      "client_request": "verzoek cliënt",
+      "appointment": "afspraak",
+      "other": "overig"
+    },
+    "matcher": {
+      "dossiernummer": "dossiernummer",
+      "bsn": "BSN",
+      "iban": "IBAN",
+      "debt_reference": "kenmerk schuld",
+      "contact_email": "afzender",
+      "name": "naam"
+    },
+    "due": "uiterlijk {date}",
+    "routedTo": "Gekoppeld aan",
+    "unrouted": "Frank kon het dossier niet vaststellen",
+    "provisional": "Frank stelt dit dossier voor. Bevestig het voordat u handelt — niets dat afhangt van wie deze cliënt is, gaat verder op een onbevestigde koppeling.",
+    "confirmLink": "Dossier bevestigen",
+    "assign": "Toewijzen",
+    "confirmFirst": "Bevestig eerst het dossier",
+    "linkConfirmed": "Dossier bevestigd",
+    "action": "Antwoord goedkeuren",
+    "actioned": "Afgehandeld",
+    "dismiss": "Afwijzen",
+    "confirmDismiss": "Afwijzen",
+    "dismissed": "Afgewezen",
+    "cancel": "Annuleren",
+    "reasonPlaceholder": "Reden (wordt vastgelegd in het auditlog)",
+    "showSource": "Toon de originele brief",
+    "hideSource": "Verberg de originele brief",
+    "failed": "Dat is niet gelukt",
+    "noMoneyNote": "Het goedkeuren van een antwoord wijzigt geen saldo. Een schuldmutatie is een aparte, expliciete beslissing.",
+    "error": {
+      "link_unconfirmed": "Bevestig eerst het dossier",
+      "not_open": "Al beslist",
+      "not_found": "Niet gevonden",
+      "role_required": "Alleen een bewindvoerder kan dit goedkeuren",
+      "inactive_actor": "Uw account is inactief",
+      "letter_not_approved": "De brief kon niet worden goedgekeurd",
+      "unknown_dossier": "Onbekend dossier"
+    },
+    "wik": {
+      "title": "Incassokosten overschrijden het wettelijk maximum",
+      "detail": "{charged} in rekening gebracht bij een hoofdsom van {principal}. Het wettelijk maximum is {max} — een overschrijding van {excess}.",
+      "source": "Besluit vergoeding buitengerechtelijke incassokosten"
+    },
+    "draftReady": "Concept-antwoord gereed",
+    "draftStatus": "concept · niet verzonden",
+    "showDraft": "Toon het concept",
+    "hideDraft": "Verberg het concept",
+    "proposedDossier": "Frank stelt voor",
+    "actionedWithLetter": "Antwoord goedgekeurd — niet verzonden, en er is geen geld verplaatst"
   }
 }

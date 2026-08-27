@@ -39,9 +39,11 @@ export type AgentActionClass =
   | "message_ingest"
   | "document_create"
   | "document_classify"
+  | "message_resolve"
   | "dossier_link"
   | "proposal_create"
   | "letter_draft"
+  | "obligation_create"
   // Waakhond — safeguarding
   | "safeguarding_case_open"
   | "clarification_draft"
@@ -77,9 +79,20 @@ export const ACTION_CATEGORY: Record<AgentActionClass, WriteCategory> = {
   message_ingest: "inbound_fact",
   document_create: "inbound_fact",
   document_classify: "interpretation",
+  // Recording WHAT the router concluded — confidence, matcher evidence, and
+  // whether it could identify a dossier at all. That is an interpretation in
+  // its own right and needs its own grant (Temujin PR-9 r2 #2): permission to
+  // ingest a message is not permission to draw a conclusion about it.
+  message_resolve: "interpretation",
   dossier_link: "interpretation",
   proposal_create: "draft",
   letter_draft: "draft",
+  // An obligation is a real work item about a real demand, not an inbound
+  // fact and not inert (Temujin PR-9 r1 #1) — same category as opening a
+  // safeguarding case, and permitted for the same reason: failing to raise
+  // one is the more dangerous error. It asserts nothing and only a human
+  // decides it.
+  obligation_create: "protective",
   safeguarding_case_open: "protective",
   clarification_draft: "draft",
   escalation_draft: "draft",
@@ -136,9 +149,11 @@ export const AGENTS: Record<AgentKey, AgentDefinition> = {
       "message_ingest",
       "document_create",
       "document_classify",
+      "message_resolve",
       "dossier_link",
       "proposal_create",
       "letter_draft",
+      "obligation_create",
     ],
     neverGrants: [
       "safeguarding_case_open",
