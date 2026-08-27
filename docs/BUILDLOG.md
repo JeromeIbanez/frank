@@ -1,5 +1,36 @@
 # Frank OS — Build Log
 
+## OS v2 PR-10: safeguarding shipped — 2026-08-27
+- Waakhond (PR #10, three review rounds → APPROVE): ten pure detectors,
+  safeguarding-v1, watching for financial abuse of the client AND by the
+  office. Guardrails are structural, not wording: per-client baselines
+  (someone who lives in cash is never flagged for being themselves), a
+  detector with too little history ABSTAINS, and no relationship-based
+  detector exists.
+- **Two detectors cut in review, both for false-positive harm.**
+  `high_risk_merchant` (Temujin, answering my own question): a single
+  lawful payment with no baseline, frequency or affordability signal does
+  not justify filing a casino/crypto/pawn transaction as a safeguarding
+  signal about someone whose money is already administered by another
+  person — "info" severity and gentle copy do not undo that. Earlier,
+  `payment_to_related_contact` in plan rev 2.
+- Found while testing: the structuring detector's €250 threshold fired on
+  ordinary €200 withdrawals — what living on leefgeld looks like.
+- Clarification questions are B1 Dutch with the rules ENCODED and tested:
+  never fraude/misbruik/verdacht, always say why we ask, always offer "ik
+  weet het niet meer", always affirm the money is the client's own and
+  needs no permission. A name mismatch has NO client question (they cannot
+  know whose account a company uses); nor does any office case.
+- N5 enforcement took two rounds: `four_eyes_violation` was citing
+  synthesised audit ids (evidence-shaped, not evidence) and now verifies
+  the real rows; and *availability* of an independent reviewer was confused
+  with *assignment* — an actorless office case (fee_above_schedule) now
+  cannot be resolved inside the office at all. The concerned actor MAY
+  escalate: self-reporting is not self-clearance.
+- Jerome's decision recorded: solo office escalates to the appointing
+  kantonrechter. Future direction noted (LLM as standing inspector).
+- 423 tests; office and client scenarios verified live.
+
 ## OS v2 PR-9: obligation inbox shipped — 2026-08-27 (the demo motion)
 - Inbox is now the OBLIGATION QUEUE (PR #9, three review rounds → APPROVE).
   An inbound item is not a document: someone outside demands a response,
