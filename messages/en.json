@@ -1228,6 +1228,11 @@
       "dossier_start_date": "start of the measure",
       "rv_period": "court-set period",
       "machtiging_threshold": "threshold reached"
+    },
+    "alert": {
+      "title": "Scheduling is degraded.",
+      "body": "The work was recorded, but its processes could not be started for {names}. Deadlines for those dossiers are not being tracked.",
+      "action": "Run the reconciliation pass"
     }
   }
 }

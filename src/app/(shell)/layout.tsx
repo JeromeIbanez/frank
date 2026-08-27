@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { AppSidebar } from "@/components/app-sidebar";
 import { IdentityControl } from "@/components/identity-control";
 import { Topbar } from "@/components/topbar";
+import { ActivationAlert } from "@/components/activation-alert";
 import { currentActor } from "@/lib/identity";
 
 /** Authenticated app shell. Sign-in renders outside this group. */
@@ -27,6 +28,9 @@ export default async function ShellLayout({
       <AppSidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar identitySlot={<IdentityControl />} />
+        {/* Non-dismissible: degraded scheduling follows the user rather than
+            living on the one page they were not looking at. */}
+        <ActivationAlert />
         <main className="flex-1 px-8 py-6 max-w-[1180px] w-full mx-auto">
           {children}
         </main>

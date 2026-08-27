@@ -79,6 +79,18 @@ export async function activateProcessesAction(): Promise<ActivationResult> {
 
   try {
     const r = await activateProcesses(actor.id);
+    // Record that the repair ran. This is what clears the degraded-scheduling
+    // alert — running the pass IS the repair, whether or not it had anything
+    // left to create.
+    await writeAudit({
+      actorId: actor.id,
+      actorType: "human",
+      action: "update",
+      entityType: "process_activation_reconciled",
+      entityId: "office",
+      versionAfter: { created: r.created.length },
+      reason: "reconciliation pass completed",
+    });
     revalidatePath("/processes");
     revalidatePath("/");
     return { ok: true, created: r.created.length };

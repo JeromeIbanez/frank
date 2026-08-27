@@ -1228,6 +1228,11 @@
       "dossier_start_date": "aanvang van de maatregel",
       "rv_period": "door de rechtbank vastgestelde periode",
       "machtiging_threshold": "drempel bereikt"
+    },
+    "alert": {
+      "title": "Het inplannen is verstoord.",
+      "body": "Het werk is vastgelegd, maar de procedures konden niet worden gestart voor {names}. Termijnen voor die dossiers worden nu niet bewaakt.",
+      "action": "Herstelronde uitvoeren"
     }
   }
 }
