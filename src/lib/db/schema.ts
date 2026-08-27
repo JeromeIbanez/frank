@@ -964,3 +964,92 @@ export const obligationsRelations = relations(obligations, ({ one }) => ({
     references: [messages.id],
   }),
 }));
+
+// ---------- Safeguarding (plan os-v2 W2 / PR-10) ----------
+//
+// Signals stay materialized POINTERS; durable casework lives here. A case is
+// a protective work item about a real person's money — sometimes about their
+// family, sometimes about this office — so it is deliberately heavier than a
+// signal: immutable detector evidence, the client's own explanation as
+// first-class content, and a disposition that only a human can make.
+//
+// N4: nothing here asserts fraud. N5: an office-scope case is IMMUTABLE to
+// the actor it concerns, and where no independent reviewer exists it stays
+// open rather than quietly closable.
+
+export const safeguardingCases = pgTable(
+  "safeguarding_cases",
+  {
+    id: text("id").primaryKey().$defaultFn(createId),
+    detectorKey: text("detector_key").notNull(),
+    detectorVersion: text("detector_version").notNull(),
+    dedupeKey: text("dedupe_key").notNull(),
+    scope: text("scope", { enum: ["client", "office"] }).notNull(),
+    dossierId: text("dossier_id").references(() => dossiers.id),
+    /** Office scope: the actor this case concerns, who may not dispose of it. */
+    concernsActorId: text("concerns_actor_id"),
+    severity: text("severity", { enum: ["red", "amber", "info"] }).notNull(),
+    /** Immutable at open time — the facts the detector actually saw. */
+    evidence: jsonb("evidence").$type<Record<string, unknown>>(),
+
+    status: text("status", {
+      enum: ["open", "clarifying", "explained", "resolved", "escalated"],
+    })
+      .notNull()
+      .default("open"),
+
+    /** The B1-Dutch question put to the client, and their answer. */
+    clarificationMessageId: text("clarification_message_id").references(
+      () => messages.id
+    ),
+    clientResponseMessageId: text("client_response_message_id").references(
+      () => messages.id
+    ),
+
+    dispositionReason: text("disposition_reason"),
+    dispositionBy: text("disposition_by"),
+    dispositionAt: timestamp("disposition_at"),
+
+    escalationGround: text("escalation_ground"),
+    escalationDestination: text("escalation_destination"),
+    escalationDocumentId: text("escalation_document_id").references(
+      () => letters.id
+    ),
+
+    agentKey: text("agent_key"),
+    openedAt: timestamp("opened_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("safeguarding_dedupe_unique").on(t.dedupeKey),
+    index("safeguarding_status").on(t.status, t.severity),
+  ]
+);
+
+export const safeguardingCasesRelations = relations(
+  safeguardingCases,
+  ({ one }) => ({
+    dossier: one(dossiers, {
+      fields: [safeguardingCases.dossierId],
+      references: [dossiers.id],
+    }),
+  })
+);
+
+/**
+ * Accounts belonging to the office or to an office actor (plan os-v2 N5).
+ *
+ * Office configuration, maintained by a human — this is what lets Frank
+ * recognise a payment to itself. Without it the office-scope detectors have
+ * nothing to compare against and correctly stay silent, which is why the
+ * table exists rather than the IBANs being inferred from anywhere.
+ */
+export const officeAccounts = pgTable("office_accounts", {
+  id: text("id").primaryKey().$defaultFn(createId),
+  iban: text("iban").notNull().unique(),
+  /** The actor this account belongs to, when it is personal rather than the
+   *  firm's. Drives who may not dispose of a resulting case. */
+  actorId: text("actor_id"),
+  label: text("label").notNull(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
