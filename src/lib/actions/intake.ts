@@ -24,6 +24,11 @@ import {
   type ProposalPayload,
 } from "@/lib/domain/intake";
 import { callStructured, MODEL_STRUCTURED, PROMPT_VERSION } from "@/lib/ai/gateway";
+import {
+  agentContext,
+  assertAgentMay,
+  agentActorId,
+} from "@/lib/agent-context";
 import { addBudgetLine } from "@/lib/actions/budget";
 import { addAccount } from "@/lib/actions/dossiers";
 
@@ -208,7 +213,7 @@ export async function extractIntakeProposals(documentId: string): Promise<{
   unavailable?: boolean;
   error?: string;
 }> {
-  await currentActor(); // authenticated context required; AI runs as frank-ai
+  await currentActor(); // a human session must be present to trigger this
   const db = getDb();
   const doc = await db.query.documents.findFirst({
     where: eq(documents.id, documentId),
@@ -217,7 +222,18 @@ export async function extractIntakeProposals(documentId: string): Promise<{
   if (!doc.dossierId) return { ok: false, error: "not_linked" };
   if (!doc.textContent) return { ok: false, error: "no_text" };
 
+  // Extraction runs as a NAMED agent with a capability ceiling (plan os-v2
+  // N1). The context is built here, in code, from a registry key — never
+  // from a request field or model output (N1b). The gate is the first thing
+  // that happens before any write, and it throws rather than no-ops.
+  const ctx = agentContext("postbode");
+  await assertAgentMay(ctx, "proposal_create", {
+    type: "document",
+    id: doc.id,
+  });
+
   const res = await callStructured({
+    agentKey: ctx.agentKey,
     purpose: "extract",
     schema: extractionResultFlat,
     keepIban: true,
@@ -250,6 +266,7 @@ export async function extractIntakeProposals(documentId: string): Promise<{
         dossierId: doc.dossierId,
         sourceDocumentId: doc.id,
         sourceDocumentSha256: doc.sha256,
+        agentKey: ctx.agentKey,
         kind: verdict.sanitizedPayload.kind,
         payload: verdict.sanitizedPayload,
         fieldProvenance: verdict.verified,
@@ -268,12 +285,13 @@ export async function extractIntakeProposals(documentId: string): Promise<{
   }
   if (created > 0) {
     await writeAudit({
-      actorId: "frank-ai",
+      actorId: agentActorId(ctx),
       actorType: "agent",
       action: "ai_call",
       entityType: "document",
       entityId: doc.id,
       sourceDocumentHash: doc.sha256,
+      correlationId: ctx.correlationId,
       versionAfter: { proposals: created, extractorVersion },
       reason: "intake extraction proposals (human decision pending)",
     });

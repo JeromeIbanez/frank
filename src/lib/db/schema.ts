@@ -450,6 +450,9 @@ export const aiProposals = pgTable(
     /** Immutable copy of the source document's hash at extraction time —
      *  provenance must not depend on a mutable relation (Temujin PR-6 #4). */
     sourceDocumentSha256: text("source_document_sha256").notNull().default(""),
+    /** Which agent produced this proposal (plan os-v2 PR-8). Null on rows
+     *  predating the agent runtime; new proposals always carry it. */
+    agentKey: text("agent_key"),
     kind: text("kind", {
       enum: ["budget_line", "debt", "contact", "account_opening_balance"],
     }).notNull(),
@@ -675,6 +678,9 @@ export const auditEvents = pgTable(
 export const aiCalls = pgTable("ai_calls", {
   id: text("id").primaryKey().$defaultFn(createId),
   purpose: text("purpose").notNull(), // classify | extract | categorize | draft | copilot
+  /** Which agent spent this (plan os-v2 PR-8). Null = human-invoked call
+   *  such as the copilot, which runs as the human, not as an agent. */
+  agentKey: text("agent_key"),
   model: text("model").notNull(),
   promptVersion: text("prompt_version").notNull(),
   dataClass: text("data_class").notNull(), // synthetic_demo (only value until auth)

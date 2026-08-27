@@ -942,5 +942,30 @@
       "unknown": "Could not log time."
     },
     "vatNote": "Amounts are the statutory amounts excluding VAT. Whether VAT applies depends on this office's own tax position — Frank does not assume it."
+  },
+  "agents": {
+    "title": "Agents",
+    "ceilingNote": "What each agent may do is decided in code and enforced on the server — not asked of the model. An agent cannot call an action outside its grant.",
+    "neverNote": "No agent can apply a debt event, move money, approve anything, file with a court, or send outbound communication. Those acts are not in the agent vocabulary at all, so none can be requested.",
+    "neverTitle": "Explicitly withheld from this agent",
+    "callCount": "{count} calls",
+    "acceptRate": "{pct}% accepted",
+    "noActivity": "no activity yet",
+    "denials": "{count} refused — action outside the ceiling",
+    "name": {
+      "postbode": "Postbode · intake",
+      "waakhond": "Waakhond · safeguarding",
+      "griffier": "Griffier · court",
+      "kassier": "Kassier · cash",
+      "rechtenjager": "Rechtenjager · entitlements"
+    },
+    "category": {
+      "inbound_fact": "Records that something arrived",
+      "interpretation": "Frank's reading of a fact — revisable, never confirmed",
+      "draft": "A draft — changes nothing until a human accepts it",
+      "protective": "Opens a protective work item — asserts nothing, disposed of only by a human"
+    },
+    "mayLabel": "May",
+    "neverLabel": "Never"
   }
 }

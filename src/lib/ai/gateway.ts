@@ -22,6 +22,7 @@ import { z } from "zod";
 import { count, sum } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { aiCalls } from "@/lib/db/schema";
+import type { AgentKey } from "@/lib/domain/agents";
 
 export const PROMPT_VERSION = "2026-08.1";
 export const DATA_CLASS = "synthetic_demo"; // only value until auth exists
@@ -77,6 +78,9 @@ async function capExceeded(): Promise<boolean> {
 async function logCall(input: {
   purpose: string;
   model: string;
+  /** Set when the call was made by a named agent (plan os-v2 PR-8);
+   *  null for human-invoked calls such as the copilot. */
+  agentKey?: AgentKey;
   inputTokens?: number;
   outputTokens?: number;
   ok: boolean;
@@ -87,6 +91,7 @@ async function logCall(input: {
     await db.insert(aiCalls).values({
       purpose: input.purpose,
       model: input.model,
+      agentKey: input.agentKey ?? null,
       promptVersion: PROMPT_VERSION,
       dataClass: DATA_CLASS,
       inputTokens: input.inputTokens ?? null,
@@ -113,6 +118,7 @@ export async function callStructured<T>(input: {
   system: string;
   prompt: string;
   keepIban?: boolean;
+  agentKey?: AgentKey;
 }): Promise<AiResult<T>> {
   if (await capExceeded()) {
     return { ok: false, unavailable: true, reason: "token_cap" };
@@ -127,6 +133,7 @@ export async function callStructured<T>(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_STRUCTURED,
+      agentKey: input.agentKey,
       inputTokens: res.usage?.inputTokens,
       outputTokens: res.usage?.outputTokens,
       ok: true,
@@ -142,6 +149,7 @@ export async function callStructured<T>(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_STRUCTURED,
+      agentKey: input.agentKey,
       ok: false,
       error: e instanceof Error ? e.message : String(e),
     });
@@ -202,6 +210,8 @@ export async function callChatStream(input: {
     });
     return { ok: true, result };
   } catch (e) {
+    // No agentKey: the copilot runs as the human who opened it, not as an
+    // agent. Only agent-driven calls are attributed to an agent.
     await logCall({
       purpose: input.purpose,
       model: MODEL_DRAFTING,
@@ -218,6 +228,7 @@ export async function callDraft(input: {
   system: string;
   prompt: string;
   keepIban?: boolean;
+  agentKey?: AgentKey;
 }): Promise<AiResult<string>> {
   if (await capExceeded()) {
     return { ok: false, unavailable: true, reason: "token_cap" };
@@ -231,6 +242,7 @@ export async function callDraft(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_DRAFTING,
+      agentKey: input.agentKey,
       inputTokens: res.usage?.inputTokens,
       outputTokens: res.usage?.outputTokens,
       ok: true,
@@ -240,6 +252,7 @@ export async function callDraft(input: {
     await logCall({
       purpose: input.purpose,
       model: MODEL_DRAFTING,
+      agentKey: input.agentKey,
       ok: false,
       error: e instanceof Error ? e.message : String(e),
     });
